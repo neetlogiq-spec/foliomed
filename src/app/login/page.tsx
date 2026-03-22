@@ -4,17 +4,17 @@ import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<"google" | "apple" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const handleGoogleLogin = async () => {
-    setIsLoading(true);
+  const handleOAuthLogin = async (provider: "google" | "apple") => {
+    setIsLoading(provider);
     setError(null);
 
     try {
       const supabase = createClient();
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
+        provider,
         options: {
           redirectTo: `${window.location.origin}/api/auth/callback`,
         },
@@ -22,11 +22,11 @@ export default function LoginPage() {
 
       if (error) {
         setError(error.message);
-        setIsLoading(false);
+        setIsLoading(null);
       }
     } catch {
       setError("Something went wrong. Please try again.");
-      setIsLoading(false);
+      setIsLoading(null);
     }
   };
 
@@ -58,10 +58,10 @@ export default function LoginPage() {
             </svg>
           </div>
           <h1 className="text-3xl font-bold text-white tracking-tight">
-            PG PMS
+            FolioMed
           </h1>
           <p className="text-slate-400 mt-2 text-sm">
-            Patient Management for Pediatric PG Residents
+            Patient Management for PG Residents
           </p>
         </div>
 
@@ -71,7 +71,7 @@ export default function LoginPage() {
             <div className="text-center">
               <h2 className="text-lg font-semibold text-white">Welcome back</h2>
               <p className="text-slate-400 text-sm mt-1">
-                Sign in with your institutional Google account
+                Sign in to continue
               </p>
             </div>
 
@@ -81,12 +81,13 @@ export default function LoginPage() {
               </div>
             )}
 
+            {/* Google Sign-In */}
             <button
-              onClick={handleGoogleLogin}
-              disabled={isLoading}
+              onClick={() => handleOAuthLogin("google")}
+              disabled={isLoading !== null}
               className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white hover:bg-gray-50 text-gray-800 font-medium rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-white/10 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
             >
-              {isLoading ? (
+              {isLoading === "google" ? (
                 <div className="w-5 h-5 border-2 border-gray-300 border-t-gray-800 rounded-full animate-spin" />
               ) : (
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -108,7 +109,30 @@ export default function LoginPage() {
                   />
                 </svg>
               )}
-              <span>{isLoading ? "Signing in..." : "Continue with Google"}</span>
+              <span>{isLoading === "google" ? "Signing in..." : "Continue with Google"}</span>
+            </button>
+
+            {/* Divider */}
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-px bg-white/10" />
+              <span className="text-xs text-slate-500">or</span>
+              <div className="flex-1 h-px bg-white/10" />
+            </div>
+
+            {/* Apple Sign-In */}
+            <button
+              onClick={() => handleOAuthLogin("apple")}
+              disabled={isLoading !== null}
+              className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-black hover:bg-gray-900 text-white font-medium rounded-xl border border-white/20 transition-all duration-200 hover:shadow-lg hover:shadow-white/5 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
+            >
+              {isLoading === "apple" ? (
+                <div className="w-5 h-5 border-2 border-gray-600 border-t-white rounded-full animate-spin" />
+              ) : (
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
+                </svg>
+              )}
+              <span>{isLoading === "apple" ? "Signing in..." : "Continue with Apple"}</span>
             </button>
           </div>
 
@@ -122,7 +146,7 @@ export default function LoginPage() {
 
         {/* Footer */}
         <p className="text-center text-xs text-slate-600 mt-6">
-          PG PMS v1.0 — Built for PG Residents
+          FolioMed v1.0 — Built for PG Residents
         </p>
       </div>
     </div>
