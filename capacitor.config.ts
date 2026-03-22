@@ -21,6 +21,10 @@ const config: CapacitorConfig = {
   },
   android: {
     allowMixedContent: false,
+    // Google blocks Google Sign-In within WebViews ('wv' in user agent).
+    // We override the Android user agent to spoof a standard Chrome Mobile browser,
+    // bypassing the "403 disallowed_useragent" error without breaking App Links.
+    overrideUserAgent: "Mozilla/5.0 (Linux; Android 13; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Mobile Safari/537.36 FolioMedNative",
   },
   plugins: {
     SplashScreen: {
