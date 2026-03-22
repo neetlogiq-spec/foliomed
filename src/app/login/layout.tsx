@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
-  title: "Sign In — PG PMS",
-  description: "Sign in to PG PMS with your Google account",
+  title: "Sign In — FolioMed",
+  description: "Sign in to FolioMed with your Google or Apple account",
 };
 
 export default function AuthLayout({
@@ -10,5 +11,5 @@ export default function AuthLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return <Suspense>{children}</Suspense>;
 }

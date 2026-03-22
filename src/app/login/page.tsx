@@ -1,11 +1,43 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+
+// Use canonical app URL to avoid www vs non-www redirect mismatches
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://foliomed.app";
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState<"google" | "apple" | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Handle OAuth code that lands on /login instead of /api/auth/callback
+  // This happens when Supabase redirects to a URL not in the allowed list
+  useEffect(() => {
+    const code = searchParams.get("code");
+    if (!code) return;
+
+    const exchangeCode = async () => {
+      setIsLoading("google");
+      try {
+        const supabase = createClient();
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        if (error) {
+          setError(error.message);
+          setIsLoading(null);
+        } else {
+          router.replace("/dashboard");
+        }
+      } catch {
+        setError("Failed to complete sign-in. Please try again.");
+        setIsLoading(null);
+      }
+    };
+
+    exchangeCode();
+  }, [searchParams, router]);
 
   const handleOAuthLogin = async (provider: "google" | "apple") => {
     setIsLoading(provider);
@@ -16,7 +48,7 @@ export default function LoginPage() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
-          redirectTo: `${window.location.origin}/api/auth/callback`,
+          redirectTo: `${APP_URL}/api/auth/callback`,
         },
       });
 
