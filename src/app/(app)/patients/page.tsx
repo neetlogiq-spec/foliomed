@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { PatientListClient } from "./PatientListClient";
+import { CachePatientList } from "@/components/shared/OfflineCache";
 import Link from "next/link";
 
 export default async function PatientsPage() {
@@ -57,7 +58,9 @@ export default async function PatientsPage() {
           New Admission
         </Link>
       </div>
+      <CachePatientList patients={patients ?? []} />
       <PatientListClient patients={patients ?? []} />
     </div>
   );
 }
+
