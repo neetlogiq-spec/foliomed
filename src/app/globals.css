@@ -128,3 +128,21 @@
     @apply font-sans;
   }
 }
+
+/* ── PDF / Print ───────────────────────────── */
+@media print {
+  body * {
+    visibility: hidden !important;
+  }
+  #print-area,
+  #print-area * {
+    visibility: visible !important;
+    display: block !important;
+  }
+  #print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}
