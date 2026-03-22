@@ -14,30 +14,16 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
 
   // Handle OAuth code that lands on /login instead of /api/auth/callback
-  // This happens when Supabase redirects to a URL not in the allowed list
+  // Redirect to the server-side callback which has access to the PKCE verifier in cookies
   useEffect(() => {
     const code = searchParams.get("code");
     if (!code) return;
 
-    const exchangeCode = async () => {
-      setIsLoading("google");
-      try {
-        const supabase = createClient();
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
-        if (error) {
-          setError(error.message);
-          setIsLoading(null);
-        } else {
-          router.replace("/dashboard");
-        }
-      } catch {
-        setError("Failed to complete sign-in. Please try again.");
-        setIsLoading(null);
-      }
-    };
-
-    exchangeCode();
-  }, [searchParams, router]);
+    // Redirect to the server-side route that can properly exchange the code
+    // (PKCE verifier is stored in cookies, only accessible server-side)
+    setIsLoading("google");
+    window.location.href = `/api/auth/callback?code=${encodeURIComponent(code)}`;
+  }, [searchParams]);
 
   const handleOAuthLogin = async (provider: "google" | "apple") => {
     setIsLoading(provider);
