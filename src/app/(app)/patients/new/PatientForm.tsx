@@ -54,33 +54,23 @@ export function PatientForm() {
             <svg className="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
             </svg>
-            Patient Demographics
+            Fill in the patient details below. Fields marked with * are required.
           </CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="mrd_number" className="text-slate-300">
-              MRD Number <span className="text-red-400">*</span>
+            <Label htmlFor="ip_number" className="text-slate-300">
+              IP Number <span className="text-red-400">*</span>
             </Label>
-            <Input
-              id="mrd_number"
-              placeholder="e.g. MRD-2026-001"
-              className="bg-white/5 border-white/10 text-white placeholder:text-slate-500"
-              {...register("mrd_number")}
-            />
-            {errors.mrd_number && (
-              <p className="text-xs text-red-400">{errors.mrd_number.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="ip_number" className="text-slate-300">IP Number</Label>
             <Input
               id="ip_number"
               placeholder="IP number"
               className="bg-white/5 border-white/10 text-white placeholder:text-slate-500"
               {...register("ip_number")}
             />
+            {errors.ip_number && (
+              <p className="text-xs text-red-400">{errors.ip_number.message}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -119,7 +109,7 @@ export function PatientForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="sex" className="text-slate-300">Sex</Label>
+            <Label htmlFor="sex" className="text-slate-300">Sex <span className="text-red-400">*</span></Label>
             <select
               id="sex"
               className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm text-white"
@@ -130,6 +120,9 @@ export function PatientForm() {
               <option value="female" className="bg-slate-900">Female</option>
               <option value="other" className="bg-slate-900">Other</option>
             </select>
+            {errors.sex && (
+              <p className="text-xs text-red-400">{errors.sex.message}</p>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -310,13 +303,16 @@ export function PatientForm() {
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="ward" className="text-slate-300">Ward</Label>
+            <Label htmlFor="ward" className="text-slate-300">Ward <span className="text-red-400">*</span></Label>
             <Input
               id="ward"
               placeholder="e.g. NICU, Pediatric Ward"
               className="bg-white/5 border-white/10 text-white placeholder:text-slate-500"
               {...register("ward")}
             />
+            {errors.ward && (
+              <p className="text-xs text-red-400">{errors.ward.message}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -340,23 +336,29 @@ export function PatientForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="admission_date" className="text-slate-300">Admission Date</Label>
+            <Label htmlFor="admission_date" className="text-slate-300">Admission Date <span className="text-red-400">*</span></Label>
             <Input
               id="admission_date"
               type="date"
               className="bg-white/5 border-white/10 text-white"
               {...register("admission_date")}
             />
+            {errors.admission_date && (
+              <p className="text-xs text-red-400">{errors.admission_date.message}</p>
+            )}
           </div>
 
           <div className="space-y-2 md:col-span-2">
-            <Label htmlFor="diagnosis" className="text-slate-300">Diagnosis</Label>
+            <Label htmlFor="diagnosis" className="text-slate-300">Diagnosis <span className="text-red-400">*</span></Label>
             <Input
               id="diagnosis"
               placeholder="e.g. Pneumonia, Sepsis, Febrile seizures"
               className="bg-white/5 border-white/10 text-white placeholder:text-slate-500"
               {...register("diagnosis")}
             />
+            {errors.diagnosis && (
+              <p className="text-xs text-red-400">{errors.diagnosis.message}</p>
+            )}
           </div>
 
           <div className="flex items-center gap-2 pt-6">

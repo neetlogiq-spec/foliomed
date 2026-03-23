@@ -6,7 +6,7 @@ export default async function LogbookPage() {
 
   const { data: entries } = await supabase
     .from("case_log")
-    .select(`*, profiles:user_id ( full_name ), patients:patient_id ( first_name, last_name, mrd_number )`)
+    .select(`*, profiles:user_id ( full_name ), patients:patient_id ( first_name, last_name )`)
     .order("logged_at", { ascending: false })
     .limit(100);
 

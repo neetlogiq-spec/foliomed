@@ -11,7 +11,6 @@ export default async function PatientsPage() {
     .select(
       `
       id,
-      mrd_number,
       ip_number,
       first_name,
       last_name,

@@ -106,7 +106,7 @@ export function LogbookClient({ entries }: LogbookClientProps) {
                     </div>
                     {entry.patients && (
                       <p className="text-xs text-blue-400 mb-1">
-                        {entry.patients.first_name} {entry.patients.last_name || ""} — {entry.patients.mrd_number}
+                        {entry.patients.first_name} {entry.patients.last_name || ""}
                       </p>
                     )}
                     {entry.procedure_done && (

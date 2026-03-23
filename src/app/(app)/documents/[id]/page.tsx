@@ -14,7 +14,7 @@ export default async function DocumentDetailPage({
 
   const { data: doc, error } = await supabase
     .from("case_documents")
-    .select(`*, patients:patient_id ( first_name, last_name, mrd_number )`)
+    .select(`*, patients:patient_id ( first_name, last_name )`)
     .eq("id", id)
     .single();
 
@@ -22,7 +22,7 @@ export default async function DocumentDetailPage({
 
   const content = doc.content as { blocks?: Block[] } | null;
   const blocks: Block[] = content?.blocks ?? [{ id: "1", type: "text", content: "" }];
-  const patient = doc.patients as { first_name: string; last_name?: string; mrd_number: string } | null;
+  const patient = doc.patients as { first_name: string; last_name?: string } | null;
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
@@ -37,7 +37,7 @@ export default async function DocumentDetailPage({
           <>
             <span className="text-slate-600">·</span>
             <Link href={`/patients/${doc.patient_id}`} className="text-xs text-blue-400 hover:text-blue-300">
-              {patient.first_name} {patient.last_name || ""} ({patient.mrd_number})
+              {patient.first_name} {patient.last_name || ""}
             </Link>
           </>
         )}

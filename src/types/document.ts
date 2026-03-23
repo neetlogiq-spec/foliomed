@@ -18,7 +18,7 @@ export interface CaseDocument {
   created_at: string;
   updated_at: string;
   // joined
-  patients?: { first_name: string; last_name?: string; mrd_number: string };
+  patients?: { first_name: string; last_name?: string };
   profiles?: { full_name: string };
 }
 

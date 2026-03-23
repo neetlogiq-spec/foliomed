@@ -8,7 +8,7 @@ export default async function DocumentsListPage() {
 
   const { data: docs } = await supabase
     .from("case_documents")
-    .select(`*, patients:patient_id ( first_name, last_name, mrd_number ), profiles:created_by ( full_name )`)
+    .select(`*, patients:patient_id ( first_name, last_name ), profiles:created_by ( full_name )`)
     .order("updated_at", { ascending: false })
     .limit(50);
 
@@ -29,7 +29,7 @@ export default async function DocumentsListPage() {
       ) : (
         <div className="space-y-2">
           {docs.map((doc) => {
-            const patient = doc.patients as { first_name: string; last_name?: string; mrd_number: string } | null;
+            const patient = doc.patients as { first_name: string; last_name?: string } | null;
             const author = doc.profiles as { full_name: string } | null;
             return (
               <Link key={doc.id} href={`/documents/${doc.id}`}>
@@ -51,7 +51,7 @@ export default async function DocumentsListPage() {
                       <div className="flex items-center gap-3 text-xs text-slate-400">
                         {patient && (
                           <span className="text-blue-400">
-                            {patient.first_name} {patient.last_name || ""} — {patient.mrd_number}
+                            {patient.first_name} {patient.last_name || ""}
                           </span>
                         )}
                         {author && <span>{author.full_name}</span>}

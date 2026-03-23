@@ -1,12 +1,11 @@
 import { z } from "zod/v4";
 
 export const patientFormSchema = z.object({
-  mrd_number: z.string().min(1, "MRD number is required"),
-  ip_number: z.string().optional(),
+  ip_number: z.string().min(1, "IP number is required"),
   first_name: z.string().min(1, "First name is required"),
   last_name: z.string().optional(),
   date_of_birth: z.string().optional(),
-  sex: z.enum(["male", "female", "other"]).optional(),
+  sex: z.enum(["male", "female", "other"], { error: "Sex is required" }),
   weight_kg: z.coerce.number().positive().optional(),
   height_cm: z.coerce.number().positive().optional(),
   head_circumference: z.coerce.number().positive().optional(),
@@ -19,14 +18,15 @@ export const patientFormSchema = z.object({
   father_name: z.string().optional(),
   guardian_contact: z.string().optional(),
   address: z.string().optional(),
-  ward: z.string().optional(),
+  ward: z.string().min(1, "Ward is required"),
   bed_number: z.string().optional(),
   unit: z.string().optional(),
-  admission_date: z.string().optional(),
-  diagnosis: z.string().optional(),
+  admission_date: z.string().min(1, "Admission date is required"),
+  diagnosis: z.string().min(1, "Diagnosis is required"),
   is_stable: z.boolean().optional(),
   consent_for_teaching: z.boolean().optional(),
   visibility: z.enum(["private", "department"]).optional(),
 });
 
 export type PatientFormValues = z.infer<typeof patientFormSchema>;
+

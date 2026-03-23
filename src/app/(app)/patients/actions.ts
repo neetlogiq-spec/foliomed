@@ -48,13 +48,13 @@ export async function createPatient(data: PatientFormValues) {
 
   if (error) {
     if (error.code === "23505") {
-      return { error: "A patient with this MRD number already exists" };
+      return { error: "A patient with this IP number already exists" };
     }
     return { error: error.message };
   }
 
   revalidatePath("/patients");
-  await logAudit("patient_created", "patient", patient.id, { mrd: data.mrd_number });
+  await logAudit("patient_created", "patient", patient.id, { ip: data.ip_number });
   redirect(`/patients/${patient.id}`);
 }
 

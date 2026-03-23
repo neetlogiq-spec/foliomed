@@ -56,7 +56,7 @@ export interface CaseLogEntry {
   created_at: string;
   // joined
   profiles?: { full_name: string } | null;
-  patients?: { first_name: string; last_name: string | null; mrd_number: string } | null;
+  patients?: { first_name: string; last_name: string | null } | null;
 }
 
 export const POST_TYPE_CONFIG: Record<FeedPostType, { label: string; emoji: string; color: string }> = {

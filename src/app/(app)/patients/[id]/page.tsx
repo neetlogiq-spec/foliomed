@@ -105,8 +105,7 @@ export default async function PatientDetailPage({
               <StatusBadge status={patient.status as PatientStatus} />
             </div>
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-400">
-              <span>MRD: {patient.mrd_number}</span>
-              {patient.ip_number && <span>IP: {patient.ip_number}</span>}
+              <span>IP: {patient.ip_number}</span>
               {patient.sex && <span className="capitalize">{patient.sex}</span>}
               {patient.ward && (
                 <span>{patient.ward}{patient.bed_number ? ` / Bed ${patient.bed_number}` : ""}</span>

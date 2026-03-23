@@ -4,8 +4,7 @@ export type PatientVisibility = "private" | "department";
 
 export interface Patient {
   id: string;
-  mrd_number: string;
-  ip_number: string | null;
+  ip_number: string;
   first_name: string;
   last_name: string | null;
   date_of_birth: string | null;
@@ -98,8 +97,7 @@ export const STATUS_TRANSITIONS: Record<PatientStatus, PatientStatus[]> = {
 
 // Form schema fields for patient registration
 export interface PatientFormData {
-  mrd_number: string;
-  ip_number?: string;
+  ip_number: string;
   first_name: string;
   last_name?: string;
   date_of_birth?: string;

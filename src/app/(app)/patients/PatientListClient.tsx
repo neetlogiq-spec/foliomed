@@ -37,7 +37,6 @@ export function PatientListClient({ patients }: { patients: PatientRow[] }) {
       `${p.first_name} ${p.last_name || ""}`
         .toLowerCase()
         .includes(search.toLowerCase()) ||
-      p.mrd_number?.toLowerCase().includes(search.toLowerCase()) ||
       p.ip_number?.toLowerCase().includes(search.toLowerCase()) ||
       p.diagnosis?.toLowerCase().includes(search.toLowerCase()) ||
       (p.tags || []).some((t: string) => {
@@ -138,7 +137,7 @@ export function PatientListClient({ patients }: { patients: PatientRow[] }) {
                     />
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-white truncate">{fullName}</p>
-                      <p className="text-[10px] text-slate-500">MRD: {p.mrd_number}</p>
+                      <p className="text-[10px] text-slate-500">IP: {p.ip_number || "—"}</p>
                     </div>
                   </div>
                   <span
@@ -181,7 +180,7 @@ export function PatientListClient({ patients }: { patients: PatientRow[] }) {
                   <p className="text-sm font-medium text-white truncate group-hover:text-blue-300 transition-colors">
                     {fullName}
                   </p>
-                  <p className="text-[10px] text-slate-500">{p.mrd_number}</p>
+                  <p className="text-[10px] text-slate-500">IP: {p.ip_number || "—"}</p>
                 </div>
 
                 {/* Diagnosis */}
