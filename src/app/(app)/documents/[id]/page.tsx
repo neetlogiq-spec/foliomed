@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { DocumentEditor } from "./DocumentEditor";
 import type { Block } from "@/types/document";
@@ -12,13 +12,26 @@ export default async function DocumentDetailPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: doc, error } = await supabase
-    .from("case_documents")
-    .select(`*, patients:patient_id ( first_name, last_name )`)
-    .eq("id", id)
-    .single();
+  // Get current user for collaborative editing
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
 
-  if (error || !doc) notFound();
+  const [docRes, profileRes] = await Promise.all([
+    supabase
+      .from("case_documents")
+      .select(`*, patients:patient_id ( first_name, last_name )`)
+      .eq("id", id)
+      .single(),
+    supabase
+      .from("profiles")
+      .select("full_name, avatar_url")
+      .eq("id", user.id)
+      .single(),
+  ]);
+
+  if (docRes.error || !docRes.data) notFound();
+  const doc = docRes.data;
+  const profile = profileRes.data;
 
   const content = doc.content as { blocks?: Block[] } | null;
   const blocks: Block[] = content?.blocks ?? [{ id: "1", type: "text", content: "" }];
@@ -49,7 +62,13 @@ export default async function DocumentDetailPage({
         initialBlocks={blocks}
         initialVersion={doc.version}
         isDraft={doc.is_draft}
+        currentUser={{
+          id: user.id,
+          fullName: profile?.full_name || user.email || "Unknown",
+          avatarUrl: profile?.avatar_url || null,
+        }}
       />
     </div>
   );
 }
+
