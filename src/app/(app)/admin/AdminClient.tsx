@@ -3,10 +3,10 @@
 import { useState, useTransition } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { updateUserRole, toggleUserActive } from "./actions";
+import { updateUserRole, updateUserDepartment, toggleUserActive } from "./actions";
 import { cn } from "@/lib/utils";
 
-const ROLES = ["pg", "intern", "senior_pg", "consultant", "senior_consultant", "hod", "nurse"];
+const ROLES = ["pg", "intern", "senior_pg", "consultant", "senior_consultant", "hod", "nurse", "admin"];
 
 interface UserRow {
   id: string;
@@ -16,6 +16,7 @@ interface UserRow {
   branch: string | null;
   year_of_pg: number | null;
   is_active: boolean;
+  department_id: string | null;
   created_at: string;
 }
 
@@ -48,6 +49,12 @@ export function AdminClient({ users, auditLogs, departments }: AdminClientProps)
   const handleToggleActive = (userId: string, isActive: boolean) => {
     startTransition(async () => {
       await toggleUserActive(userId, isActive);
+    });
+  };
+
+  const handleDepartmentChange = (userId: string, departmentId: string) => {
+    startTransition(async () => {
+      await updateUserDepartment(userId, departmentId);
     });
   };
 
@@ -89,6 +96,17 @@ export function AdminClient({ users, auditLogs, departments }: AdminClientProps)
                   >
                     {ROLES.map((r) => (
                       <option key={r} value={r} className="bg-slate-900">{r}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={u.department_id || ""}
+                    onChange={(e) => handleDepartmentChange(u.id, e.target.value)}
+                    disabled={isPending}
+                    className="rounded border border-white/10 bg-white/5 px-2 py-1 text-xs text-white"
+                  >
+                    <option value="" className="bg-slate-900">No Dept</option>
+                    {departments.map((d) => (
+                      <option key={d.id} value={d.id} className="bg-slate-900">{d.name}</option>
                     ))}
                   </select>
                   <Button

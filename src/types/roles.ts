@@ -1,29 +1,30 @@
-export type Role = "pg" | "intern";
-
-// Future roles reserved but not used in v1
-export type FutureRole =
-  | "hod"
-  | "senior_consultant"
-  | "consultant"
-  | "senior_pg"
-  | "nurse";
+export type Role = "pg" | "intern" | "hod" | "senior_consultant" | "consultant" | "senior_pg" | "nurse" | "admin";
 
 export const ROLES = {
   PG: "pg" as Role,
   INTERN: "intern" as Role,
+  ADMIN: "admin" as Role,
+  HOD: "hod" as Role,
+  SENIOR_CONSULTANT: "senior_consultant" as Role,
+  CONSULTANT: "consultant" as Role,
+  SENIOR_PG: "senior_pg" as Role,
+  NURSE: "nurse" as Role,
 };
 
+const ADMIN_ROLES: Role[] = ["admin", "hod"];
+
 export const CAN = {
-  CREATE_PATIENT: (role: Role) => role === "pg",
-  EDIT_PATIENT: (role: Role) => role === "pg",
-  CREATE_CASE_DOC: (role: Role) => role === "pg",
-  ADD_VITALS: (role: Role) => role === "pg",
-  ADD_INVESTIGATION: (role: Role) => role === "pg",
-  ADD_MEDICATION: (role: Role) => role === "pg",
-  CREATE_FEED_POST: (role: Role) => role === "pg",
-  COMMENT: (role: Role) => role === "pg",
+  CREATE_PATIENT: (role: Role) => ["pg", "senior_pg", "intern"].includes(role),
+  EDIT_PATIENT: (role: Role) => ["pg", "senior_pg", "intern"].includes(role),
+  CREATE_CASE_DOC: (role: Role) => ["pg", "senior_pg"].includes(role),
+  ADD_VITALS: (role: Role) => ["pg", "senior_pg", "intern", "nurse"].includes(role),
+  ADD_INVESTIGATION: (role: Role) => ["pg", "senior_pg"].includes(role),
+  ADD_MEDICATION: (role: Role) => ["pg", "senior_pg"].includes(role),
+  CREATE_FEED_POST: (role: Role) => role !== "nurse",
+  COMMENT: (_role: Role) => true,
   VIEW_PATIENTS: (_role: Role) => true,
   VIEW_FEED: (_role: Role) => true,
+  ADMIN_ACCESS: (role: Role) => ADMIN_ROLES.includes(role),
 } as const;
 
 export interface Profile {
@@ -62,3 +63,4 @@ export const BRANCHES = [
   "Neonatology",
   "Emergency Medicine",
 ] as const;
+
