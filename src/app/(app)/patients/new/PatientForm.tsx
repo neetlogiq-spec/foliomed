@@ -12,7 +12,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { ScanButton } from "@/components/shared/ScanButton";
 
 export function PatientForm() {
   const [serverError, setServerError] = useState<string | null>(null);
@@ -20,6 +21,8 @@ export function PatientForm() {
   const {
     register,
     handleSubmit,
+    reset,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm<PatientFormValues>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -39,6 +42,44 @@ export function PatientForm() {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleScanExtract = useCallback((data: Record<string, any>) => {
+    const current = getValues();
+    const merged = { ...current };
+
+    // Map extracted fields to form fields
+    const fieldMap: Record<string, string> = {
+      ip_number: "ip_number",
+      first_name: "first_name",
+      last_name: "last_name",
+      sex: "sex",
+      date_of_birth: "date_of_birth",
+      age_days: "age_days",
+      weight_kg: "weight_kg",
+      height_cm: "height_cm",
+      head_circumference: "head_circumference",
+      gestational_age_weeks: "gestational_age_weeks",
+      birth_weight_kg: "birth_weight_kg",
+      mother_name: "mother_name",
+      father_name: "father_name",
+      guardian_contact: "guardian_contact",
+      address: "address",
+      ward: "ward",
+      bed_number: "bed_number",
+      admission_date: "admission_date",
+      diagnosis: "diagnosis",
+      immunization_status: "immunization_status",
+    };
+
+    for (const [extractedKey, formKey] of Object.entries(fieldMap)) {
+      if (data[extractedKey] !== null && data[extractedKey] !== undefined) {
+        (merged as Record<string, unknown>)[formKey] = data[extractedKey];
+      }
+    }
+
+    reset(merged);
+  }, [reset, getValues]);
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {serverError && (
@@ -54,7 +95,8 @@ export function PatientForm() {
             <svg className="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
             </svg>
-            Fill in the patient details below. Fields marked with * are required.
+            <span className="flex-1">Fill in the patient details below. Fields marked with * are required.</span>
+            <ScanButton context="patient_admission" onExtract={handleScanExtract} />
           </CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

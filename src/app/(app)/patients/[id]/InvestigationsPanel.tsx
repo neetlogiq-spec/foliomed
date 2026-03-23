@@ -9,6 +9,7 @@ import { addInvestigation } from "./clinical-actions";
 import type { Investigation } from "@/types/clinical";
 import { INVESTIGATION_CATEGORIES } from "@/types/clinical";
 import { cn } from "@/lib/utils";
+import { ScanButton } from "@/components/shared/ScanButton";
 
 interface InvestigationsPanelProps {
   patientId: string;
@@ -43,12 +44,37 @@ export function InvestigationsPanel({ patientId, investigations }: Investigation
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">
+      <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">
           Investigations ({investigations.length})
         </h3>
-        <Button size="sm" onClick={() => setShowForm(!showForm)} className="bg-blue-600 hover:bg-blue-700 text-white text-xs">
-          {showForm ? "Cancel" : "+ Add Investigation"}
-        </Button>
+        <div className="flex gap-2">
+          <ScanButton
+            context="lab_report"
+            label="📷 Scan Report"
+            onExtract={(data) => {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const invs = (data as any).investigations;
+              if (Array.isArray(invs)) {
+                startTransition(async () => {
+                  for (const inv of invs) {
+                    await addInvestigation(patientId, {
+                      test_name: inv.test_name || "Unknown Test",
+                      category: inv.category || undefined,
+                      value: inv.value || undefined,
+                      unit: inv.unit || undefined,
+                      reference_range: inv.reference_range || undefined,
+                      is_abnormal: inv.is_abnormal || false,
+                      is_critical: inv.is_critical || false,
+                    });
+                  }
+                });
+              }
+            }}
+          />
+          <Button size="sm" onClick={() => setShowForm(!showForm)} className="bg-blue-600 hover:bg-blue-700 text-white text-xs">
+            {showForm ? "Cancel" : "+ Add Investigation"}
+          </Button>
+        </div>
       </div>
 
       {showForm && (

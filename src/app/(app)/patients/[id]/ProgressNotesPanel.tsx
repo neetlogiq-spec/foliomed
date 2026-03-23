@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { addProgressNote } from "./clinical-actions";
 import { SpeechInput } from "@/components/shared/SpeechInput";
 import type { ProgressNote } from "@/types/clinical";
+import { ScanButton } from "@/components/shared/ScanButton";
 
 interface ProgressNotesPanelProps {
   patientId: string;
@@ -54,9 +55,26 @@ export function ProgressNotesPanel({ patientId, notes }: ProgressNotesPanelProps
         <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">
           Progress Notes ({notes.length})
         </h3>
-        <Button size="sm" onClick={() => setShowForm(!showForm)} className="bg-blue-600 hover:bg-blue-700 text-white text-xs">
-          {showForm ? "Cancel" : "+ SOAP Note"}
-        </Button>
+        <div className="flex gap-2">
+          <ScanButton
+            context="progress_note"
+            label="📷 Scan Note"
+            onExtract={(data) => {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              const d = data as any;
+              setSoap({
+                subjective: d.subjective || "",
+                objective: d.objective || "",
+                assessment: d.assessment || "",
+                plan: d.plan || "",
+              });
+              setShowForm(true);
+            }}
+          />
+          <Button size="sm" onClick={() => setShowForm(!showForm)} className="bg-blue-600 hover:bg-blue-700 text-white text-xs">
+            {showForm ? "Cancel" : "+ SOAP Note"}
+          </Button>
+        </div>
       </div>
 
       {showForm && (
