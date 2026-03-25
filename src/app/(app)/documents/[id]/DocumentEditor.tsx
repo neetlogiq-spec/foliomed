@@ -1,17 +1,19 @@
 "use client";
 
 import { useState, useTransition, useCallback, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { saveDocument, publishDocument } from "../actions";
+import { saveDocument, publishDocument, deleteDocument } from "../actions";
 import type { Block, BlockType } from "@/types/document";
 import { BLOCK_TYPES, emptyBlock } from "@/types/document";
 import { cn } from "@/lib/utils";
 import { SlashMenu } from "@/components/shared/SlashMenu";
 import { useCollaborativeEditor } from "@/hooks/useCollaborativeEditor";
 import { PresenceAvatars } from "@/components/shared/PresenceAvatars";
+import { ScanButton } from "@/components/shared/ScanButton";
 
 interface DocumentEditorProps {
   docId: string;
@@ -40,6 +42,7 @@ export function DocumentEditor({
   isDraft,
   currentUser,
 }: DocumentEditorProps) {
+  const router = useRouter();
   const [title, setTitle] = useState(initialTitle);
   const [blocks, setBlocks] = useState<Block[]>(initialBlocks);
   const [version, setVersion] = useState(initialVersion);
@@ -47,6 +50,7 @@ export function DocumentEditor({
   const [isPending, startTransition] = useTransition();
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showBlockMenu, setShowBlockMenu] = useState<number | null>(null);
   const [slash, setSlash] = useState<SlashState | null>(null);
   const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
@@ -195,6 +199,93 @@ export function DocumentEditor({
     [slash, blocks, changeBlockType, updateBlock, addBlock]
   );
 
+  /* ── Delete ──────────────────────────────── */
+  const handleDelete = useCallback(() => {
+    startTransition(async () => {
+      const result = await deleteDocument(docId);
+      if (result?.error) setError(result.error);
+      else router.push("/documents");
+    });
+  }, [docId, router]);
+
+  /* ── OCR → blocks ───────────────────────── */
+  const handleOCRExtract = useCallback(
+    (data: Record<string, unknown>) => {
+      const newBlocks: Block[] = [];
+
+      // Prefer structured sections from case_document context
+      const sections = data.sections;
+      if (Array.isArray(sections)) {
+        for (const section of sections as Array<{
+          title?: string;
+          content?: string;
+          type?: string;
+        }>) {
+          if (section.title) {
+            newBlocks.push({ ...emptyBlock("heading"), content: section.title });
+          }
+          if (section.content) {
+            const blockType =
+              section.type === "findings"
+                ? "findings"
+                : section.type === "plan"
+                  ? "plan"
+                  : "text";
+            newBlocks.push({ ...emptyBlock(blockType), content: section.content });
+          }
+        }
+      }
+
+      // Fallback: raw_text or any string fields
+      if (!newBlocks.length) {
+        const rawText =
+          typeof data.raw_text === "string"
+            ? data.raw_text
+            : typeof data.text === "string"
+              ? data.text
+              : null;
+
+        if (rawText) {
+          const paragraphs = rawText
+            .split(/\n{2,}/)
+            .map((p) => p.trim())
+            .filter(Boolean);
+          for (const p of paragraphs) {
+            newBlocks.push({ ...emptyBlock("text"), content: p });
+          }
+        } else {
+          // Key-value pairs → one text block per field
+          for (const [key, value] of Object.entries(data)) {
+            if (
+              key === "confidence" ||
+              value === null ||
+              value === undefined ||
+              value === ""
+            )
+              continue;
+            if (typeof value === "object") continue;
+            const label = key.replace(/_/g, " ");
+            newBlocks.push({
+              ...emptyBlock("text"),
+              content: `${label}: ${String(value)}`,
+            });
+          }
+        }
+      }
+
+      if (!newBlocks.length) return;
+
+      // Append after the last block
+      setBlocks((prev) => {
+        const next = [...prev, ...newBlocks];
+        dirtyRef.current = true;
+        setSaved(false);
+        return next;
+      });
+    },
+    []
+  );
+
   /* ── Save / Publish ─────────────────────── */
   const handleSave = useCallback(() => {
     setError(null);
@@ -294,6 +385,12 @@ export function DocumentEditor({
         <div className="flex items-center gap-3">
           <PresenceAvatars collaborators={collaborators} />
           <div className="flex gap-2">
+            <ScanButton
+              context="case_document"
+              onExtract={handleOCRExtract}
+              label="📷 Scan"
+              className="text-xs"
+            />
             <Button onClick={handleExportPDF} size="sm" variant="outline"
               className="border-white/10 text-slate-300 hover:bg-white/5 text-xs gap-1.5">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -311,9 +408,50 @@ export function DocumentEditor({
                 Publish
               </Button>
             )}
+            <Button
+              onClick={() => setShowDeleteConfirm(true)}
+              disabled={isPending}
+              size="sm"
+              variant="outline"
+              className="border-red-500/20 text-red-400 hover:bg-red-500/10 hover:border-red-500/40 text-xs"
+              title="Delete document"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+              </svg>
+            </Button>
           </div>
         </div>
       </div>
+
+      {/* Delete confirm dialog */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-slate-900 border border-white/10 rounded-xl p-6 w-full max-w-sm shadow-2xl">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-9 h-9 rounded-full bg-red-500/10 flex items-center justify-center shrink-0">
+                <svg className="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white">Delete &ldquo;{title}&rdquo;?</p>
+                <p className="text-xs text-slate-400 mt-0.5">This cannot be undone.</p>
+              </div>
+            </div>
+            <div className="flex gap-2 mt-4">
+              <button onClick={() => setShowDeleteConfirm(false)} disabled={isPending}
+                className="flex-1 py-2 rounded-lg text-xs font-medium border border-white/10 text-slate-300 hover:bg-white/5 transition-colors">
+                Cancel
+              </button>
+              <button onClick={handleDelete} disabled={isPending}
+                className="flex-1 py-2 rounded-lg text-xs font-medium bg-red-600 hover:bg-red-700 text-white transition-colors disabled:opacity-60">
+                {isPending ? "Deleting…" : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Blocks */}
       <div className="space-y-1 print:hidden">
