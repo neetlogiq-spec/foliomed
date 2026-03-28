@@ -36,7 +36,7 @@ export default async function PatientDetailPage({
   const supabase = await createClient();
 
   // Fetch patient + clinical data in parallel
-  const [patientRes, vitalsRes, investigationsRes, medicationsRes, notesRes, imagesRes] =
+  const [patientRes, vitalsRes, investigationsRes, medicationsRes, notesRes, imagesRes, docsRes] =
     await Promise.all([
       supabase
         .from("patients")
@@ -70,6 +70,11 @@ export default async function PatientDetailPage({
         .select("*")
         .eq("patient_id", id)
         .order("created_at", { ascending: false }),
+      supabase
+        .from("case_documents")
+        .select("id, title, is_draft, version, updated_at")
+        .eq("patient_id", id)
+        .order("updated_at", { ascending: false }),
     ]);
 
   if (patientRes.error || !patientRes.data) {
@@ -172,6 +177,7 @@ export default async function PatientDetailPage({
         medications={medicationsRes.data ?? []}
         progressNotes={notesRes.data ?? []}
         images={imagesRes.data ?? []}
+        documents={docsRes.data ?? []}
       />
     </div>
   );

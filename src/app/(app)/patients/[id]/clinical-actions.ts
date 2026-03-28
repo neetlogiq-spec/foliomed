@@ -21,7 +21,8 @@ export async function addVitals(patientId: string, data: {
   const isAbnormal =
     (data.heart_rate != null && (data.heart_rate < 60 || data.heart_rate > 180)) ||
     (data.spo2_percent != null && data.spo2_percent < 90) ||
-    (data.temperature_c != null && (data.temperature_c < 36 || data.temperature_c > 39));
+    // <96.8°F (36°C) = hypothermia, ≥100.4°F (38°C) = fever
+    (data.temperature_c != null && (data.temperature_c < 36 || data.temperature_c >= 38));
 
   const { error } = await supabase.from("vitals").insert({
     patient_id: patientId,

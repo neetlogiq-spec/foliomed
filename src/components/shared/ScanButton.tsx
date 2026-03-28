@@ -27,6 +27,245 @@ interface ImageSlot {
   result: ExtractResult | null;
 }
 
+/* ── Context-aware preview components ─────────────────────────── */
+
+function LabReportPreview({ data }: { data: Record<string, unknown> }) {
+  const tests = Array.isArray(data.tests)
+    ? (data.tests as Array<Record<string, unknown>>)
+    : [];
+  const flagColor = (flag: unknown) => {
+    if (flag === "high" || flag === "low") return "text-red-400 font-medium";
+    if (flag === "normal") return "text-emerald-400";
+    return "text-slate-400";
+  };
+
+  return (
+    <div className="space-y-3">
+      {/* Header meta */}
+      <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+        {(["patient_name", "report_date", "lab_name"] as const).map((k) =>
+          data[k] ? (
+            <div key={k}>
+              <span className="text-[10px] text-slate-500 capitalize block">{k.replace(/_/g, " ")}</span>
+              <span className="text-xs text-white">{String(data[k])}</span>
+            </div>
+          ) : null
+        )}
+      </div>
+
+      {/* Tests table */}
+      {tests.length > 0 && (
+        <div className="overflow-x-auto rounded-lg border border-white/10">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="border-b border-white/10 bg-white/5">
+                <th className="text-left px-2.5 py-2 text-slate-400 font-medium">Test</th>
+                <th className="text-right px-2.5 py-2 text-slate-400 font-medium">Value</th>
+                <th className="text-right px-2.5 py-2 text-slate-400 font-medium">Unit</th>
+                <th className="text-right px-2.5 py-2 text-slate-400 font-medium">Reference</th>
+                <th className="text-right px-2.5 py-2 text-slate-400 font-medium">Flag</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tests.map((t, i) => (
+                <tr key={i} className="border-b border-white/5 last:border-0">
+                  <td className="px-2.5 py-2 text-white">{String(t.name ?? "")}</td>
+                  <td className={cn("px-2.5 py-2 text-right", flagColor(t.flag))}>{String(t.value ?? "")}</td>
+                  <td className="px-2.5 py-2 text-right text-slate-400">{String(t.unit ?? "")}</td>
+                  <td className="px-2.5 py-2 text-right text-slate-500">{String(t.reference ?? "")}</td>
+                  <td className={cn("px-2.5 py-2 text-right capitalize", flagColor(t.flag))}>
+                    {t.flag ? String(t.flag) : "—"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PatientAdmissionPreview({ data }: { data: Record<string, unknown> }) {
+  const FIELDS: [string, string][] = [
+    ["ip_number", "IP No."],
+    ["first_name", "First Name"],
+    ["last_name", "Last Name"],
+    ["date_of_birth", "DOB"],
+    ["age_years", "Age (yrs)"],
+    ["gender", "Gender"],
+    ["weight_kg", "Weight (kg)"],
+    ["height_cm", "Height (cm)"],
+    ["blood_group", "Blood Group"],
+    ["guardian_name", "Guardian"],
+    ["guardian_relation", "Relation"],
+    ["phone", "Phone"],
+    ["address", "Address"],
+    ["diagnosis", "Diagnosis"],
+  ];
+
+  const confidence = data.confidence as Record<string, string> | undefined;
+  const confColor = (k: string) => {
+    const c = confidence?.[k];
+    return c === "high" ? "text-emerald-400" : c === "medium" ? "text-amber-400" : c === "low" ? "text-red-400" : "";
+  };
+
+  return (
+    <div className="grid grid-cols-2 gap-x-4 gap-y-2.5">
+      {FIELDS.map(([key, label]) => {
+        const val = data[key];
+        if (!val && val !== 0) return null;
+        return (
+          <div key={key} className={key === "address" || key === "diagnosis" ? "col-span-2" : ""}>
+            <span className="text-[10px] text-slate-500 block">{label}</span>
+            <span className={cn("text-xs text-white", confColor(key))}>{String(val)}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function ProgressNotePreview({ data }: { data: Record<string, unknown> }) {
+  const sections: [string, string, string][] = [
+    ["subjective", "S — Subjective", "text-blue-400"],
+    ["objective", "O — Objective", "text-teal-400"],
+    ["assessment", "A — Assessment", "text-amber-400"],
+    ["plan", "P — Plan", "text-emerald-400"],
+  ];
+
+  const vitals = data.vitals as Record<string, unknown> | undefined;
+
+  return (
+    <div className="space-y-3">
+      {!!data.date && (
+        <p className="text-[10px] text-slate-500">Date: <span className="text-white">{String(data.date)}</span></p>
+      )}
+
+      {/* Vitals row */}
+      {vitals && Object.keys(vitals).length > 0 && (
+        <div className="bg-white/5 rounded-lg p-2.5">
+          <p className="text-[10px] text-slate-500 mb-1.5 uppercase tracking-wider">Vitals</p>
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            {Object.entries(vitals).map(([k, v]) =>
+              v ? (
+                <span key={k} className="text-xs">
+                  <span className="text-slate-500 capitalize">{k.replace(/_/g, " ")}: </span>
+                  <span className="text-white font-medium">{String(v)}</span>
+                </span>
+              ) : null
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* SOAP sections */}
+      {sections.map(([key, label, color]) =>
+        !!data[key] ? (
+          <div key={key}>
+            <p className={cn("text-[10px] font-semibold uppercase tracking-wider mb-1", color)}>{label}</p>
+            <p className="text-xs text-slate-200 whitespace-pre-wrap leading-relaxed">{String(data[key])}</p>
+          </div>
+        ) : null
+      )}
+
+      {/* Fluid balance */}
+      {(!!data.fluid_input_ml || !!data.fluid_output_ml) && (
+        <div className="flex gap-4">
+          {!!data.fluid_input_ml && (
+            <span className="text-xs"><span className="text-slate-500">Input: </span><span className="text-white">{String(data.fluid_input_ml)} mL</span></span>
+          )}
+          {!!data.fluid_output_ml && (
+            <span className="text-xs"><span className="text-slate-500">Output: </span><span className="text-white">{String(data.fluid_output_ml)} mL</span></span>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CaseDocumentPreview({ data }: { data: Record<string, unknown> }) {
+  const sections = Array.isArray(data.sections)
+    ? (data.sections as Array<{ title?: string; content?: string; type?: string }>)
+    : [];
+
+  const sectionColor = (type: string | undefined) => {
+    if (type === "findings") return "border-blue-500/30 bg-blue-500/5";
+    if (type === "plan") return "border-emerald-500/30 bg-emerald-500/5";
+    return "border-white/10 bg-white/[0.02]";
+  };
+
+  return (
+    <div className="space-y-2.5">
+      {!!data.title && (
+        <p className="text-sm font-semibold text-white">{String(data.title)}</p>
+      )}
+      {sections.length > 0 ? (
+        sections.map((s, i) => (
+          <div key={i} className={cn("rounded-lg border p-2.5", sectionColor(s.type))}>
+            {s.title && <p className="text-[10px] font-semibold text-slate-300 uppercase tracking-wider mb-1">{s.title}</p>}
+            {s.content && <p className="text-xs text-slate-200 whitespace-pre-wrap leading-relaxed">{s.content}</p>}
+          </div>
+        ))
+      ) : data.raw_text ? (
+        <p className="text-xs text-slate-200 whitespace-pre-wrap leading-relaxed">{String(data.raw_text)}</p>
+      ) : null}
+    </div>
+  );
+}
+
+function GenericPreview({ data }: { data: Record<string, unknown> }) {
+  const SKIP = new Set(["confidence", "_source", "_fallback"]);
+  const entries = Object.entries(data).filter(
+    ([k, v]) => !SKIP.has(k) && v !== null && v !== undefined && v !== "" && typeof v !== "object"
+  );
+
+  return (
+    <div className="divide-y divide-white/5">
+      {entries.map(([key, value]) => (
+        <div key={key} className="flex items-start justify-between gap-2 py-1.5">
+          <span className="text-xs text-slate-400 capitalize">{key.replace(/_/g, " ")}</span>
+          <span className="text-xs text-white text-right max-w-[60%] break-words">{String(value)}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ExtractedDataPreview({
+  data,
+  context,
+  successCount,
+}: {
+  data: Record<string, unknown>;
+  context: ExtractionContext;
+  successCount: number;
+}) {
+  return (
+    <div className="px-4 pb-4 mt-3">
+      <p className="text-xs text-emerald-400 font-medium mb-3 flex items-center gap-1.5">
+        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+        </svg>
+        {successCount > 1 ? `Merged from ${successCount} captures` : "Data extracted"}
+        {!!data._fallback && (
+          <span className="text-[10px] text-amber-400 font-normal ml-1">(local OCR)</span>
+        )}
+      </p>
+
+      {context === "lab_report" && <LabReportPreview data={data} />}
+      {context === "patient_admission" && <PatientAdmissionPreview data={data} />}
+      {context === "progress_note" && <ProgressNotePreview data={data} />}
+      {context === "case_document" && <CaseDocumentPreview data={data} />}
+      {!["lab_report", "patient_admission", "progress_note", "case_document"].includes(context) && (
+        <GenericPreview data={data} />
+      )}
+    </div>
+  );
+}
+
+/* ── Main component ────────────────────────────────────────────── */
+
 export function ScanButton({
   context,
   onExtract,
@@ -45,7 +284,6 @@ export function ScanButton({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Explicit portal container — append to body once on mount.
-  // Avoids createPortal(…, document.body) failing inside sticky/backdrop-filter parents.
   const portalContainerRef = useRef<HTMLDivElement | null>(null);
   const [portalReady, setPortalReady] = useState(false);
   useEffect(() => {
@@ -238,36 +476,6 @@ export function ScanButton({
   const successCount = slots.filter((s) => s.status === "done").length;
   const errorCount = slots.filter((s) => s.status === "error").length;
 
-  const confidenceColor = (c: string) =>
-    c === "high" ? "text-emerald-400" : c === "medium" ? "text-amber-400" : "text-red-400";
-
-  const renderField = (key: string, value: unknown, confidence?: Record<string, string>) => {
-    if (!value && value !== 0) return null;
-    if (["confidence", "_source", "_fallback"].includes(key)) return null;
-    if (typeof value === "object" && !Array.isArray(value)) return null;
-    const conf = confidence?.[key];
-    const display = Array.isArray(value)
-      ? (value as Array<Record<string, unknown>>).map((v, i) => (
-          <div key={i} className="text-xs text-slate-300 bg-white/5 rounded px-2 py-1 mt-1">
-            {Object.entries(v).filter(([k]) => k !== "confidence").map(([k, vv]) => (
-              <span key={k} className="mr-2">{k}: <strong>{String(vv)}</strong></span>
-            ))}
-          </div>
-        ))
-      : String(value);
-    return (
-      <div key={key} className="flex items-start justify-between gap-2 py-1.5 border-b border-white/5 last:border-0">
-        <span className="text-xs text-slate-400 capitalize">{key.replace(/_/g, " ")}</span>
-        <div className="text-right">
-          {typeof display === "string"
-            ? <span className={cn("text-xs font-medium", conf ? confidenceColor(conf) : "text-white")}>{display}</span>
-            : display}
-          {conf && <span className={cn("text-[10px] ml-1", confidenceColor(conf))}>({conf})</span>}
-        </div>
-      </div>
-    );
-  };
-
   /* ─── Render ─────────────────────────────── */
   return (
     <>
@@ -300,7 +508,7 @@ export function ScanButton({
 
       {isOpen && portalReady && portalContainerRef.current && createPortal(
         <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/90 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-white/10 rounded-t-2xl sm:rounded-2xl w-full sm:max-w-md max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
+          <div className="bg-slate-900 border border-white/10 rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
 
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 shrink-0">
@@ -336,7 +544,7 @@ export function ScanButton({
             <div className="flex-1 overflow-y-auto min-h-0">
 
               {/* ── Upload ── */}
-              {mode === "upload" && (
+              {mode === "upload" && slots.length === 0 && (
                 <div className="p-4">
                   <button
                     type="button"
@@ -412,9 +620,20 @@ export function ScanButton({
               {/* ── Thumbnails ── */}
               {slots.length > 0 && (
                 <div className="px-4 pt-3">
-                  <p className="text-[10px] text-slate-500 mb-2 uppercase tracking-wider">
-                    Captured ({slots.length})
-                  </p>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-[10px] text-slate-500 uppercase tracking-wider">
+                      Captured ({slots.length})
+                    </p>
+                    {mode === "upload" && !isProcessing && (
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="text-[10px] text-violet-400 hover:text-violet-300"
+                      >
+                        + Add more
+                      </button>
+                    )}
+                  </div>
                   <div className="flex gap-2 overflow-x-auto pb-1">
                     {slots.map((slot, i) => (
                       <div key={i} className="relative flex-shrink-0">
@@ -474,24 +693,13 @@ export function ScanButton({
                 </div>
               )}
 
-              {/* ── Extracted data ── */}
+              {/* ── Extracted data — context-aware structured preview ── */}
               {!isProcessing && successCount > 0 && mergedData && (
-                <div className="px-4 pb-4 mt-3">
-                  <p className="text-xs text-emerald-400 font-medium mb-2 flex items-center gap-1.5">
-                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                    </svg>
-                    {successCount > 1 ? `Merged from ${successCount} captures` : "Data extracted"}
-                    {!!mergedData._fallback && (
-                      <span className="text-[10px] text-amber-400 font-normal ml-1">(local OCR)</span>
-                    )}
-                  </p>
-                  <div className="divide-y divide-white/5">
-                    {Object.entries(mergedData).map(([key, value]) =>
-                      renderField(key, value, mergedData.confidence as Record<string, string> | undefined)
-                    )}
-                  </div>
-                </div>
+                <ExtractedDataPreview
+                  data={mergedData}
+                  context={context}
+                  successCount={successCount}
+                />
               )}
             </div>
 
@@ -506,7 +714,7 @@ export function ScanButton({
                   {successCount > 0 && (
                     <button type="button" onClick={handleApply}
                       className="flex-1 py-1.5 rounded-lg text-xs font-medium bg-emerald-600 hover:bg-emerald-500 text-white">
-                      ✓ Apply{successCount > 1 ? ` (${successCount})` : ""}
+                      ✓ Apply to form{successCount > 1 ? ` (${successCount} merged)` : ""}
                     </button>
                   )}
                 </>

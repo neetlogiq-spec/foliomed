@@ -28,11 +28,15 @@ export function VitalsPanel({ patientId, vitals }: VitalsPanelProps) {
       return v ? Number(v) : undefined;
     };
 
+    // Convert °F → °C for storage
+    const tempF = parse("temperature_f");
+    const tempC = tempF != null ? Math.round(((tempF - 32) * 5) / 9 * 10) / 10 : undefined;
+
     startTransition(async () => {
       const result = await addVitals(patientId, {
         heart_rate: parse("heart_rate"),
         respiratory_rate: parse("respiratory_rate"),
-        temperature_c: parse("temperature_c"),
+        temperature_c: tempC,
         systolic_bp: parse("systolic_bp"),
         diastolic_bp: parse("diastolic_bp"),
         spo2_percent: parse("spo2_percent"),
@@ -72,7 +76,7 @@ export function VitalsPanel({ patientId, vitals }: VitalsPanelProps) {
                 {[
                   { name: "heart_rate", label: "HR (bpm)", placeholder: "e.g. 120" },
                   { name: "respiratory_rate", label: "RR (/min)", placeholder: "e.g. 24" },
-                  { name: "temperature_c", label: "Temp (°C)", placeholder: "e.g. 37.2" },
+                  { name: "temperature_f", label: "Temp (°F)", placeholder: "e.g. 98.6" },
                   { name: "spo2_percent", label: "SpO2 (%)", placeholder: "e.g. 98" },
                   { name: "systolic_bp", label: "Sys BP", placeholder: "e.g. 90" },
                   { name: "diastolic_bp", label: "Dia BP", placeholder: "e.g. 60" },
@@ -130,7 +134,7 @@ export function VitalsPanel({ patientId, vitals }: VitalsPanelProps) {
                   <div><span className="text-slate-500">RR</span> <span className="text-white font-medium">{v.respiratory_rate}</span></div>
                 )}
                 {v.temperature_c != null && (
-                  <div><span className="text-slate-500">T</span> <span className="text-white font-medium">{v.temperature_c}°</span></div>
+                  <div><span className="text-slate-500">T</span> <span className="text-white font-medium">{Math.round((v.temperature_c * 9 / 5 + 32) * 10) / 10}°F</span></div>
                 )}
                 {v.spo2_percent != null && (
                   <div><span className="text-slate-500">SpO2</span> <span className="text-white font-medium">{v.spo2_percent}%</span></div>

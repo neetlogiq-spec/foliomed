@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { uploadPatientImage, getImageUrl, deletePatientImage } from "./image-actions";
+import { uploadPatientImage, getImageUrl, getImageUrls, deletePatientImage } from "./image-actions";
 import { cn } from "@/lib/utils";
 import Tesseract from "tesseract.js";
 
@@ -98,6 +98,7 @@ export function ImagesPanel({ patientId, images }: ImagesPanelProps) {
   const [compressionInfo, setCompressionInfo] = useState<string | null>(null);
   const [viewingImage, setViewingImage] = useState<string | null>(null);
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
+  const [thumbnails, setThumbnails] = useState<Record<string, string>>({});
   const fileRef = useRef<HTMLInputElement>(null);
 
   // OCR state
@@ -184,6 +185,16 @@ export function ImagesPanel({ patientId, images }: ImagesPanelProps) {
       setSignedUrl(url);
     });
   };
+
+  // Batch-load thumbnails for all images on mount / when images change
+  useEffect(() => {
+    const imagePaths = images
+      .filter((img) => img.mime_type?.startsWith("image/"))
+      .map((img) => img.file_path);
+    if (!imagePaths.length) return;
+
+    getImageUrls(imagePaths).then(setThumbnails);
+  }, [images]);
 
   // Clean up object URLs
   useEffect(() => {
@@ -283,11 +294,17 @@ export function ImagesPanel({ patientId, images }: ImagesPanelProps) {
               onClick={() => handleView(img.file_path)}
               className="bg-white/5 border border-white/5 rounded-lg p-2 hover:border-blue-500/30 transition-colors text-left group relative"
             >
-              <div className="w-full aspect-square bg-slate-800 rounded flex items-center justify-center mb-2">
-                {img.mime_type?.startsWith("image/") ? (
-                  <svg className="w-8 h-8 text-slate-600 group-hover:text-blue-400 transition-colors" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
-                  </svg>
+              <div className="w-full aspect-square bg-slate-800 rounded overflow-hidden mb-2 flex items-center justify-center">
+                {img.mime_type?.startsWith("image/") && thumbnails[img.file_path] ? (
+                  <img
+                    src={thumbnails[img.file_path]}
+                    alt={img.caption || img.file_name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : img.mime_type?.startsWith("image/") ? (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <div className="w-5 h-5 border-2 border-slate-600 border-t-blue-400 rounded-full animate-spin" />
+                  </div>
                 ) : (
                   <svg className="w-8 h-8 text-slate-600 group-hover:text-blue-400 transition-colors" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />

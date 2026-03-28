@@ -37,7 +37,7 @@ export async function saveDocument(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
 
-  // Get current version
+  // Get current version (use user client for RLS-aware read)
   const { data: doc } = await supabase
     .from("case_documents")
     .select("version, patient_id")
@@ -47,16 +47,18 @@ export async function saveDocument(
   if (!doc) return { error: "Document not found" };
 
   const newVersion = (doc.version || 1) + 1;
+  const admin = createAdminClient();
 
   // Save version history
-  await supabase.from("case_document_versions").insert({
+  const { error: versionError } = await admin.from("case_document_versions").insert({
     document_id: docId,
     content,
     version: newVersion,
     saved_by: user.id,
   });
+  if (versionError) console.error("[saveDocument] version history error:", versionError.message);
 
-  // Update main document
+  // Update main document (use admin client to bypass RLS)
   const updates: Record<string, unknown> = {
     content,
     version: newVersion,
@@ -64,7 +66,7 @@ export async function saveDocument(
   };
   if (title) updates.title = title;
 
-  const { error } = await supabase
+  const { error } = await admin
     .from("case_documents")
     .update(updates)
     .eq("id", docId);

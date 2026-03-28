@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
 export async function uploadPatientImage(
@@ -61,16 +61,33 @@ export async function getImageUrl(filePath: string) {
   return data?.signedUrl || null;
 }
 
+export async function getImageUrls(filePaths: string[]): Promise<Record<string, string>> {
+  if (!filePaths.length) return {};
+  const supabase = await createClient();
+  const { data } = await supabase.storage
+    .from("patient-images")
+    .createSignedUrls(filePaths, 3600);
+
+  if (!data) return {};
+  return Object.fromEntries(
+    data.filter((d) => d.signedUrl).map((d) => [d.path, d.signedUrl])
+  );
+}
+
 export async function deletePatientImage(imageId: string, filePath: string, patientId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
 
-  // Delete from storage
-  await supabase.storage.from("patient-images").remove([filePath]);
+  // Delete from storage (use user client — storage policies handle this)
+  const { error: storageError } = await supabase.storage
+    .from("patient-images")
+    .remove([filePath]);
+  if (storageError) console.error("[deletePatientImage] storage error:", storageError.message);
 
-  // Delete DB record
-  const { error } = await supabase
+  // Delete DB record via admin client to bypass RLS
+  const admin = createAdminClient();
+  const { error } = await admin
     .from("patient_images")
     .delete()
     .eq("id", imageId);

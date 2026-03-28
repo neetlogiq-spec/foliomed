@@ -6,6 +6,7 @@ import { InvestigationsPanel } from "./InvestigationsPanel";
 import { MedicationsPanel } from "./MedicationsPanel";
 import { ProgressNotesPanel } from "./ProgressNotesPanel";
 import { ImagesPanel } from "./ImagesPanel";
+import { PatientDocumentsTab } from "./PatientDocumentsTab";
 import type { Vital, Investigation, Medication, ProgressNote } from "@/types/clinical";
 
 interface PatientImage {
@@ -19,6 +20,14 @@ interface PatientImage {
   created_at: string;
 }
 
+interface CaseDoc {
+  id: string;
+  title: string;
+  is_draft: boolean;
+  version: number;
+  updated_at: string;
+}
+
 interface ClinicalTabsProps {
   patientId: string;
   vitals: Vital[];
@@ -26,6 +35,7 @@ interface ClinicalTabsProps {
   medications: Medication[];
   progressNotes: ProgressNote[];
   images: PatientImage[];
+  documents: CaseDoc[];
 }
 
 export function ClinicalTabs({
@@ -35,6 +45,7 @@ export function ClinicalTabs({
   medications,
   progressNotes,
   images,
+  documents,
 }: ClinicalTabsProps) {
   return (
     <Tabs defaultValue="vitals" className="w-full">
@@ -54,6 +65,9 @@ export function ClinicalTabs({
         <TabsTrigger value="images" className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-slate-400 text-xs">
           📷 Images ({images.length})
         </TabsTrigger>
+        <TabsTrigger value="documents" className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-slate-400 text-xs">
+          📄 Docs ({documents.length})
+        </TabsTrigger>
       </TabsList>
 
       <TabsContent value="vitals">
@@ -70,6 +84,9 @@ export function ClinicalTabs({
       </TabsContent>
       <TabsContent value="images">
         <ImagesPanel patientId={patientId} images={images} />
+      </TabsContent>
+      <TabsContent value="documents">
+        <PatientDocumentsTab patientId={patientId} documents={documents} />
       </TabsContent>
     </Tabs>
   );
