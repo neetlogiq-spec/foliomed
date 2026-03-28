@@ -2,12 +2,14 @@
  * Compress and resize an image before sending to OCR.
  * Accepts a data-URL or object-URL string, returns a JPEG data-URL.
  *
- * Max dimension: 1280px  Quality: 0.85  (keeps file well under 1 MB)
+ * Max dimension: 2048px  Quality: 0.92
+ * Higher resolution is critical for medical documents with small printed text.
+ * Gemini tokenises images at 258 tokens/tile regardless, so larger = better accuracy.
  */
 export function compressImage(
   src: string,
-  maxDim = 1280,
-  quality = 0.85
+  maxDim = 2048,
+  quality = 0.92
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();

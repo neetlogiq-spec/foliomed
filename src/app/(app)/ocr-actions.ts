@@ -20,78 +20,167 @@ function parseDataUrl(dataUrl: string): { base64: string; mimeType: string } {
   return { mimeType: "image/jpeg", base64: dataUrl };
 }
 
+/**
+ * Extract the first valid JSON object or array from a string.
+ * Handles cases where Gemini wraps JSON in prose or markdown fences.
+ */
+function extractJson(raw: string): Record<string, unknown> | null {
+  // Strip markdown code fences
+  let text = raw
+    .replace(/^```(?:json)?\s*/im, "")
+    .replace(/\s*```\s*$/m, "")
+    .trim();
+
+  // Try direct parse first
+  try { return JSON.parse(text); } catch { /* fall through */ }
+
+  // Find the outermost { … } block
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start !== -1 && end > start) {
+    try { return JSON.parse(text.slice(start, end + 1)); } catch { /* fall through */ }
+  }
+
+  return null;
+}
+
+/* ── Prompts ──────────────────────────────── */
+
 function buildPrompt(context: ExtractionContext): string {
-  const base =
-    "Analyse the image and extract information. Return ONLY valid JSON — no markdown, no code fences, no explanation.";
+  const preamble = `You are a medical document OCR and data extraction assistant specialising in Indian hospital records.
+Carefully read every part of the image and extract all visible information.
 
-  const schemas: Record<ExtractionContext, string> = {
-    patient_admission: `${base}
-Schema:
-{
-  "ip_number": "string or null",
-  "first_name": "string or null",
-  "last_name": "string or null",
-  "date_of_birth": "YYYY-MM-DD or null",
-  "age_years": number or null,
-  "gender": "male|female|other or null",
-  "weight_kg": number or null,
-  "height_cm": number or null,
-  "blood_group": "string or null",
-  "guardian_name": "string or null",
-  "guardian_relation": "string or null",
-  "phone": "string or null",
-  "address": "string or null",
-  "diagnosis": "string or null",
-  "confidence": { "<field>": "high|medium|low" }
-}`,
+STRICT OUTPUT RULES:
+- Return ONLY a valid JSON object. No explanation, no prose, no markdown.
+- Use JSON null (not the string "null") for any field you cannot find.
+- Never copy placeholder text or field names as values.
+- When in doubt about a value, still extract your best reading and mark confidence "low".`;
 
-    lab_report: `${base}
-Schema:
+  switch (context) {
+    case "patient_admission":
+      return `${preamble}
+
+Extract patient admission details from the image. Return exactly this JSON (replace example values with what you read):
+
 {
-  "report_date": "YYYY-MM-DD or null",
-  "patient_name": "string or null",
+  "ip_number": "123456",
+  "first_name": "Ravi",
+  "last_name": "Kumar",
+  "date_of_birth": "2020-03-15",
+  "age_years": 4,
+  "age_months": 2,
+  "gender": "male",
+  "weight_kg": 14.5,
+  "height_cm": 98,
+  "blood_group": "B+",
+  "guardian_name": "Suresh Kumar",
+  "guardian_relation": "Father",
+  "phone": "9876543210",
+  "address": "123 Main Road, Chennai",
+  "diagnosis": "Acute gastroenteritis",
+  "ward": "Paediatric Ward",
+  "bed_number": "12",
+  "admission_date": "2024-01-15",
+  "confidence": {
+    "ip_number": "high",
+    "first_name": "high",
+    "diagnosis": "medium"
+  }
+}`;
+
+    case "lab_report":
+      return `${preamble}
+
+Extract ALL laboratory test results from this lab report. Include every test row visible.
+For "flag": use "high" if value is above reference range, "low" if below, "normal" if within range, null if unclear.
+Return exactly this JSON structure:
+
+{
+  "report_date": "2024-01-15",
+  "patient_name": "Ravi Kumar",
+  "lab_name": "City Diagnostic Centre",
   "tests": [
-    { "name": "string", "value": "string", "unit": "string or null", "reference": "string or null", "flag": "normal|high|low or null" }
+    {
+      "name": "Haemoglobin",
+      "value": "9.8",
+      "unit": "g/dL",
+      "reference": "11.0 - 17.0",
+      "flag": "low"
+    },
+    {
+      "name": "Total WBC",
+      "value": "11200",
+      "unit": "cells/μL",
+      "reference": "4000 - 11000",
+      "flag": "high"
+    }
   ],
-  "lab_name": "string or null",
-  "confidence": { "<field>": "high|medium|low" }
-}`,
+  "confidence": {
+    "overall": "high"
+  }
+}`;
 
-    progress_note: `${base}
-Schema:
+    case "progress_note":
+      return `${preamble}
+
+Extract the clinical progress note / SOAP note from this document.
+For vitals, extract the exact values written (e.g. "38.5°C", "110/min") — do not convert units.
+Return exactly this JSON structure:
+
 {
-  "date": "YYYY-MM-DD or null",
-  "subjective": "string or null",
-  "objective": "string or null",
-  "assessment": "string or null",
-  "plan": "string or null",
+  "date": "2024-01-15",
+  "subjective": "Child has had fever for 3 days. Decreased oral intake. No vomiting.",
+  "objective": "Child is irritable. Mild dehydration present.",
+  "assessment": "Viral fever with mild dehydration",
+  "plan": "IV fluids at 60 mL/hr. Tab Paracetamol 15 mg/kg TDS. Monitor input-output.",
   "vitals": {
-    "temperature": "string or null",
-    "pulse": "string or null",
-    "bp": "string or null",
-    "spo2": "string or null",
-    "rr": "string or null",
-    "weight": "string or null"
+    "temperature": "38.5°C",
+    "pulse": "118/min",
+    "bp": "90/60 mmHg",
+    "spo2": "98%",
+    "rr": "28/min",
+    "weight": "14 kg"
   },
-  "fluid_input_ml": number or null,
-  "fluid_output_ml": number or null,
-  "confidence": { "<field>": "high|medium|low" }
-}`,
+  "fluid_input_ml": 450,
+  "fluid_output_ml": 320,
+  "confidence": {
+    "subjective": "high",
+    "vitals": "high"
+  }
+}`;
 
-    case_document: `${base}
-Extract all clinical content from this document. Return sections as an array.
-Schema:
+    case "case_document":
+      return `${preamble}
+
+Extract all clinical content from this case document. Identify distinct sections (headings and their content).
+Preserve the exact text — do not summarise or paraphrase.
+Return exactly this JSON structure:
+
 {
-  "title": "string or null",
+  "title": "Case Summary — Ravi Kumar",
   "sections": [
-    { "title": "string", "content": "string", "type": "heading|text|findings|plan|list" }
+    {
+      "title": "Chief Complaint",
+      "content": "Fever for 3 days, decreased oral intake",
+      "type": "text"
+    },
+    {
+      "title": "Examination Findings",
+      "content": "Temp 38.5°C, HR 118/min, mildly dehydrated, no rash",
+      "type": "findings"
+    },
+    {
+      "title": "Treatment Plan",
+      "content": "IV fluids, antipyretics, monitor vitals 4-hourly",
+      "type": "plan"
+    }
   ],
-  "raw_text": "full extracted text as a single string",
-  "confidence": { "overall": "high|medium|low" }
-}`,
-  };
-
-  return schemas[context];
+  "raw_text": "Full verbatim text of the document goes here",
+  "confidence": {
+    "overall": "high"
+  }
+}`;
+  }
 }
 
 /* ── Direct Gemini call ───────────────────── */
@@ -104,6 +193,8 @@ async function callGeminiDirect(
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return { error: "GEMINI_API_KEY not configured" };
 
+  // gemini-2.5-flash is a thinking model — disable thinking for structured extraction:
+  // thinking tokens interfere with JSON output mode and produce empty/malformed responses.
   const model = "gemini-2.5-flash";
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
@@ -117,8 +208,11 @@ async function callGeminiDirect(
       },
     ],
     generationConfig: {
-      temperature: 0.1,
+      temperature: 0,          // deterministic — no creativity needed for data extraction
       responseMimeType: "application/json",
+      thinkingConfig: {
+        thinkingBudget: 0,     // disable thinking mode — produces cleaner JSON output
+      },
     },
   };
 
@@ -133,36 +227,40 @@ async function callGeminiDirect(
     let msg = `Gemini API error (${res.status})`;
     try { msg = JSON.parse(errText)?.error?.message ?? msg; } catch { /* ignore */ }
     if (res.status === 429) msg = "Gemini quota exceeded — try again in a moment.";
-    if (res.status === 400 && msg.includes("API key")) msg = "Gemini API key invalid — restart the dev server after updating .env.local.";
-    console.error("[OCR] Gemini direct error:", res.status, msg);
+    if (res.status === 400 && msg.toLowerCase().includes("api key")) {
+      msg = "Gemini API key invalid — check GEMINI_API_KEY in .env.local.";
+    }
+    console.error("[OCR] Gemini error:", res.status, msg);
     return { error: msg };
   }
 
   const json = await res.json();
-  const text: string = json?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 
-  if (!text) return { error: "Gemini returned empty response" };
-
-  try {
-    // Strip any accidental markdown fences
-    const cleaned = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
-    const data = JSON.parse(cleaned) as Record<string, unknown>;
-    return { success: true, data };
-  } catch {
-    // Gemini sometimes returns free text — wrap it
-    return { success: true, data: { raw_text: text } };
+  // Check for content blocks (e.g. safety filter triggered)
+  const finishReason = json?.candidates?.[0]?.finishReason;
+  if (finishReason && finishReason !== "STOP") {
+    console.warn("[OCR] Gemini finish reason:", finishReason);
   }
+
+  const rawText: string = json?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+  if (!rawText) return { error: "Gemini returned an empty response — image may be unreadable or blocked by safety filters." };
+
+  const data = extractJson(rawText);
+  if (data) return { success: true, data };
+
+  // Last resort: return raw text so the user can see what Gemini read
+  console.warn("[OCR] Could not parse JSON from Gemini response:", rawText.slice(0, 200));
+  return { success: true, data: { raw_text: rawText } };
 }
 
 /* ── Supabase edge function fallback ─────── */
 
-// Edge function only supports these three contexts
 type EdgeContext = "patient_admission" | "lab_report" | "progress_note";
 const EDGE_CONTEXT_MAP: Record<ExtractionContext, EdgeContext> = {
   patient_admission: "patient_admission",
   lab_report: "lab_report",
   progress_note: "progress_note",
-  case_document: "progress_note", // closest supported equivalent
+  case_document: "progress_note",
 };
 
 async function callEdgeFunction(
@@ -210,16 +308,11 @@ export async function extractCaseData(
 ): Promise<ExtractResult> {
   const { base64, mimeType } = parseDataUrl(imageBase64);
 
-  // Prefer direct Gemini if key is available — avoids edge function entirely
   if (process.env.GEMINI_API_KEY) {
     return callGeminiDirect(base64, mimeType, context);
   }
 
-  // No direct key — fall back to Supabase edge function
-  console.warn(
-    "[OCR] GEMINI_API_KEY not set. Using edge function fallback. " +
-    "Add GEMINI_API_KEY to .env.local for direct Gemini access."
-  );
+  console.warn("[OCR] GEMINI_API_KEY not set — using edge function fallback.");
   return callEdgeFunction(base64, mimeType, context);
 }
 
