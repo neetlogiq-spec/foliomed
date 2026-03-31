@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import type { ActionResult } from "@/types/action";
 
 export async function createTemplate(
   name: string,
@@ -9,7 +10,7 @@ export async function createTemplate(
   description: string,
   content: { blocks: unknown[] },
   isGlobal: boolean
-) {
+): Promise<ActionResult> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
@@ -35,7 +36,7 @@ export async function createTemplate(
   return { success: true };
 }
 
-export async function deleteTemplate(templateId: string) {
+export async function deleteTemplate(templateId: string): Promise<ActionResult> {
   const supabase = await createClient();
   const { error } = await supabase
     .from("document_templates")

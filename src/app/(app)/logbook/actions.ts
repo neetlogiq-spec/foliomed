@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import type { ActionResult } from "@/types/action";
 
 export async function addCaseLogEntry(data: {
   patient_id: string;
@@ -9,7 +10,7 @@ export async function addCaseLogEntry(data: {
   procedure_done?: string;
   learning_points?: string;
   is_interesting?: boolean;
-}) {
+}): Promise<ActionResult> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };

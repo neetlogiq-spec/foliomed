@@ -2,11 +2,12 @@
 
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import type { ActionResult } from "@/types/action";
 
 export async function uploadPatientImage(
   patientId: string,
   formData: FormData
-) {
+): Promise<ActionResult> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -74,7 +75,7 @@ export async function getImageUrls(filePaths: string[]): Promise<Record<string, 
   );
 }
 
-export async function deletePatientImage(imageId: string, filePath: string, patientId: string) {
+export async function deletePatientImage(imageId: string, filePath: string, patientId: string): Promise<ActionResult> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };

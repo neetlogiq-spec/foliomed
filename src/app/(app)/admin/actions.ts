@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import type { ActionResult } from "@/types/action";
 
 async function checkAdminAccess() {
   const supabase = await createClient();
@@ -21,7 +22,7 @@ async function checkAdminAccess() {
   return { error: null, supabase, user };
 }
 
-export async function updateUserRole(userId: string, role: string) {
+export async function updateUserRole(userId: string, role: string): Promise<ActionResult> {
   const { error, supabase } = await checkAdminAccess();
   if (error || !supabase) return { error: error || "Error" };
 
@@ -35,7 +36,7 @@ export async function updateUserRole(userId: string, role: string) {
   return { success: true };
 }
 
-export async function updateUserDepartment(userId: string, departmentId: string) {
+export async function updateUserDepartment(userId: string, departmentId: string): Promise<ActionResult> {
   const { error, supabase } = await checkAdminAccess();
   if (error || !supabase) return { error: error || "Error" };
 
@@ -49,7 +50,7 @@ export async function updateUserDepartment(userId: string, departmentId: string)
   return { success: true };
 }
 
-export async function toggleUserActive(userId: string, isActive: boolean) {
+export async function toggleUserActive(userId: string, isActive: boolean): Promise<ActionResult> {
   const { error, supabase } = await checkAdminAccess();
   if (error || !supabase) return { error: error || "Error" };
 

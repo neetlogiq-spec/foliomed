@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import type { ActionResult } from "@/types/action";
 
 export async function createHandoverNote(data: {
   handover_date: string;
@@ -10,7 +11,7 @@ export async function createHandoverNote(data: {
   pending_tasks?: string;
   critical_alerts?: string;
   notes?: string;
-}) {
+}): Promise<ActionResult> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
@@ -37,7 +38,7 @@ export async function createHandoverNote(data: {
   return { success: true };
 }
 
-export async function acknowledgeHandover(handoverId: string) {
+export async function acknowledgeHandover(handoverId: string): Promise<ActionResult> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
