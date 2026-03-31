@@ -105,14 +105,16 @@ Return exactly this JSON structure:
       "value": "9.8",
       "unit": "g/dL",
       "reference": "11.0 - 17.0",
-      "flag": "low"
+      "flag": "low",
+      "confidence": "high"
     },
     {
       "name": "Total WBC",
       "value": "11200",
       "unit": "cells/μL",
       "reference": "4000 - 11000",
-      "flag": "high"
+      "flag": "high",
+      "confidence": "medium"
     }
   ],
   "confidence": {
@@ -145,6 +147,9 @@ Return exactly this JSON structure:
   "fluid_output_ml": 320,
   "confidence": {
     "subjective": "high",
+    "objective": "high",
+    "assessment": "medium",
+    "plan": "high",
     "vitals": "high"
   }
 }`;
@@ -321,4 +326,16 @@ export async function extractCaseDataBatch(
   context: ExtractionContext
 ): Promise<ExtractResult[]> {
   return Promise.all(images.map((img) => extractCaseData(img, context)));
+}
+
+/* ── Auto-detect + extract ────────────────── */
+
+export async function detectAndExtract(
+  imageBase64: string
+): Promise<{ context: ExtractionContext; result: ExtractResult }> {
+  const { detectDocumentType } = await import("@/lib/ocr/detect-document-type");
+  const { base64, mimeType } = parseDataUrl(imageBase64);
+  const context = await detectDocumentType(base64, mimeType);
+  const result = await extractCaseData(imageBase64, context);
+  return { context, result };
 }

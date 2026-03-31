@@ -289,10 +289,13 @@ export function ImagesPanel({ patientId, images }: ImagesPanelProps) {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
           {images.map((img) => (
-            <button
+            <div
               key={img.id}
               onClick={() => handleView(img.file_path)}
-              className="bg-white/5 border border-white/5 rounded-lg p-2 hover:border-blue-500/30 transition-colors text-left group relative"
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === "Enter" && handleView(img.file_path)}
+              className="bg-white/5 border border-white/5 rounded-lg p-2 hover:border-blue-500/30 transition-colors text-left group relative cursor-pointer"
             >
               <div className="w-full aspect-square bg-slate-800 rounded overflow-hidden mb-2 flex items-center justify-center">
                 {img.mime_type?.startsWith("image/") && thumbnails[img.file_path] ? (
@@ -337,7 +340,7 @@ export function ImagesPanel({ patientId, images }: ImagesPanelProps) {
               >
                 ✕
               </button>
-            </button>
+            </div>
           ))}
         </div>
       )}

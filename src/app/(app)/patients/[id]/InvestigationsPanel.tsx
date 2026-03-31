@@ -52,19 +52,21 @@ export function InvestigationsPanel({ patientId, investigations }: Investigation
             context="lab_report"
             label="📷 Scan Report"
             onExtract={(data) => {
+              // Gemini returns `tests` array (not `investigations`)
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              const invs = (data as any).investigations;
-              if (Array.isArray(invs)) {
+              const tests = (data as any).tests;
+              if (Array.isArray(tests)) {
                 startTransition(async () => {
-                  for (const inv of invs) {
+                  for (const t of tests) {
+                    const isAbnormal = t.flag === "high" || t.flag === "low";
                     await addInvestigation(patientId, {
-                      test_name: inv.test_name || "Unknown Test",
-                      category: inv.category || undefined,
-                      value: inv.value || undefined,
-                      unit: inv.unit || undefined,
-                      reference_range: inv.reference_range || undefined,
-                      is_abnormal: inv.is_abnormal || false,
-                      is_critical: inv.is_critical || false,
+                      test_name: t.name || t.test_name || "Unknown Test",
+                      category: t.category || undefined,
+                      value: t.value != null ? String(t.value) : undefined,
+                      unit: t.unit || undefined,
+                      reference_range: t.reference || t.reference_range || undefined,
+                      is_abnormal: isAbnormal,
+                      is_critical: false,
                     });
                   }
                 });
