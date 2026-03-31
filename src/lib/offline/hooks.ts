@@ -71,11 +71,9 @@ export function useSyncEngine(actionMap: ActionMap) {
         }
 
         try {
-          const result = await actionFn(mutation.payload);
-          if (!result?.error) {
-            await dequeue(mutation.id);
-          }
-          // On error, leave in queue for next retry
+          await actionFn(mutation.payload);
+          // Dequeue regardless of success/failure — don't retry indefinitely
+          await dequeue(mutation.id);
         } catch {
           // Network error — leave in queue for next retry
         }

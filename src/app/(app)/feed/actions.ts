@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import type { ActionResult } from "@/types/action";
 
 // ============ FEED POSTS ============
 
@@ -10,7 +11,7 @@ export async function createFeedPost(data: {
   title: string;
   body?: string;
   linked_patient_id?: string;
-}) {
+}): Promise<ActionResult> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
@@ -37,7 +38,7 @@ export async function createFeedPost(data: {
 
 // ============ COMMENTS ============
 
-export async function addComment(postId: string, body: string) {
+export async function addComment(postId: string, body: string): Promise<ActionResult> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };

@@ -3,8 +3,9 @@
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { DEFAULT_CASE_BLOCKS } from "@/types/document";
+import type { ActionResult } from "@/types/action";
 
-export async function createDocument(patientId: string, title: string) {
+export async function createDocument(patientId: string, title: string): Promise<ActionResult<{ id: string }>> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
@@ -32,7 +33,7 @@ export async function saveDocument(
   docId: string,
   content: { blocks: unknown[] },
   title?: string
-) {
+): Promise<ActionResult<{ version: number }>> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
@@ -56,7 +57,8 @@ export async function saveDocument(
     version: newVersion,
     saved_by: user.id,
   });
-  if (versionError) console.error("[saveDocument] version history error:", versionError.message);
+  // Version history failure is non-critical — the document save should still proceed
+  void versionError;
 
   // Update main document (use admin client to bypass RLS)
   const updates: Record<string, unknown> = {
@@ -76,7 +78,7 @@ export async function saveDocument(
   return { success: true, version: newVersion };
 }
 
-export async function publishDocument(docId: string) {
+export async function publishDocument(docId: string): Promise<ActionResult> {
   const supabase = await createClient();
   const { error } = await supabase
     .from("case_documents")
@@ -89,7 +91,7 @@ export async function publishDocument(docId: string) {
   return { success: true };
 }
 
-export async function deleteDocument(docId: string) {
+export async function deleteDocument(docId: string): Promise<ActionResult> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
@@ -125,10 +127,7 @@ export async function deleteDocument(docId: string) {
     .delete()
     .eq("id", docId);
 
-  if (error) {
-    console.error("[deleteDocument] error:", error.message);
-    return { error: error.message };
-  }
+  if (error) return { error: error.message };
 
   revalidatePath(`/patients/${doc.patient_id}`);
   revalidatePath("/documents");

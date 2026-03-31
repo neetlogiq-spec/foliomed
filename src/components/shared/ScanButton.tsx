@@ -183,7 +183,6 @@ export function ScanButton({
       results = await Promise.all(
         results.map(async (r, i) => {
           if (!r.error) return r;
-          console.warn(`[OCR] Gemini failed (image ${startIndex + i + 1}), trying Tesseract…`);
           const fallback = await ocrWithTesseract(base64List[i]);
           return fallback.success
             ? { ...fallback, data: { ...fallback.data, _fallback: true } }

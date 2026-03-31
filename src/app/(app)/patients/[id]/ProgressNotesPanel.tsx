@@ -60,13 +60,12 @@ export function ProgressNotesPanel({ patientId, notes }: ProgressNotesPanelProps
             context="progress_note"
             label="📷 Scan Note"
             onExtract={(data) => {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              const d = data as any;
+              const asStr = (v: unknown) => (typeof v === "string" ? v : "");
               setSoap({
-                subjective: d.subjective || "",
-                objective: d.objective || "",
-                assessment: d.assessment || "",
-                plan: d.plan || "",
+                subjective: asStr(data.subjective),
+                objective: asStr(data.objective),
+                assessment: asStr(data.assessment),
+                plan: asStr(data.plan),
               });
               setShowForm(true);
             }}

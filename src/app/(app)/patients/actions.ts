@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import type { PatientFormValues } from "@/lib/validations/patient";
 import type { PatientStatus } from "@/types/patient";
 import { logAudit } from "@/lib/audit";
+import type { ActionResult } from "@/types/action";
 
 export async function createPatient(data: PatientFormValues) {
   const supabase = await createClient();
@@ -61,7 +62,7 @@ export async function createPatient(data: PatientFormValues) {
 export async function updatePatientStatus(
   patientId: string,
   newStatus: PatientStatus
-) {
+): Promise<ActionResult> {
   const supabase = await createClient();
 
   const {
@@ -95,7 +96,7 @@ export async function updatePatientStatus(
 export async function updatePatient(
   patientId: string,
   data: Partial<PatientFormValues>
-) {
+): Promise<ActionResult> {
   const supabase = await createClient();
 
   const {
@@ -119,7 +120,7 @@ export async function updatePatient(
   return { success: true };
 }
 
-export async function updatePatientTags(patientId: string, tags: string[]) {
+export async function updatePatientTags(patientId: string, tags: string[]): Promise<ActionResult> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };

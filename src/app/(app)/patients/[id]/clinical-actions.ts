@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import type { ActionResult } from "@/types/action";
 
 // ============ VITALS ============
 
@@ -13,7 +14,7 @@ export async function addVitals(patientId: string, data: {
   diastolic_bp?: number;
   spo2_percent?: number;
   weight_kg?: number;
-}) {
+}): Promise<ActionResult> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
@@ -47,7 +48,7 @@ export async function addInvestigation(patientId: string, data: {
   is_abnormal?: boolean;
   is_critical?: boolean;
   reported_at?: string;
-}) {
+}): Promise<ActionResult> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
@@ -74,7 +75,7 @@ export async function addMedication(patientId: string, data: {
   duration?: string;
   start_date?: string;
   end_date?: string;
-}) {
+}): Promise<ActionResult> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
@@ -95,7 +96,7 @@ export async function updateMedicationStatus(
   medicationId: string,
   patientId: string,
   status: "active" | "stopped" | "on_hold"
-) {
+): Promise<ActionResult> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };
@@ -120,7 +121,7 @@ export async function addProgressNote(patientId: string, data: {
   plan?: string;
   fluid_input_ml?: number;
   fluid_output_ml?: number;
-}) {
+}): Promise<ActionResult> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Not authenticated" };

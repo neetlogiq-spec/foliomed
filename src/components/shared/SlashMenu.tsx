@@ -45,6 +45,14 @@ export function SlashMenu({ position, onSelect, onClose }: SlashMenuProps) {
     return () => document.removeEventListener("mousedown", handle);
   }, [onClose]);
 
+  // Close on scroll — the menu is fixed to viewport coords captured at open
+  // time, so any scroll would cause it to drift away from the trigger element.
+  useEffect(() => {
+    const handle = () => onClose();
+    window.addEventListener("scroll", handle, { capture: true, passive: true });
+    return () => window.removeEventListener("scroll", handle, { capture: true });
+  }, [onClose]);
+
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === "ArrowDown") {
