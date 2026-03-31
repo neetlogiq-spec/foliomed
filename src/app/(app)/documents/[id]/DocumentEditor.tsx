@@ -291,7 +291,7 @@ export function DocumentEditor({
     setError(null);
     startTransition(async () => {
       const result = await saveDocument(docId, { blocks }, title);
-      if (result?.error) setError(result.error);
+      if (result.error) setError(result.error);
       else {
         const newVersion = result.version ?? version + 1;
         setVersion(newVersion);

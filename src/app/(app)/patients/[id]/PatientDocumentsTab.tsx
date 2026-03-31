@@ -25,7 +25,7 @@ export function PatientDocumentsTab({ patientId, documents }: PatientDocumentsTa
   const handleCreate = () => {
     startTransition(async () => {
       const result = await createDocument(patientId, "Case Document");
-      if (result?.id) router.push(`/documents/${result.id}`);
+      if (!result.error) router.push(`/documents/${result.id}`);
     });
   };
 

@@ -12,7 +12,7 @@ export function CreateDocumentButton({ patientId }: { patientId: string }) {
   const handleCreate = () => {
     startTransition(async () => {
       const result = await createDocument(patientId, "Case Document");
-      if (result?.id) {
+      if (!result.error) {
         router.push(`/documents/${result.id}`);
       }
     });
