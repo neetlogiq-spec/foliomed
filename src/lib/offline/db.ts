@@ -1,6 +1,8 @@
 "use client";
 
 import { get, set, del, keys } from "idb-keyval";
+import type { Patient } from "@/types/patient";
+import type { ProgressNote, Vital } from "@/types/clinical";
 
 // ─── Cache Keys ───────────────────────────────────────────────
 const KEYS = {
@@ -36,48 +38,39 @@ export async function cacheDel(key: string): Promise<void> {
 }
 
 // ─── Patient List ─────────────────────────────────────────────
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function cachePatientList(patients: any[]): Promise<void> {
+export async function cachePatientList(patients: Patient[]): Promise<void> {
   await cacheSet(KEYS.PATIENTS_LIST, patients);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function getCachedPatientList(): Promise<any[] | null> {
-  // Allow stale data up to 24 hours when offline
-  return cacheGet(KEYS.PATIENTS_LIST, 0);
+export async function getCachedPatientList(): Promise<Patient[] | null> {
+  return cacheGet<Patient[]>(KEYS.PATIENTS_LIST, 24 * 60 * 60 * 1000);
 }
 
 // ─── Patient Detail ───────────────────────────────────────────
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function cachePatientDetail(id: string, data: any): Promise<void> {
+export async function cachePatientDetail(id: string, data: Patient): Promise<void> {
   await cacheSet(KEYS.PATIENT_DETAIL(id), data);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function getCachedPatientDetail(id: string): Promise<any | null> {
-  return cacheGet(KEYS.PATIENT_DETAIL(id), 0);
+export async function getCachedPatientDetail(id: string): Promise<Patient | null> {
+  return cacheGet<Patient>(KEYS.PATIENT_DETAIL(id), 24 * 60 * 60 * 1000);
 }
 
 // ─── Progress Notes ───────────────────────────────────────────
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function cacheProgressNotes(patientId: string, notes: any[]): Promise<void> {
+export async function cacheProgressNotes(patientId: string, notes: ProgressNote[]): Promise<void> {
   await cacheSet(KEYS.PROGRESS_NOTES(patientId), notes);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function getCachedProgressNotes(patientId: string): Promise<any[] | null> {
-  return cacheGet(KEYS.PROGRESS_NOTES(patientId), 0);
+export async function getCachedProgressNotes(patientId: string): Promise<ProgressNote[] | null> {
+  return cacheGet<ProgressNote[]>(KEYS.PROGRESS_NOTES(patientId), 24 * 60 * 60 * 1000);
 }
 
 // ─── Vitals ───────────────────────────────────────────────────
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function cacheVitals(patientId: string, vitals: any[]): Promise<void> {
+export async function cacheVitals(patientId: string, vitals: Vital[]): Promise<void> {
   await cacheSet(KEYS.VITALS(patientId), vitals);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function getCachedVitals(patientId: string): Promise<any[] | null> {
-  return cacheGet(KEYS.VITALS(patientId), 0);
+export async function getCachedVitals(patientId: string): Promise<Vital[] | null> {
+  return cacheGet<Vital[]>(KEYS.VITALS(patientId), 24 * 60 * 60 * 1000);
 }
 
 // ─── Mutation Queue ───────────────────────────────────────────

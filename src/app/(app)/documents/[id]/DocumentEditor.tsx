@@ -311,17 +311,28 @@ export function DocumentEditor({
     });
   }, [docId, blocks, title]);
 
-  /* ── Auto-save every 15s if dirty ──────── */
-  useEffect(() => {
-    autoSaveTimer.current = setInterval(() => {
+  /* ── Auto-save: debounce 3s after last edit ── */
+  // Schedules a save 3 seconds after the last mutation; cancels any pending
+  // timer if the user keeps typing. Avoids the race conditions that a fixed
+  // setInterval creates when manual saves fire mid-interval.
+  const scheduleAutoSave = useCallback(() => {
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(() => {
       if (dirtyRef.current && !isPending) {
         handleSave();
       }
-    }, 15000);
-    return () => {
-      if (autoSaveTimer.current) clearInterval(autoSaveTimer.current);
-    };
+    }, 3000);
   }, [handleSave, isPending]);
+
+  // Trigger the debounce whenever blocks or title change while dirty
+  useEffect(() => {
+    if (dirtyRef.current) {
+      scheduleAutoSave();
+    }
+    return () => {
+      if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    };
+  }, [blocks, title, scheduleAutoSave]);
 
   /* ── PDF Export ──────────────────────────── */
   const handleExportPDF = () => {

@@ -4,13 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import type { PatientStatus } from "@/types/patient";
+import type { Patient, PatientStatus } from "@/types/patient";
 import { PATIENT_STATUS_CONFIG, CASE_TAGS } from "@/types/patient";
 import { TagBadges } from "@/components/patients/CaseTags";
 import { cn } from "@/lib/utils";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type PatientRow = any;
+type PatientRow = Patient & { profiles?: { full_name?: string } | { full_name?: string }[] };
 
 function getPgName(profiles: unknown): string {
   if (!profiles) return "—";

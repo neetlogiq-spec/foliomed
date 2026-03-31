@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   patientFormSchema,
@@ -25,8 +25,7 @@ export function PatientForm() {
     getValues,
     formState: { errors, isSubmitting },
   } = useForm<PatientFormValues>({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resolver: zodResolver(patientFormSchema) as any,
+    resolver: zodResolver(patientFormSchema) as Resolver<PatientFormValues>,
     defaultValues: {
       consent_for_teaching: false,
       visibility: "department",
@@ -42,8 +41,7 @@ export function PatientForm() {
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleScanExtract = useCallback((data: Record<string, any>) => {
+  const handleScanExtract = useCallback((data: Record<string, unknown>) => {
     const current = getValues();
     const merged = { ...current };
 

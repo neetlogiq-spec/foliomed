@@ -9,6 +9,7 @@ import { ClinicalTabs } from "./ClinicalTabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { RealtimeProvider } from "@/components/shared/RealtimeProvider";
+import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import type { PatientStatus } from "@/types/patient";
 
 function InfoItem({
@@ -170,15 +171,17 @@ export default async function PatientDetailPage({
       </div>
 
       {/* Clinical Tabs */}
-      <ClinicalTabs
-        patientId={patient.id}
-        vitals={vitalsRes.data ?? []}
-        investigations={investigationsRes.data ?? []}
-        medications={medicationsRes.data ?? []}
-        progressNotes={notesRes.data ?? []}
-        images={imagesRes.data ?? []}
-        documents={docsRes.data ?? []}
-      />
+      <ErrorBoundary>
+        <ClinicalTabs
+          patientId={patient.id}
+          vitals={vitalsRes.data ?? []}
+          investigations={investigationsRes.data ?? []}
+          medications={medicationsRes.data ?? []}
+          progressNotes={notesRes.data ?? []}
+          images={imagesRes.data ?? []}
+          documents={docsRes.data ?? []}
+        />
+      </ErrorBoundary>
     </div>
   );
 }

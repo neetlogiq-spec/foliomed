@@ -25,7 +25,9 @@ export async function logAudit(
       department_id: profile?.department_id || null,
       metadata: metadata || null,
     });
-  } catch {
-    // Silent fail — audit logging should never break the main flow
+  } catch (err) {
+    // Audit logging must never break the main flow, but failures should be
+    // visible in server logs so they can be investigated.
+    process.stderr.write(`[audit] Failed to log ${action} on ${entityType}:${entityId} — ${err instanceof Error ? err.message : String(err)}\n`);
   }
 }

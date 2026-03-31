@@ -2,10 +2,11 @@
 
 import { useEffect } from "react";
 import { cachePatientList, cachePatientDetail, cacheProgressNotes, cacheVitals } from "@/lib/offline/db";
+import type { Patient } from "@/types/patient";
+import type { ProgressNote, Vital } from "@/types/clinical";
 
 // ─── Cache patient list on render ─────────────────────────────
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function CachePatientList({ patients }: { patients: any[] }) {
+export function CachePatientList({ patients }: { patients: Patient[] }) {
   useEffect(() => {
     if (patients?.length > 0) {
       cachePatientList(patients);
@@ -16,8 +17,7 @@ export function CachePatientList({ patients }: { patients: any[] }) {
 }
 
 // ─── Cache patient detail on render ───────────────────────────
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function CachePatientDetail({ id, data }: { id: string; data: any }) {
+export function CachePatientDetail({ id, data }: { id: string; data: Patient }) {
   useEffect(() => {
     if (id && data) {
       cachePatientDetail(id, data);
@@ -28,8 +28,7 @@ export function CachePatientDetail({ id, data }: { id: string; data: any }) {
 }
 
 // ─── Cache progress notes on render ───────────────────────────
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function CacheProgressNotes({ patientId, notes }: { patientId: string; notes: any[] }) {
+export function CacheProgressNotes({ patientId, notes }: { patientId: string; notes: ProgressNote[] }) {
   useEffect(() => {
     if (patientId && notes) {
       cacheProgressNotes(patientId, notes);
@@ -40,8 +39,7 @@ export function CacheProgressNotes({ patientId, notes }: { patientId: string; no
 }
 
 // ─── Cache vitals on render ───────────────────────────────────
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function CacheVitals({ patientId, vitals }: { patientId: string; vitals: any[] }) {
+export function CacheVitals({ patientId, vitals }: { patientId: string; vitals: Vital[] }) {
   useEffect(() => {
     if (patientId && vitals) {
       cacheVitals(patientId, vitals);

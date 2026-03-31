@@ -235,17 +235,10 @@ async function callGeminiDirect(
     if (res.status === 400 && msg.toLowerCase().includes("api key")) {
       msg = "Gemini API key invalid — check GEMINI_API_KEY in .env.local.";
     }
-    console.error("[OCR] Gemini error:", res.status, msg);
     return { error: msg };
   }
 
   const json = await res.json();
-
-  // Check for content blocks (e.g. safety filter triggered)
-  const finishReason = json?.candidates?.[0]?.finishReason;
-  if (finishReason && finishReason !== "STOP") {
-    console.warn("[OCR] Gemini finish reason:", finishReason);
-  }
 
   const rawText: string = json?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
   if (!rawText) return { error: "Gemini returned an empty response — image may be unreadable or blocked by safety filters." };
@@ -254,7 +247,6 @@ async function callGeminiDirect(
   if (data) return { success: true, data };
 
   // Last resort: return raw text so the user can see what Gemini read
-  console.warn("[OCR] Could not parse JSON from Gemini response:", rawText.slice(0, 200));
   return { success: true, data: { raw_text: rawText } };
 }
 
@@ -294,7 +286,6 @@ async function callEdgeFunction(
       const text = await res.text().catch(() => "");
       let message = `Edge function error (${res.status})`;
       try { message = JSON.parse(text)?.error ?? message; } catch { if (text) message = text.slice(0, 200); }
-      console.error("[OCR] edge function error:", res.status, message);
       return { error: message };
     }
 
@@ -317,7 +308,6 @@ export async function extractCaseData(
     return callGeminiDirect(base64, mimeType, context);
   }
 
-  console.warn("[OCR] GEMINI_API_KEY not set — using edge function fallback.");
   return callEdgeFunction(base64, mimeType, context);
 }
 

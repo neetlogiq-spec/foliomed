@@ -80,10 +80,9 @@ export async function deletePatientImage(imageId: string, filePath: string, pati
   if (!user) return { error: "Not authenticated" };
 
   // Delete from storage (use user client — storage policies handle this)
-  const { error: storageError } = await supabase.storage
-    .from("patient-images")
-    .remove([filePath]);
-  if (storageError) console.error("[deletePatientImage] storage error:", storageError.message);
+  // Storage deletion is best-effort; proceed even if it fails so the DB record
+  // is still removed and the image is no longer accessible via the app.
+  await supabase.storage.from("patient-images").remove([filePath]);
 
   // Delete DB record via admin client to bypass RLS
   const admin = createAdminClient();

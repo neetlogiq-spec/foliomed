@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { DocumentEditor } from "./DocumentEditor";
+import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 import type { Block } from "@/types/document";
 
 export default async function DocumentDetailPage({
@@ -56,18 +57,20 @@ export default async function DocumentDetailPage({
         )}
       </div>
 
-      <DocumentEditor
-        docId={doc.id}
-        initialTitle={doc.title}
-        initialBlocks={blocks}
-        initialVersion={doc.version}
-        isDraft={doc.is_draft}
-        currentUser={{
-          id: user.id,
-          fullName: profile?.full_name || user.email || "Unknown",
-          avatarUrl: profile?.avatar_url || null,
-        }}
-      />
+      <ErrorBoundary>
+        <DocumentEditor
+          docId={doc.id}
+          initialTitle={doc.title}
+          initialBlocks={blocks}
+          initialVersion={doc.version}
+          isDraft={doc.is_draft}
+          currentUser={{
+            id: user.id,
+            fullName: profile?.full_name || user.email || "Unknown",
+            avatarUrl: profile?.avatar_url || null,
+          }}
+        />
+      </ErrorBoundary>
     </div>
   );
 }

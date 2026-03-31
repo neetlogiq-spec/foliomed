@@ -10,6 +10,13 @@ const COLLABORATOR_COLORS = [
   "#ec4899", "#06b6d4", "#f97316",
 ];
 
+interface PresencePayload {
+  fullName?: string;
+  avatarUrl?: string | null;
+  activeBlockId?: string | null;
+  online_at?: string;
+}
+
 export interface CollaboratorPresence {
   userId: string;
   fullName: string;
@@ -71,8 +78,7 @@ export function useCollaborativeEditor({
       const users: CollaboratorPresence[] = [];
       for (const [key, presences] of Object.entries(state)) {
         if (key === userId) continue;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const p = (presences as any[])[0];
+        const p = (presences as PresencePayload[])[0];
         if (p) {
           users.push({
             userId: key,

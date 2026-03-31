@@ -65,21 +65,19 @@ export function useSyncEngine(actionMap: ActionMap) {
       for (const mutation of pending) {
         const actionFn = actionMap[mutation.action];
         if (!actionFn) {
-          console.warn(`[Sync] Unknown action: ${mutation.action}`);
+          // Unknown action — drop it so it doesn't block the queue forever
           await dequeue(mutation.id);
           continue;
         }
 
         try {
           const result = await actionFn(mutation.payload);
-          if (result?.error) {
-            console.error(`[Sync] Failed: ${mutation.action}`, result.error);
+          if (!result?.error) {
+            await dequeue(mutation.id);
           }
-          // Dequeue whether success or failure (don't retry indefinitely)
-          await dequeue(mutation.id);
-        } catch (err) {
-          console.error(`[Sync] Error: ${mutation.action}`, err);
-          // Leave in queue for next retry
+          // On error, leave in queue for next retry
+        } catch {
+          // Network error — leave in queue for next retry
         }
       }
     } finally {
