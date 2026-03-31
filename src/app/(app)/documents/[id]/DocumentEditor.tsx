@@ -292,7 +292,7 @@ export function DocumentEditor({
     startTransition(async () => {
       const result = await saveDocument(docId, { blocks }, title);
       if (result?.error) setError(result.error);
-      else {
+      else if ('version' in result) {
         const newVersion = result.version ?? version + 1;
         setVersion(newVersion);
         setSaved(true);
