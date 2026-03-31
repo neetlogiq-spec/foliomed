@@ -2,11 +2,11 @@
 
 import { useEffect } from "react";
 import { cachePatientList, cachePatientDetail, cacheProgressNotes, cacheVitals } from "@/lib/offline/db";
-import type { Patient } from "@/types/patient";
+import type { Patient, PatientListRow } from "@/types/patient";
 import type { ProgressNote, Vital } from "@/types/clinical";
 
 // ─── Cache patient list on render ─────────────────────────────
-export function CachePatientList({ patients }: { patients: Patient[] }) {
+export function CachePatientList({ patients }: { patients: PatientListRow[] }) {
   useEffect(() => {
     if (patients?.length > 0) {
       cachePatientList(patients);

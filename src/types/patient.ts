@@ -95,6 +95,20 @@ export const STATUS_TRANSITIONS: Record<PatientStatus, PatientStatus[]> = {
   expired: [],
 };
 
+/**
+ * Subset of Patient used on the list page — matches the partial SELECT query.
+ * Includes the `profiles` join for the assigned PG name.
+ */
+export type PatientListRow = Pick<
+  Patient,
+  | "id" | "ip_number" | "first_name" | "last_name" | "sex"
+  | "date_of_birth" | "age_days" | "ward" | "bed_number" | "unit"
+  | "status" | "admission_date" | "primary_pg_id" | "created_at"
+  | "is_stable" | "diagnosis" | "tags"
+> & {
+  profiles?: { full_name?: string } | { full_name?: string }[];
+};
+
 // Form schema fields for patient registration
 export interface PatientFormData {
   ip_number: string;

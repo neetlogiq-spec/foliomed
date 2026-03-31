@@ -19,10 +19,14 @@ export default async function PatientsPage() {
       age_days,
       ward,
       bed_number,
+      unit,
       status,
       admission_date,
       primary_pg_id,
       created_at,
+      is_stable,
+      diagnosis,
+      tags,
       profiles:primary_pg_id ( full_name )
     `
     )

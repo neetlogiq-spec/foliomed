@@ -1,7 +1,7 @@
 "use client";
 
 import { get, set, del, keys } from "idb-keyval";
-import type { Patient } from "@/types/patient";
+import type { Patient, PatientListRow } from "@/types/patient";
 import type { ProgressNote, Vital } from "@/types/clinical";
 
 // ─── Cache Keys ───────────────────────────────────────────────
@@ -38,12 +38,12 @@ export async function cacheDel(key: string): Promise<void> {
 }
 
 // ─── Patient List ─────────────────────────────────────────────
-export async function cachePatientList(patients: Patient[]): Promise<void> {
+export async function cachePatientList(patients: PatientListRow[]): Promise<void> {
   await cacheSet(KEYS.PATIENTS_LIST, patients);
 }
 
-export async function getCachedPatientList(): Promise<Patient[] | null> {
-  return cacheGet<Patient[]>(KEYS.PATIENTS_LIST, 24 * 60 * 60 * 1000);
+export async function getCachedPatientList(): Promise<PatientListRow[] | null> {
+  return cacheGet<PatientListRow[]>(KEYS.PATIENTS_LIST, 24 * 60 * 60 * 1000);
 }
 
 // ─── Patient Detail ───────────────────────────────────────────

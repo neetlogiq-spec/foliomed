@@ -4,12 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import type { Patient, PatientStatus } from "@/types/patient";
+import type { PatientListRow, PatientStatus } from "@/types/patient";
 import { PATIENT_STATUS_CONFIG, CASE_TAGS } from "@/types/patient";
 import { TagBadges } from "@/components/patients/CaseTags";
 import { cn } from "@/lib/utils";
 
-type PatientRow = Patient & { profiles?: { full_name?: string } | { full_name?: string }[] };
+type PatientRow = PatientListRow;
 
 function getPgName(profiles: unknown): string {
   if (!profiles) return "—";
