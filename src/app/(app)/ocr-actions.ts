@@ -127,10 +127,32 @@ Return exactly this JSON structure:
 
 Extract the clinical progress note / SOAP note from this document.
 For vitals, extract the exact values written (e.g. "38.5°C", "110/min") — do not convert units.
+
+IMPORTANT — Handwritten notes:
+- Read carefully: handwriting may be cursive or abbreviated.
+- Expand common medical abbreviations in your extraction:
+  TTNB → Transient Tachypnea of the Newborn, NVD → Normal Vaginal Delivery,
+  AGA → Appropriate for Gestational Age, HFNC → High Flow Nasal Cannula,
+  CPAP → Continuous Positive Airway Pressure, NICU → Neonatal Intensive Care Unit,
+  OAE → Otoacoustic Emissions, NNH → Neonatal Hyperbilirubinemia,
+  RDS → Respiratory Distress Syndrome, DBF → Direct Breast Feeding,
+  EBM → Expressed Breast Milk, NPO → Nil Per Os, TID/TDS → Three Times Daily,
+  QID → Four Times Daily, Q8H/Q6H → Every 8/6 Hours, BD → Twice Daily,
+  OD → Once Daily, PO → Per Oral, IV → Intravenous, IM → Intramuscular,
+  SOS → If Needed, LSCS → Lower Segment Caesarean Section,
+  LBW → Low Birth Weight, VLBW → Very Low Birth Weight,
+  ELBW → Extremely Low Birth Weight, SGA → Small for Gestational Age,
+  LGA → Large for Gestational Age, ROP → Retinopathy of Prematurity,
+  NEC → Necrotizing Enterocolitis, PDA → Patent Ductus Arteriosus.
+- Keep the abbreviation AND the expansion: e.g. "TTNB (Transient Tachypnea of the Newborn)".
+- If the document is a neonatal progress note, extract neonatal-specific fields into the "neonatal" object.
+
 Return exactly this JSON structure:
 
 {
   "date": "2024-01-15",
+  "day_of_life": 7,
+  "doctor": "Dr. Tejas K S",
   "subjective": "Child has had fever for 3 days. Decreased oral intake. No vomiting.",
   "objective": "Child is irritable. Mild dehydration present.",
   "assessment": "Viral fever with mild dehydration",
@@ -145,12 +167,35 @@ Return exactly this JSON structure:
   },
   "fluid_input_ml": 450,
   "fluid_output_ml": 320,
+  "medications": [
+    {
+      "name": "Inj PIPTAZ",
+      "dose": "100 mg/kg/dose",
+      "route": "IV",
+      "frequency": "Q8H",
+      "duration": "7 days"
+    }
+  ],
+  "neonatal": {
+    "gestational_age": "Term",
+    "birth_weight_kg": 3.4,
+    "mode_of_delivery": "NVD (Normal Vaginal Delivery)",
+    "apgar_score": null,
+    "downe_score": "2/10",
+    "respiratory_support": "HFNC (High Flow Nasal Cannula)",
+    "feeding": "DBF (Direct Breast Feeding) with adequate sucking",
+    "diagnosis": "TTNB (Transient Tachypnea of the Newborn), resolved",
+    "blood_culture": "No growth",
+    "investigations_pending": ["OAE (Otoacoustic Emissions)", "2D Echo"]
+  },
   "confidence": {
     "subjective": "high",
     "objective": "high",
     "assessment": "medium",
     "plan": "high",
-    "vitals": "high"
+    "vitals": "high",
+    "medications": "medium",
+    "neonatal": "medium"
   }
 }`;
 
@@ -251,7 +296,11 @@ async function callGeminiDirect(
   if (!rawText) return { error: "Gemini returned an empty response — image may be unreadable or blocked by safety filters." };
 
   const data = extractJson(rawText);
-  if (data) return { success: true, data };
+  if (data) {
+    // Post-process: expand medical abbreviations in text fields
+    const { expandAbbreviationsInData } = await import("@/lib/ocr/expand-abbreviations");
+    return { success: true, data: expandAbbreviationsInData(data) };
+  }
 
   // Last resort: return raw text so the user can see what Gemini read
   console.warn("[OCR] Could not parse JSON from Gemini response:", rawText.slice(0, 200));
