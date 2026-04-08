@@ -9,6 +9,12 @@ export type ExtractionContext =
 export interface ExtractResult {
   success?: boolean;
   data?: Record<string, unknown>;
+  /** Clinical AI insights — populated when analyzeClinically is true */
+  clinicalInsights?: {
+    alerts: { severity: "critical" | "warning" | "info"; field: string; message: string }[];
+    summary: string;
+    suggestions: string[];
+  } | null;
   error?: string;
 }
 
@@ -233,20 +239,42 @@ Return exactly this JSON structure:
   }
 }
 
+/* ── Adaptive thinking budget ────────────────
+ * Handwritten notes and complex case documents benefit from Gemini's thinking mode.
+ * Clean printed lab reports don't need it (and it slows things down).
+ * We also allow callers to force "deep" mode for difficult images.
+ */
+
+type ThinkingMode = "off" | "adaptive" | "deep";
+
+function thinkingBudgetFor(context: ExtractionContext, mode: ThinkingMode): number {
+  if (mode === "deep") return 4096; // Max thinking for very difficult documents
+  if (mode === "off") return 0;
+
+  // Adaptive: enable thinking for contexts that benefit from reasoning
+  switch (context) {
+    case "progress_note": return 2048; // Handwritten SOAP notes need careful reading
+    case "case_document": return 1024; // Semi-structured, may be handwritten
+    case "patient_admission": return 512; // Forms — mostly structured but sometimes handwritten
+    case "lab_report": return 0; // Clean printed tables — no thinking needed
+  }
+}
+
 /* ── Direct Gemini call ───────────────────── */
 
 async function callGeminiDirect(
   base64: string,
   mimeType: string,
-  context: ExtractionContext
+  context: ExtractionContext,
+  thinkingMode: ThinkingMode = "adaptive"
 ): Promise<ExtractResult> {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) return { error: "GEMINI_API_KEY not configured" };
 
-  // gemini-2.5-flash is a thinking model — disable thinking for structured extraction:
-  // thinking tokens interfere with JSON output mode and produce empty/malformed responses.
   const model = "gemini-2.5-flash";
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+  const budget = thinkingBudgetFor(context, thinkingMode);
 
   const body = {
     contents: [
@@ -258,10 +286,10 @@ async function callGeminiDirect(
       },
     ],
     generationConfig: {
-      temperature: 0,          // deterministic — no creativity needed for data extraction
+      temperature: 0,
       responseMimeType: "application/json",
       thinkingConfig: {
-        thinkingBudget: 0,     // disable thinking mode — produces cleaner JSON output
+        thinkingBudget: budget,
       },
     },
   };
@@ -292,7 +320,14 @@ async function callGeminiDirect(
     console.warn("[OCR] Gemini finish reason:", finishReason);
   }
 
-  const rawText: string = json?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+  // When thinking is enabled, the response may have multiple parts:
+  // parts[0] = thinking text (thoughts), parts[1+] = actual response text
+  const parts: { text?: string }[] = json?.candidates?.[0]?.content?.parts ?? [];
+  const rawText = parts
+    .filter((p) => p.text)
+    .map((p) => p.text!)
+    .join("");
+
   if (!rawText) return { error: "Gemini returned an empty response — image may be unreadable or blocked by safety filters." };
 
   const data = extractJson(rawText);
@@ -356,35 +391,71 @@ async function callEdgeFunction(
 
 /* ── Public API ───────────────────────────── */
 
+export interface ExtractionOptions {
+  /** Force deep thinking for difficult documents (default: adaptive) */
+  deepThinking?: boolean;
+  /** Run clinical AI analysis after extraction (default: false) */
+  analyzeClinically?: boolean;
+  /** Patient context for clinical analysis */
+  patientContext?: {
+    age_days?: number;
+    weight_kg?: number;
+    diagnosis?: string;
+    active_medications?: string[];
+  };
+}
+
 export async function extractCaseData(
   imageBase64: string,
-  context: ExtractionContext
+  context: ExtractionContext,
+  options?: ExtractionOptions
 ): Promise<ExtractResult> {
   const { base64, mimeType } = parseDataUrl(imageBase64);
+  const thinkingMode: ThinkingMode = options?.deepThinking ? "deep" : "adaptive";
+
+  let result: ExtractResult;
 
   if (process.env.GEMINI_API_KEY) {
-    return callGeminiDirect(base64, mimeType, context);
+    result = await callGeminiDirect(base64, mimeType, context, thinkingMode);
+  } else {
+    console.warn("[OCR] GEMINI_API_KEY not set — using edge function fallback.");
+    result = await callEdgeFunction(base64, mimeType, context);
   }
 
-  console.warn("[OCR] GEMINI_API_KEY not set — using edge function fallback.");
-  return callEdgeFunction(base64, mimeType, context);
+  // Run clinical AI analysis if requested and extraction succeeded
+  if (options?.analyzeClinically && result.success && result.data) {
+    try {
+      const { analyzeClinicalData } = await import("@/lib/ai/clinical-intelligence");
+      result.clinicalInsights = await analyzeClinicalData(
+        result.data,
+        context,
+        options.patientContext
+      );
+    } catch (err) {
+      console.error("[Clinical AI] Failed:", err instanceof Error ? err.message : err);
+    }
+  }
+
+  return result;
 }
 
 export async function extractCaseDataBatch(
   images: string[],
-  context: ExtractionContext
+  context: ExtractionContext,
+  options?: ExtractionOptions
 ): Promise<ExtractResult[]> {
-  return Promise.all(images.map((img) => extractCaseData(img, context)));
+  return Promise.all(images.map((img) => extractCaseData(img, context, options)));
 }
 
 /* ── Auto-detect + extract ────────────────── */
 
 export async function detectAndExtract(
-  imageBase64: string
+  imageBase64: string,
+  options?: ExtractionOptions
 ): Promise<{ context: ExtractionContext; result: ExtractResult }> {
   const { detectDocumentType } = await import("@/lib/ocr/detect-document-type");
   const { base64, mimeType } = parseDataUrl(imageBase64);
   const context = await detectDocumentType(base64, mimeType);
-  const result = await extractCaseData(imageBase64, context);
+  const result = await extractCaseData(imageBase64, context, options);
   return { context, result };
 }

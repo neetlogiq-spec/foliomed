@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/button";
 import {
   type ExtractionContext,
   type ExtractResult,
+  type ExtractionOptions,
   extractCaseDataBatch,
   detectAndExtract,
 } from "@/app/(app)/ocr-actions";
+import type { ClinicalInsight } from "@/lib/ai/clinical-intelligence";
 import { compressImage } from "@/lib/ocr/compress";
 import { ocrWithTesseract } from "@/lib/ocr/tesseract-fallback";
 import { cn } from "@/lib/utils";
@@ -24,6 +26,10 @@ interface ScanButtonProps {
   onExtract: (data: Record<string, unknown>) => void;
   /** Called with the detected context when auto-detect is used. */
   onContextDetected?: (context: ExtractionContext) => void;
+  /** Enable clinical AI analysis on extracted data */
+  analyzeClinically?: boolean;
+  /** Patient context for clinical AI (age, weight, diagnosis, medications) */
+  patientContext?: ExtractionOptions["patientContext"];
   className?: string;
   label?: string;
 }
@@ -73,6 +79,8 @@ export function ScanButton({
   context: contextProp,
   onExtract,
   onContextDetected,
+  analyzeClinically,
+  patientContext,
   className,
   label = "📷 Scan Record",
 }: ScanButtonProps) {
@@ -81,6 +89,7 @@ export function ScanButton({
   const [slots, setSlots] = useState<ImageSlot[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [editableData, setEditableData] = useState<Record<string, unknown> | null>(null);
+  const [clinicalInsights, setClinicalInsights] = useState<ClinicalInsight | null>(null);
   // Resolved context: from prop or auto-detected
   const [resolvedContext, setResolvedContext] = useState<ExtractionContext | null>(contextProp ?? null);
 
@@ -156,25 +165,34 @@ export function ScanButton({
         return [...prev, ...incoming];
       });
 
+      const extractionOpts: ExtractionOptions = {
+        analyzeClinically: analyzeClinically && base64List.length === rawBase64List.length,
+        patientContext,
+      };
+
       let results: ExtractResult[];
       let activeContext: ExtractionContext;
 
       if (contextProp) {
         // Context explicitly provided — extract directly
         activeContext = contextProp;
-        results = await extractCaseDataBatch(base64List, contextProp);
+        results = await extractCaseDataBatch(base64List, contextProp, extractionOpts);
       } else {
         // Auto-detect using the first image, then extract all with detected context
-        const { context: detected, result: firstResult } = await detectAndExtract(base64List[0]);
+        const { context: detected, result: firstResult } = await detectAndExtract(base64List[0], extractionOpts);
         activeContext = detected;
         setResolvedContext(detected);
         onContextDetected?.(detected);
         const remainingResults =
           base64List.length > 1
-            ? await extractCaseDataBatch(base64List.slice(1), detected)
+            ? await extractCaseDataBatch(base64List.slice(1), detected, extractionOpts)
             : [];
         results = [firstResult, ...remainingResults];
       }
+
+      // Collect clinical insights from the first result that has them
+      const firstInsights = results.find((r) => r.clinicalInsights)?.clinicalInsights;
+      if (firstInsights) setClinicalInsights(firstInsights);
 
       // Keep activeContext in scope for linter — it's used to set resolvedContext above
       void activeContext;
@@ -201,7 +219,7 @@ export function ScanButton({
       });
       setIsProcessing(false);
     },
-    [contextProp, onContextDetected]
+    [contextProp, onContextDetected, analyzeClinically, patientContext]
   );
 
   /* ─── Camera capture ─────────────────────── */
@@ -273,6 +291,7 @@ export function ScanButton({
     setCameraError(null);
     setMode("upload");
     setEditableData(null);
+    setClinicalInsights(null);
     // Reset auto-detected context; keep prop-provided context
     setResolvedContext(contextProp ?? null);
   }, [stopCamera, contextProp]);
@@ -287,14 +306,76 @@ export function ScanButton({
   );
 
   /* ─── Merge extracted results ────────────── */
+
+  /** Keys whose values should be concatenated across pages (not overwritten) */
+  const TEXT_MERGE_KEYS = new Set([
+    "subjective", "objective", "assessment", "plan", "raw_text",
+  ]);
+  /** Keys whose arrays should be concatenated */
+  const ARRAY_MERGE_KEYS = new Set(["medications", "tests", "sections", "investigations_pending"]);
+  /** Keys to always take from first page (metadata, not multi-page content) */
+  const FIRST_WINS_KEYS = new Set(["date", "day_of_life", "doctor", "report_date", "patient_name", "lab_name", "title"]);
+
   const mergedData = useMemo((): Record<string, unknown> | null => {
     const successful = slots
       .filter((s) => s.status === "done" && s.result?.data)
       .map((s) => s.result!.data!);
     if (!successful.length) return null;
+    if (successful.length === 1) return successful[0];
+
+    // Smart merge: concatenate text fields, merge arrays, first-wins for metadata
     return successful.reduce<Record<string, unknown>>((acc, curr) => {
       for (const [k, v] of Object.entries(curr)) {
-        if (!(k in acc) && v !== null && v !== undefined && v !== "") acc[k] = v;
+        if (v === null || v === undefined || v === "") continue;
+
+        if (FIRST_WINS_KEYS.has(k)) {
+          // Metadata: keep first non-empty value
+          if (!(k in acc)) acc[k] = v;
+        } else if (TEXT_MERGE_KEYS.has(k) && typeof v === "string") {
+          // Free text: concatenate with newline separator
+          acc[k] = acc[k] ? `${acc[k]}\n\n${v}` : v;
+        } else if (ARRAY_MERGE_KEYS.has(k) && Array.isArray(v)) {
+          // Arrays: concatenate
+          acc[k] = Array.isArray(acc[k]) ? [...(acc[k] as unknown[]), ...v] : v;
+        } else if (k === "neonatal" && typeof v === "object" && !Array.isArray(v)) {
+          // Neonatal: deep merge (first non-null wins per sub-field)
+          const existing = (acc[k] as Record<string, unknown>) ?? {};
+          const incoming = v as Record<string, unknown>;
+          acc[k] = { ...existing };
+          for (const [nk, nv] of Object.entries(incoming)) {
+            if (nv != null && nv !== "" && !(nk in existing)) {
+              (acc[k] as Record<string, unknown>)[nk] = nv;
+            }
+          }
+        } else if (k === "vitals" && typeof v === "object" && !Array.isArray(v)) {
+          // Vitals: merge sub-fields (first non-null wins)
+          const existing = (acc[k] as Record<string, unknown>) ?? {};
+          const incoming = v as Record<string, unknown>;
+          acc[k] = { ...existing };
+          for (const [vk, vv] of Object.entries(incoming)) {
+            if (vv != null && vv !== "" && !(vk in existing)) {
+              (acc[k] as Record<string, unknown>)[vk] = vv;
+            }
+          }
+        } else if (k === "confidence" && typeof v === "object") {
+          // Confidence: keep lowest confidence per field
+          const existing = (acc[k] as Record<string, string>) ?? {};
+          const incoming = v as Record<string, string>;
+          const ORDER = { high: 3, medium: 2, low: 1 };
+          acc[k] = { ...existing };
+          for (const [ck, cv] of Object.entries(incoming)) {
+            const existingLevel = ORDER[existing[ck] as keyof typeof ORDER] ?? 4;
+            const incomingLevel = ORDER[cv as keyof typeof ORDER] ?? 4;
+            if (incomingLevel < existingLevel) {
+              (acc[k] as Record<string, string>)[ck] = cv;
+            } else if (!(ck in existing)) {
+              (acc[k] as Record<string, string>)[ck] = cv;
+            }
+          }
+        } else if (!(k in acc)) {
+          // Everything else: first wins
+          acc[k] = v;
+        }
       }
       return acc;
     }, {});
@@ -461,6 +542,56 @@ export function ScanButton({
                     )}
                     {(!activeContext || !["lab_report", "patient_admission", "progress_note", "case_document"].includes(activeContext)) && (
                       <GenericEditablePreview data={editableData} onChange={setEditableData} />
+                    )}
+
+                    {/* Clinical AI Insights Panel */}
+                    {clinicalInsights && (
+                      <div className="mt-4 space-y-2 rounded-lg border border-white/10 bg-white/[0.02] p-3">
+                        <div className="flex items-center gap-1.5">
+                          <svg className="w-3.5 h-3.5 text-violet-400" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 0 0-2.455 2.456Z" />
+                          </svg>
+                          <span className="text-[10px] text-violet-400 font-medium uppercase tracking-wide">AI Clinical Insights</span>
+                        </div>
+
+                        {/* Alerts */}
+                        {clinicalInsights.alerts.map((alert, i) => (
+                          <div
+                            key={i}
+                            className={cn(
+                              "rounded-md px-2.5 py-1.5 text-xs border",
+                              alert.severity === "critical" && "bg-red-500/10 border-red-500/20 text-red-300",
+                              alert.severity === "warning" && "bg-amber-500/10 border-amber-500/20 text-amber-300",
+                              alert.severity === "info" && "bg-blue-500/10 border-blue-500/20 text-blue-300"
+                            )}
+                          >
+                            <span className="font-medium uppercase text-[10px]">
+                              {alert.severity === "critical" ? "⚠ CRITICAL" : alert.severity === "warning" ? "⚡ WARNING" : "ℹ INFO"}
+                            </span>
+                            <span className="text-white/60 text-[10px] ml-1.5">{alert.field}</span>
+                            <p className="mt-0.5">{alert.message}</p>
+                          </div>
+                        ))}
+
+                        {/* Summary */}
+                        <p className="text-xs text-slate-300">{clinicalInsights.summary}</p>
+
+                        {/* Suggestions */}
+                        {clinicalInsights.suggestions.length > 0 && (
+                          <div className="space-y-1">
+                            <span className="text-[10px] text-slate-500 uppercase">Suggested Actions</span>
+                            {clinicalInsights.suggestions.map((s, i) => (
+                              <p key={i} className="text-xs text-slate-400 pl-2 border-l border-emerald-500/30">
+                                {s}
+                              </p>
+                            ))}
+                          </div>
+                        )}
+
+                        <p className="text-[9px] text-slate-600 italic">
+                          AI-assisted — always verify with clinical judgement
+                        </p>
+                      </div>
                     )}
                   </div>
                 </div>
