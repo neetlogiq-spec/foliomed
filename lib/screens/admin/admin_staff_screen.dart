@@ -1,10 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../models/app_user.dart';
-import '../../utils/app_constants.dart';
+import '../../services/supabase_service.dart';
+import '../../utils/friendly_error.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/role_badge.dart';
 import '../../widgets/support_action.dart';
@@ -81,21 +81,20 @@ class _AdminStaffScreenState extends State<AdminStaffScreen> {
         children: [
           _filterChips(),
           Expanded(
-            // One-shot get() rather than a live stream over the whole
-            // users collection. The admin sees a snapshot of all staff at
-            // open-time; pull-to-refresh would re-fetch. A live stream
-            // here billed reads on every fcmToken refresh of every user.
-            child: FutureBuilder<QuerySnapshot>(
-              future: FirebaseFirestore.instance
-                  .collection(AppConstants.usersCollection)
+            // One-shot fetch rather than a live stream over every profile;
+            // the admin sees a snapshot of all staff at open-time.
+            child: FutureBuilder<List<AppUser>>(
+              future: supabase
+                  .from(Tables.profiles)
+                  .select()
+                  .order('name')
                   .limit(500)
-                  .get(),
+                  .then((rows) => rows.map(AppUser.fromRow).toList()),
               builder: (context, snap) {
                 if (!snap.hasData) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                final all =
-                    snap.data!.docs.map(AppUser.fromFirestore).toList();
+                final all = snap.data!;
                 final staff = all.where((u) {
                   if (!_matchesFilter(u)) return false;
                   if (_query.isEmpty) return true;
@@ -341,10 +340,14 @@ class _AdminStaffScreenState extends State<AdminStaffScreen> {
       ),
     );
     if (newWard != null && newWard.isNotEmpty) {
-      await FirebaseFirestore.instance
-          .collection(AppConstants.usersCollection)
-          .doc(user.uid)
-          .update({'wardId': newWard});
+      await _applyToProfile(
+        user,
+        () => supabase
+            .from(Tables.profiles)
+            .update({'ward_id': newWard})
+            .eq('id', user.uid)
+            .select('id'),
+      );
     }
   }
 
@@ -372,10 +375,45 @@ class _AdminStaffScreenState extends State<AdminStaffScreen> {
       ),
     );
     if (confirm == true) {
-      await FirebaseFirestore.instance
-          .collection(AppConstants.usersCollection)
-          .doc(user.uid)
-          .delete();
+      await _applyToProfile(
+        user,
+        () => supabase
+            .from(Tables.profiles)
+            .delete()
+            .eq('id', user.uid)
+            .select('id'),
+      );
+    }
+  }
+
+  /// Row-level security only lets people edit their own profile, so an
+  /// admin acting on someone else affects zero rows. Surface that instead
+  /// of failing silently.
+  Future<void> _applyToProfile(
+    AppUser user,
+    Future<List<Map<String, dynamic>>> Function() action,
+  ) async {
+    try {
+      final rows = await action();
+      if (!mounted) return;
+      if (rows.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: AppColors.danger,
+            content: Text('Only ${user.name} can change their own account.'),
+          ),
+        );
+      } else {
+        setState(() {});
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: AppColors.danger,
+          content: Text(friendlyError(e)),
+        ),
+      );
     }
   }
 }

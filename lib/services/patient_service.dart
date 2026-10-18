@@ -1,112 +1,70 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/patient.dart';
-import '../utils/app_constants.dart';
+import '../models/row_parsing.dart';
 import 'metrics_service.dart';
+import 'supabase_service.dart';
 
 class PatientService {
-  final FirebaseFirestore _firestore;
+  final SupabaseClient _client;
 
-  PatientService({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+  PatientService({SupabaseClient? client}) : _client = client ?? supabase;
 
-  CollectionReference<Map<String, dynamic>> get _patients =>
-      _firestore.collection(AppConstants.patientsCollection);
+  SupabaseQueryBuilder get _patients => _client.from(Tables.patients);
 
-  /// Cap to keep Firestore reads predictable. Even a busy ward rarely has
-  /// >100 active patients at a time; 200 is a generous ceiling.
+  /// Even a busy ward rarely has >100 active patients; 200 is a generous cap.
   static const int kPatientsListCap = 200;
 
+  static List<Patient> _activeOnly(List<DbRow> rows) => rows
+      .map(Patient.fromRow)
+      .where((p) => p.isActive)
+      .toList();
+
+  /// Realtime streams accept one filter, so `is_active` is applied
+  /// client-side. Discharged patients are rare enough that the cap holds.
   Stream<List<Patient>> getActivePatientsForWards(List<String> wardIds) {
     if (wardIds.isEmpty) return Stream.value(const []);
     return _patients
-        .where('wardId', whereIn: wardIds)
-        .where('isActive', isEqualTo: true)
-        .orderBy('admittedAt', descending: true)
+        .stream(primaryKey: ['id'])
+        .inFilter('ward_id', wardIds)
+        .order('admitted_at', ascending: false)
         .limit(kPatientsListCap)
-        .snapshots()
-        .map((snapshot) =>
-            snapshot.docs.map(Patient.fromFirestore).toList());
+        .map(_activeOnly);
   }
 
   Stream<List<Patient>> getPatientsByWard(String wardId) {
     return _patients
-        .where('wardId', isEqualTo: wardId)
-        .where('isActive', isEqualTo: true)
-        .orderBy('admittedAt', descending: true)
+        .stream(primaryKey: ['id'])
+        .eq('ward_id', wardId)
+        .order('admitted_at', ascending: false)
         .limit(kPatientsListCap)
-        .snapshots()
-        .map((snapshot) =>
-            snapshot.docs.map(Patient.fromFirestore).toList());
+        .map(_activeOnly);
   }
 
   Future<Patient?> getPatient(String patientId) async {
-    final doc = await _patients.doc(patientId).get();
-    if (!doc.exists) return null;
-    return Patient.fromFirestore(doc);
+    final row = await _patients.select().eq('id', patientId).maybeSingle();
+    return row == null ? null : Patient.fromRow(row);
   }
 
   Future<String> addPatient(Patient patient) async {
-    final ref = await _patients.add(patient.toMap());
+    final row = await _patients.insert(patient.toRow()).select('id').single();
     MetricsService.bump('patient', summary: 'Admitted ${patient.name}');
-    return ref.id;
+    return row['id'] as String;
   }
 
   Future<void> updatePatient(Patient patient) async {
-    await _patients.doc(patient.id).update(patient.toMap());
+    await _patients.update(patient.toRow()).eq('id', patient.id);
   }
 
   Future<void> saveHlsUrl(String patientId, String url) async {
-    await _patients.doc(patientId).update({'hlsStreamUrl': url.trim()});
+    await _patients.update({'hls_stream_url': url.trim()}).eq('id', patientId);
   }
 
+  /// Notes and their comments cascade-delete in Postgres.
   Future<void> deletePatient(String patientId) async {
-    await _deleteNotesFor(patientId);
-    await _patients.doc(patientId).delete();
+    await _patients.delete().eq('id', patientId);
   }
 
-  /// Deletes every note tagged to a patient — and the comments inside
-  /// each note — using batched writes (max 500 ops per batch). Without
-  /// the batch this fired one Firestore call per doc, multiplying both
-  /// latency and write cost.
-  Future<void> _deleteNotesFor(String patientId) async {
-    final notes = await _firestore
-        .collection(AppConstants.notesCollection)
-        .where('patientId', isEqualTo: patientId)
-        .get();
-
-    var batch = _firestore.batch();
-    var ops = 0;
-    Future<void> flushIfNeeded() async {
-      if (ops >= 450) {
-        await batch.commit();
-        batch = _firestore.batch();
-        ops = 0;
-      }
-    }
-
-    for (final note in notes.docs) {
-      // Subcollections don't cascade — schedule comment deletes first.
-      final comments = await note.reference.collection('comments').get();
-      for (final c in comments.docs) {
-        batch.delete(c.reference);
-        ops++;
-        await flushIfNeeded();
-      }
-      batch.delete(note.reference);
-      ops++;
-      await flushIfNeeded();
-    }
-    if (ops > 0) await batch.commit();
-  }
-
-  /// Capped at the same ceiling as the patient list.
-  Stream<int> getPatientCount(String wardId) {
-    return _patients
-        .where('wardId', isEqualTo: wardId)
-        .where('isActive', isEqualTo: true)
-        .limit(kPatientsListCap)
-        .snapshots()
-        .map((snapshot) => snapshot.docs.length);
-  }
+  Stream<int> getPatientCount(String wardId) =>
+      getPatientsByWard(wardId).map((patients) => patients.length);
 }

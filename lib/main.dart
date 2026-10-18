@@ -1,10 +1,8 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:provider/provider.dart';
-import 'firebase_options.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'config/supabase_config.dart';
 import 'services/vlm_server_manager.dart';
 import 'utils/app_theme.dart';
 import 'utils/app_routes.dart';
@@ -14,31 +12,45 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
     GlobalKey<ScaffoldMessengerState>();
 
-@pragma('vm:entry-point')
-Future<void> _bgHandler(RemoteMessage message) async {
-  // Required by FlutterFire for background isolate; system shows the
-  // notification automatically from the `notification` payload.
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-}
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   MediaKit.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
+  if (!SupabaseConfig.isConfigured) {
+    runApp(const _MissingConfigApp());
+    return;
+  }
+  await Supabase.initialize(
+    url: SupabaseConfig.url,
+    anonKey: SupabaseConfig.anonKey,
   );
-  // Local cache: serves repeat queries offline + saves Firestore reads.
-  FirebaseFirestore.instance.settings = const Settings(
-    persistenceEnabled: true,
-    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
-  );
-  FirebaseMessaging.onBackgroundMessage(_bgHandler);
   runApp(const FolioMedApp());
   // Desktop (FolioMed Edge station): boot the embedded vitals AI engine with
   // the app. No-op on mobile/web; never blocks startup.
   VlmServerManager.instance.ensureRunning();
+}
+
+/// Shown instead of crashing when the build was made without env.json.
+class _MissingConfigApp extends StatelessWidget {
+  const _MissingConfigApp();
+
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Text(
+              'FolioMed is missing its Supabase configuration.\n\n'
+              'Build with: flutter run --dart-define-from-file=env.json',
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class FolioMedApp extends StatelessWidget {

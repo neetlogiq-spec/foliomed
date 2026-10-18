@@ -251,10 +251,8 @@ class _LoginScreenState extends State<LoginScreen> {
     if (result == null || result.isEmpty || !mounted) return;
     final email = result.trim();
 
-    // Firebase Email Enumeration Protection (enabled by default since 2023)
-    // means fetchSignInMethodsForEmail always returns [] and sendPasswordReset
-    // always returns 200 — even for non-existent addresses. We just send it
-    // and show a neutral "check your inbox" message either way.
+    // Supabase never reveals whether an address is registered, so we just
+    // send it and show a neutral "check your inbox" message either way.
     final ok = await context.read<AuthProvider>().sendPasswordReset(email);
     if (!mounted) return;
     if (ok) {

@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -10,7 +9,6 @@ import '../models/note_comment.dart';
 import '../providers/auth_provider.dart';
 import '../providers/note_provider.dart';
 import '../services/note_service.dart';
-import '../utils/app_constants.dart';
 import '../utils/app_theme.dart';
 import '../utils/friendly_error.dart';
 import '../providers/theme_provider.dart';
@@ -50,13 +48,11 @@ class _NoteCommentsSheetState extends State<NoteCommentsSheet> {
     super.dispose();
   }
 
-  /// Lightweight stream of just the ack state of the note doc — used to
-  /// keep the Ack-button visible / hidden in sync with reality.
-  Stream<bool> get _ackStream => FirebaseFirestore.instance
-      .collection(AppConstants.notesCollection)
-      .doc(widget.note.id)
-      .snapshots()
-      .map((s) => (s.data()?['isAcknowledged'] as bool?) ?? false);
+  /// Lightweight stream of just the note's ack state — keeps the Ack
+  /// button visible / hidden in sync with reality. Created once so
+  /// rebuilds don't reopen the realtime channel.
+  late final Stream<bool> _ackStream =
+      NoteService().acknowledgedStream(widget.note.id);
 
   void _toast(String msg, {bool danger = false}) {
     if (!mounted) return;

@@ -1,16 +1,20 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 
+import 'supabase_service.dart';
+
+/// Razorpay checkout. Unused while FolioMed is free (see
+/// SubscriptionProvider.freeForEveryone) — kept for a future paid tier.
+///
+/// TODO(payments): activation must be verified server-side (Razorpay
+/// webhook → Supabase Edge Function) before granting anything. The client
+/// success callback alone is spoofable.
+
 class PaymentService {
-  // ⚠️ PLACEHOLDER — replace with the real Razorpay key from
-  // https://dashboard.razorpay.com before shipping. Until this is a real
-  // key, openCheckout() will fail at the Razorpay end with an unauthorized
-  // key error. Test keys start with `rzp_test_`, live with `rzp_live_`.
-  static const String _keyId = 'rzp_test_XXXXXXXXXX';
-  static bool get isConfigured =>
-      _keyId != 'rzp_test_XXXXXXXXXX' && _keyId.isNotEmpty;
+  /// Public key ID (`rzp_test_…` / `rzp_live_…`), injected at build time
+  /// via `RAZORPAY_KEY_ID` in env.json. Never ship the key secret.
+  static const String _keyId = String.fromEnvironment('RAZORPAY_KEY_ID');
+  static bool get isConfigured => _keyId.isNotEmpty;
 
   static const int amountInPaise = 299900; // ₹2,999.00
   static const String currency = 'INR';
@@ -53,35 +57,15 @@ class PaymentService {
       },
       'notes': {
         'plan': 'foliomed_pro_monthly',
-        'uid': FirebaseAuth.instance.currentUser?.uid ?? '',
+        'uid': supabase.auth.currentUser?.id ?? '',
       },
     };
 
     _razorpay.open(options);
   }
 
-  void _handleSuccess(PaymentSuccessResponse response) async {
+  void _handleSuccess(PaymentSuccessResponse response) {
     debugPrint('Payment success: ${response.paymentId}');
-
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid != null) {
-      final expires = DateTime.now().add(const Duration(days: 30));
-      await FirebaseFirestore.instance
-          .collection('subscriptions')
-          .doc(uid)
-          .set({
-        'isPro': true,
-        'plan': 'monthly',
-        'paymentId': response.paymentId,
-        'orderId': response.orderId,
-        'signature': response.signature,
-        'activatedAt': FieldValue.serverTimestamp(),
-        'expiresAt': Timestamp.fromDate(expires),
-        'amountPaise': amountInPaise,
-        'currency': currency,
-      });
-    }
-
     onSuccess?.call();
   }
 

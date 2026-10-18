@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -9,7 +8,9 @@ import '../../models/ward.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/camera_provider.dart';
 import '../../providers/patient_provider.dart';
-import '../../utils/app_constants.dart';
+import '../../services/patient_service.dart';
+import '../../services/ward_service.dart';
+import '../../utils/stream_cache.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/support_action.dart';
 import 'add_patient_screen.dart';
@@ -24,6 +25,9 @@ class PatientsListScreen extends StatefulWidget {
 }
 
 class _PatientsListScreenState extends State<PatientsListScreen> {
+  final _wardStreams = StreamCache<List<Ward>>();
+  final _patientStreams = StreamCache<List<Patient>>();
+
   final _searchController = TextEditingController();
   String _query = '';
 
@@ -60,12 +64,10 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
         ),
       );
     }
-    final ids = myWardIds.length > 30 ? myWardIds.sublist(0, 30) : myWardIds;
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection(AppConstants.wardsCollection)
-          .where(FieldPath.documentId, whereIn: ids)
-          .snapshots(),
+    final ids = myWardIds;
+    return StreamBuilder<List<Ward>>(
+      stream: _wardStreams.get(
+          ids.join(','), () => WardService().wardsForUser(ids)),
       builder: (context, snap) {
         if (!snap.hasData) {
           return Scaffold(
@@ -73,7 +75,7 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
             body: const Center(child: CircularProgressIndicator()),
           );
         }
-        final wards = snap.data!.docs.map(Ward.fromFirestore).toList();
+        final wards = snap.data!;
         if (wards.isEmpty) {
           return Scaffold(
             backgroundColor: AppColors.surface,
@@ -225,13 +227,9 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
   // ───────────────── Per-ward (no search) tab body ─────────────────
 
   Widget _wardPatients(Ward ward) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection(AppConstants.patientsCollection)
-          .where('wardId', isEqualTo: ward.id)
-          .where('isActive', isEqualTo: true)
-          .orderBy('admittedAt', descending: true)
-          .snapshots(),
+    return StreamBuilder<List<Patient>>(
+      stream: _patientStreams.get(
+          'ward:${ward.id}', () => PatientService().getPatientsByWard(ward.id)),
       builder: (context, snap) {
         if (snap.hasError) {
           return Center(
@@ -248,7 +246,7 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
         if (!snap.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
-        final patients = snap.data!.docs.map(Patient.fromFirestore).toList();
+        final patients = snap.data!;
         if (patients.isEmpty) {
           return Center(
             child: Column(
@@ -283,12 +281,9 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
 
   Widget _searchResults(List<Ward> wards, Map<String, Ward> wardById) {
     final wardIds = wards.map((w) => w.id).toList();
-    final ids = wardIds.length > 30 ? wardIds.sublist(0, 30) : wardIds;
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection(AppConstants.patientsCollection)
-          .where('wardId', whereIn: ids)
-          .snapshots(),
+    return StreamBuilder<List<Patient>>(
+      stream: _patientStreams.get('search:${wardIds.join(',')}',
+          () => PatientService().getActivePatientsForWards(wardIds)),
       builder: (context, snap) {
         if (snap.hasError) {
           return Center(
@@ -305,8 +300,8 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
         if (!snap.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
-        // Filter on client because Firestore can't do substring match.
-        final all = snap.data!.docs.map(Patient.fromFirestore).toList();
+        // Filter on the client — the list is already capped and live.
+        final all = snap.data!;
         final q = _query;
         final results = all.where((p) {
           return p.name.toLowerCase().contains(q) ||

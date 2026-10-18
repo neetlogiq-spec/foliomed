@@ -5,7 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../utils/app_theme.dart';
 import '../../providers/theme_provider.dart';
 
-/// Static FAQ / Help screen. No Firestore reads — everything is hardcoded
+/// Static FAQ / Help screen. No database reads — everything is hardcoded
 /// content the user can read offline. Reachable from Profile.
 class HelpScreen extends StatelessWidget {
   const HelpScreen({super.key});
@@ -77,7 +77,7 @@ class HelpScreen extends StatelessWidget {
       q: 'Who can see my notes?',
       a: 'Only members of the same ward. If a teammate hasn\'t joined the '
           'ward via the 5-digit code, they cannot see anything inside — '
-          'enforced at the database level by Firestore security rules.',
+          'enforced at the database level by row-level security rules.',
     ),
     _FaqItem(
       icon: Icons.history,

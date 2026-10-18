@@ -1,7 +1,6 @@
 import 'package:app_settings/app_settings.dart';
 import 'package:provider/provider.dart';
 import 'package:device_info_plus/device_info_plus.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -60,16 +59,7 @@ class _BackgroundSetupScreenState extends State<BackgroundSetupScreen> {
   }
 
   Future<void> _requestNotification() async {
-    var status = await Permission.notification.request();
-    if (!status.isGranted) {
-      // Some devices need the FCM-style request as a fallback.
-      await FirebaseMessaging.instance.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
-      status = await Permission.notification.status;
-    }
+    final status = await Permission.notification.request();
     if (!mounted) return;
     setState(() => _notifGranted = status.isGranted);
     if (!status.isGranted) {

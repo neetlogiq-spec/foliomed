@@ -1,4 +1,10 @@
 #!/bin/bash
+# Verifies the app and pushes to GitHub. GitHub Actions
+# (.github/workflows/deploy.yml) then builds the web app and publishes
+# landing + status + app to GitHub Pages at www.foliomed.com.
+#
+# Deliberately does NOT `git add` / commit anything — commit yourself first.
+set -euo pipefail
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$REPO"
 
@@ -7,39 +13,19 @@ echo "════════════════════════�
 echo "  FolioMed Deploy"
 echo "══════════════════════════════════"
 
-# ── 1. Git push (always runs) ────────
+if ! git diff --quiet || ! git diff --cached --quiet; then
+  echo "✗ You have uncommitted changes — commit them first." >&2
+  exit 1
+fi
+
+echo ""
+echo "→ Analyzing + testing..."
+flutter analyze --no-fatal-infos --no-fatal-warnings
+flutter test
+echo "  ✓ Checks passed"
+
 echo ""
 echo "→ Pushing to GitHub..."
-git add -A
-if git diff --cached --quiet; then
-  echo "  (nothing new to commit)"
-else
-  git commit -m "deploy: $(date '+%Y-%m-%d %H:%M')"
-fi
 git push origin HEAD
-echo "  ✓ GitHub up to date"
-
-# ── 2. Build Flutter web ─────────────
-echo ""
-echo "→ Building Flutter web..."
-if ! flutter build web --release 2>&1; then
-  echo "  ✗ Flutter build failed — skipping Firebase deploy"
-  exit 1
-fi
-echo "  ✓ Build complete"
-
-# ── 3. Firebase Hosting deploy ───────
-echo ""
-echo "→ Deploying to Firebase Hosting..."
-if ! firebase deploy --only hosting 2>&1; then
-  echo "  ✗ Firebase deploy failed (run: firebase login)"
-  exit 1
-fi
-echo "  ✓ Live at https://foliomed.web.app"
-
-echo ""
-echo "══════════════════════════════════"
-echo "  All done!"
-echo "  Web app : https://foliomed.web.app"
-echo "══════════════════════════════════"
+echo "  ✓ Pushed — GitHub Actions will publish https://www.foliomed.com"
 echo ""

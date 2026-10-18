@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -10,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/app_user.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/push_service.dart';
+import '../../services/supabase_service.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/web_notice.dart';
 import 'background_setup_screen.dart';
@@ -41,7 +41,7 @@ class _SplashScreenState extends State<SplashScreen> {
     // tutorial on a fresh install.
     final onboardingDone = prefs.getBool(kOnboardingDoneKey) ?? false;
 
-    if (FirebaseAuth.instance.currentUser == null) {
+    if (supabase.auth.currentUser == null) {
       if (!mounted) return;
       if (!onboardingDone) {
         Navigator.of(context).pushReplacementNamed('/onboarding');

@@ -85,14 +85,14 @@
     </div>
 
     <h2 id="who">1. Who we are</h2>
-    <p>FolioMed is a clinical-notes app for hospital ward teams, built and maintained as an independent project by <strong>Kashyap Anand</strong>. The app is distributed via Google Play and the web; the backend runs on Google Firebase.</p>
+    <p>FolioMed is a clinical-notes app for hospital ward teams, built and maintained as an independent project by <strong>Kashyap Anand</strong>. The app is distributed via Google Play and the web; the backend runs on Supabase.</p>
 
     <h2 id="data">2. What data we collect</h2>
     <p>We collect only the data needed to run the app. There is no advertising, no analytics tracking, no behavioural profiling.</p>
 
     <h3>Information you provide</h3>
     <ul>
-      <li><strong>Account info:</strong> name, email address, and (for email/password sign-in) a salted password hash. We never see or store your password in plain text — that's handled by Firebase Authentication.</li>
+      <li><strong>Account info:</strong> name, email address, and (for email/password sign-in) a salted password hash. We never see or store your password in plain text — that's handled by Supabase Auth.</li>
       <li><strong>Profile info:</strong> optional avatar emoji and specialty (e.g. "Cardiologist") if you fill them in.</li>
       <li><strong>Clinical content:</strong> the ward names, patient names and bed numbers, notes, replies, and acknowledgements you create inside the app.</li>
       <li><strong>Feedback:</strong> if you email us via the "Suggest a feature", "Give feedback" or "Report a bug" buttons in Profile, your email address and message reach us directly. The "Report a bug" template includes your app version and platform — these are technical fields, not personal data.</li>
@@ -100,7 +100,6 @@
 
     <h3>Information collected automatically</h3>
     <ul>
-      <li><strong>Device push token (FCM):</strong> a per-device identifier from Firebase Cloud Messaging, used only to deliver push notifications about ward activity. Removed when you sign out.</li>
       <li><strong>Sign-in metadata:</strong> account creation timestamp and last sign-in timestamp, surfaced back to you in Profile.</li>
       <li><strong>App version, build number, OS platform:</strong> read by the app on-device and only sent to us when you choose to send a bug report (and only inside the email body you preview before sending).</li>
     </ul>
@@ -125,14 +124,15 @@
     <p>We do <strong>not</strong> use your data for advertising, profiling, machine-learning training, or sale to third parties.</p>
 
     <h2 id="share">4. Who we share it with</h2>
-    <p>Your clinical content (notes, patients, replies) is visible <strong>only</strong> to other members of the same ward — enforced at the database level by Firestore security rules. People who haven't joined your ward via its 5-digit code cannot read anything inside it.</p>
+    <p>Your clinical content (notes, patients, replies) is visible <strong>only</strong> to other members of the same ward — enforced at the database level by Postgres row-level security. People who haven't joined your ward via its 5-digit code cannot read anything inside it.</p>
 
-    <p>The data passes through Google's infrastructure (Firebase Authentication, Cloud Firestore, Cloud Functions, Cloud Messaging) under <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">Google's Firebase privacy terms</a>. Google acts as our processor; we do not authorise them to use FolioMed data for any purpose other than running the service.</p>
+    <p>The data is stored and processed by <a href="https://supabase.com/privacy" target="_blank" rel="noopener">Supabase</a> (authentication, Postgres database, file storage) under Supabase's privacy terms and data processing addendum. Supabase acts as our processor; we do not authorise them to use FolioMed data for any purpose other than running the service.</p>
 
     <p>We do not sell, rent, or trade any personal data to anyone, ever.</p>
 
     <h2 id="location">5. Where data is stored</h2>
-    <p>Firestore data is hosted in Google Cloud's <code>us-central1</code> region. By using the app, you consent to your data being processed in the United States (and, to the extent Google replicates internally, other Google regions).</p>
+    <!-- TODO(kashyap): confirm the Supabase project region (Settings → General) and update this paragraph. -->
+    <p>FolioMed data is hosted by Supabase in the region selected for the FolioMed project. By using the app, you consent to your data being processed in that region.</p>
 
     <h2 id="retention">6. How long we keep it</h2>
     <ul>
@@ -155,10 +155,10 @@
 
     <h2 id="security">8. Security</h2>
     <ul>
-      <li>All traffic between your device and Firebase is encrypted in transit via TLS.</li>
-      <li>Firebase encrypts data at rest.</li>
-      <li>Authentication is handled by Firebase Authentication — passwords are never stored in plain text.</li>
-      <li>Firestore security rules enforce that ward members can only see their own ward's content.</li>
+      <li>All traffic between your device and our servers is encrypted in transit via TLS.</li>
+      <li>Supabase encrypts data at rest.</li>
+      <li>Authentication is handled by Supabase Auth — passwords are never stored in plain text.</li>
+      <li>Postgres row-level security enforces that ward members can only see their own ward's content.</li>
       <li>The Android app disables Google Auto Backup and Samsung Smart Switch transfer of app data, so your local cache doesn't leak across devices on reinstall.</li>
     </ul>
     <p>No system is perfectly secure. If you discover a vulnerability, please email <a href="mailto:kashyap2k007@gmail.com">kashyap2k007@gmail.com</a> — we'll respond and credit responsible disclosures.</p>
@@ -187,7 +187,7 @@
         <a href="../status/">Status</a>
         <a href="https://www.foliomed.com/support" target="_blank" rel="noopener">Contact</a>
       </div>
-      <div class="footer-note">Built with Flutter &amp; Firebase. Ward-private by design.</div>
+      <div class="footer-note">Built with Flutter &amp; Supabase. Ward-private by design.</div>
     </div>
   </footer>
 </body>

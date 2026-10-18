@@ -1,31 +1,23 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
-/// Best-effort, public-readable counters + live activity feed for the
-/// admin dashboard. Failures are swallowed — telemetry must never block
-/// the user-facing operation.
+import 'supabase_service.dart';
+
+/// Best-effort counters + activity feed for the admin dashboard and the
+/// landing page's live stats. Failures are logged and swallowed —
+/// telemetry must never block the user-facing operation.
 class MetricsService {
-  static final FirebaseFirestore _fs = FirebaseFirestore.instance;
+  MetricsService._();
 
-  /// Logs an activity entry and bumps cumulative counters.
   /// type: one of 'note', 'patient', 'ward', 'user', 'ack', 'comment'
+  /// (validated by the `bump_metric` SQL function).
   static Future<void> bump(String type, {String summary = ''}) async {
     try {
-      final now = Timestamp.now();
-      await _fs.collection('recent_activity').add({
-        'type': type,
-        'summary': summary,
-        'at': now,
+      await supabase.rpc('bump_metric', params: {
+        'p_type': type,
+        'p_summary': summary,
       });
-      await _fs.collection('metrics').doc('totals').set({
-        'last${_capitalise(type)}At': now,
-        'lastActivityAt': now,
-        '${type}Count': FieldValue.increment(1),
-      }, SetOptions(merge: true));
-    } catch (_) {
-      // intentionally silent — metrics are best-effort
+    } catch (e) {
+      debugPrint('MetricsService.bump($type) failed: $e');
     }
   }
-
-  static String _capitalise(String s) =>
-      s.isEmpty ? s : '${s[0].toUpperCase()}${s.substring(1)}';
 }

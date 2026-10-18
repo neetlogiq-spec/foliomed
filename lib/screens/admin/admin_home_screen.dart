@@ -1,14 +1,14 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
+import '../../models/row_parsing.dart';
 import '../../models/ward.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/ward_provider.dart';
-import '../../utils/app_constants.dart';
+import '../../services/supabase_service.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/app_utils.dart';
 import '../../utils/share_helper.dart';
@@ -26,9 +26,8 @@ class AdminHomeScreen extends StatefulWidget {
 }
 
 class _AdminHomeScreenState extends State<AdminHomeScreen> {
-  // Cheap analytics surface — most counts come from Firestore aggregation
-  // queries (each costs 1 read per up to 1000 docs counted, vs N reads
-  // for fetching them).
+  // Cheap analytics surface — counts come from the `dashboard_counts`
+  // Postgres function in a single round trip.
   int _staffCount = 0;
   int _wardCount = 0;
   int _activePatientCount = 0;
@@ -51,97 +50,51 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
   }
 
   Future<void> _loadCounts() async {
-    final db = FirebaseFirestore.instance;
     setState(() => _loadingCounts = true);
     try {
-      // Use count() aggregation everywhere we just need a number — way
-      // cheaper than fetching the docs. Each call is at most a few reads
-      // regardless of collection size.
-      final startOfDay = DateTime.now();
-      final midnight = DateTime(
-        startOfDay.year,
-        startOfDay.month,
-        startOfDay.day,
-      );
+      final now = DateTime.now();
+      final midnight = DateTime(now.year, now.month, now.day);
 
+      // One RPC returns every counter (Postgres count(*) server-side), plus
+      // the five latest notes the admin can see for the activity feed.
       final results = await Future.wait<dynamic>([
-        db
-            .collection(AppConstants.usersCollection)
-            .count()
-            .get(), // 0
-        db.collection(AppConstants.wardsCollection).count().get(), // 1
-        db
-            .collection(AppConstants.patientsCollection)
-            .where('isActive', isEqualTo: true)
-            .count()
-            .get(), // 2
-        db.collection(AppConstants.patientsCollection).count().get(), // 3
-        db.collection(AppConstants.notesCollection).count().get(), // 4
-        db
-            .collection(AppConstants.notesCollection)
-            .where('createdAt',
-                isGreaterThanOrEqualTo: Timestamp.fromDate(midnight))
-            .count()
-            .get(), // 5
-        db
-            .collection(AppConstants.notesCollection)
-            .where('isAcknowledged', isEqualTo: true)
-            .count()
-            .get(), // 6
-        db
-            .collection(AppConstants.notesCollection)
-            .where('priority', isEqualTo: 'Urgent')
-            .count()
-            .get(), // 7
-        // Recent activity feed — cheap, capped at 5.
-        db
-            .collection(AppConstants.notesCollection)
-            .orderBy('createdAt', descending: true)
-            .limit(5)
-            .get(), // 8
-        // Cumulative comment counter — read the metrics totals doc.
-        db.collection('metrics').doc('totals').get(), // 9
+        supabase.rpc('dashboard_counts',
+            params: {'p_since': toTimestamp(midnight)}),
+        supabase
+            .from(Tables.notes)
+            .select('author_name, patient_name, created_at')
+            .order('created_at', ascending: false)
+            .limit(5),
       ]);
 
-      final users = results[0] as AggregateQuerySnapshot;
-      final wards = results[1] as AggregateQuerySnapshot;
-      final activePatients = results[2] as AggregateQuerySnapshot;
-      final allPatients = results[3] as AggregateQuerySnapshot;
-      final allNotes = results[4] as AggregateQuerySnapshot;
-      final notesToday = results[5] as AggregateQuerySnapshot;
-      final ackedNotes = results[6] as AggregateQuerySnapshot;
-      final urgentNotes = results[7] as AggregateQuerySnapshot;
-      final recentNotes = results[8] as QuerySnapshot<Map<String, dynamic>>;
-      final totalsDoc = results[9] as DocumentSnapshot<Map<String, dynamic>>;
+      final counts = Map<String, dynamic>.from(results[0] as Map);
+      int count(String key) => (counts[key] as num?)?.toInt() ?? 0;
+      final recentRows = List<Map<String, dynamic>>.from(results[1] as List);
 
-      final commentCount =
-          (totalsDoc.data()?['commentCount'] as num?)?.toInt() ?? 0;
-
-      final recent = recentNotes.docs.map((d) {
-        final data = d.data();
-        return _RecentActivityItem(
-          authorName: data['authorName'] as String? ?? '',
-          patientName: data['patientName'] as String? ?? '',
-          createdAt:
-              (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-        );
-      }).toList();
+      final recent = recentRows
+          .map((row) => _RecentActivityItem(
+                authorName: row['author_name'] as String? ?? '',
+                patientName: row['patient_name'] as String? ?? '',
+                createdAt: parseTimestamp(row['created_at']),
+              ))
+          .toList();
 
       if (!mounted) return;
       setState(() {
-        _staffCount = users.count ?? 0;
-        _wardCount = wards.count ?? 0;
-        _activePatientCount = activePatients.count ?? 0;
-        _totalPatientCount = allPatients.count ?? 0;
-        _totalNoteCount = allNotes.count ?? 0;
-        _notesToday = notesToday.count ?? 0;
-        _ackedNoteCount = ackedNotes.count ?? 0;
-        _urgentNoteCount = urgentNotes.count ?? 0;
-        _commentCount = commentCount;
+        _staffCount = count('staff');
+        _wardCount = count('wards');
+        _activePatientCount = count('active_patients');
+        _totalPatientCount = count('patients');
+        _totalNoteCount = count('notes');
+        _notesToday = count('notes_today');
+        _ackedNoteCount = count('acked_notes');
+        _urgentNoteCount = count('urgent_notes');
+        _commentCount = count('comments');
         _recent = recent;
         _loadingCounts = false;
       });
-    } catch (_) {
+    } catch (e) {
+      debugPrint('Admin dashboard counts failed: $e');
       if (!mounted) return;
       setState(() => _loadingCounts = false);
     }

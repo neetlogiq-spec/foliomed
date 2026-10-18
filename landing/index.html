@@ -65,7 +65,7 @@
             <img src="badge-google-white.png" alt="Get it on Google Play" height="52">
           </a>
         </div>
-        <p class="hero-web-link"><a href="https://app.foliomed.com" target="_blank" rel="noopener">Or use the web app →</a></p>
+        <p class="hero-web-link"><a href="https://www.foliomed.com/app/" target="_blank" rel="noopener">Or use the web app →</a></p>
       </div>
 
       <!-- Phone mockup: the FolioMed home feed -->
@@ -436,7 +436,7 @@
       <div class="browser-frame" data-reveal>
         <div class="browser-bar">
           <span class="b-dot b-red"></span><span class="b-dot b-yellow"></span><span class="b-dot b-green"></span>
-          <span class="b-url">app.foliomed.com — Monitor</span>
+          <span class="b-url">www.foliomed.com/app — Monitor</span>
         </div>
         <div class="dashboard-showcase">
           <div class="dash-col dash-col-main">
@@ -760,7 +760,7 @@
           <img src="badge-google-white.png" alt="Get it on Google Play" height="48">
         </a>
       </div>
-      <a class="btn btn-ghost" href="https://app.foliomed.com" target="_blank" rel="noopener">Or launch in browser →</a>
+      <a class="btn btn-ghost" href="https://www.foliomed.com/app/" target="_blank" rel="noopener">Or launch in browser →</a>
       <p class="cta-contact">Want a demo or partnership discussion? <a href="mailto:kashyap2k007@gmail.com">kashyap2k007@gmail.com</a></p>
     </div>
   </section>
@@ -773,13 +773,13 @@
         <span class="brand-text">FOLIOMED</span>
       </div>
       <div class="footer-links">
-        <a href="https://app.foliomed.com">Web App</a>
+        <a href="https://www.foliomed.com/app/">Web App</a>
         <a href="https://apps.apple.com/app/foliomed/idYOUR_APP_STORE_ID" target="_blank" rel="noopener">App Store</a>
         <a href="https://play.google.com/store/apps/details?id=com.foliomed.app" target="_blank" rel="noopener">Play Store</a>
         <a href="./privacy.html">Privacy</a>
         <a href="mailto:kashyap2k007@gmail.com">Contact</a>
       </div>
-      <div class="footer-note">Built with Flutter &amp; Firebase. Monitoring powered by a custom Vision Language Model. Ward-private by design.</div>
+      <div class="footer-note">Built with Flutter &amp; Supabase. Monitoring powered by a custom Vision Language Model. Ward-private by design.</div>
     </div>
   </footer>
 
@@ -846,20 +846,7 @@
 
   <!-- ═══════════ LIVE STATS SCRIPT ═══════════ -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBS8MKN-vzLCFLDmGfws7uJg5_I4fJKnqM",
-      authDomain: "foliomed.firebaseapp.com",
-      projectId: "foliomed",
-      storageBucket: "foliomed.firebasestorage.app",
-      messagingSenderId: "525482754887",
-      appId: "1:525482754887:web:2886f69b6402f4718a8262",
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    import { fetchTotals } from "./supabase-public.js";
 
     const fmt = (n) => {
       if (n == null || isNaN(n)) return "—";
@@ -907,14 +894,12 @@
       } catch (_) {}
 
       try {
-        const snap = await getDoc(doc(db, "metrics", "totals"));
-        const data = snap.exists() ? snap.data() : {};
+        const totals = await fetchTotals();
         const map = {
-          users: data.userCount, wards: data.wardCount, patients: data.patientCount,
-          notes: data.noteCount, acks: data.ackCount, comments: data.commentCount,
+          users: totals.users, wards: totals.wards, patients: totals.patients,
+          notes: totals.notes, acks: totals.acks, comments: totals.comments,
         };
-        const t = data.lastActivityAt?.toDate ? data.lastActivityAt.toDate() : null;
-        const lastActivityIso = t ? t.toISOString() : null;
+        const lastActivityIso = totals.lastActivityAt ? totals.lastActivityAt.toISOString() : null;
         paint(map, lastActivityIso);
         try { localStorage.setItem(CACHE_KEY, JSON.stringify({ savedAt: Date.now(), map, lastActivityIso })); } catch (_) {}
       } catch (e) { console.warn("FolioMed stats load failed:", e); }

@@ -2,18 +2,15 @@ import 'dart:convert';
 import 'dart:io' show Platform;
 import 'dart:math';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crypto/crypto.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:http/http.dart' as http;
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../firebase_options.dart';
+import '../config/supabase_config.dart';
 import '../models/app_user.dart';
-import '../utils/app_constants.dart';
-import 'metrics_service.dart';
+import 'supabase_service.dart';
 
 bool get _isDesktop =>
     !kIsWeb &&
@@ -22,42 +19,60 @@ bool get _isDesktop =>
      defaultTargetPlatform == TargetPlatform.linux);
 
 class AuthService {
-  final FirebaseAuth _auth;
-  final FirebaseFirestore _firestore;
+  final SupabaseClient _client;
 
-  AuthService({
-    FirebaseAuth? auth,
-    FirebaseFirestore? firestore,
-  })  : _auth = auth ?? FirebaseAuth.instance,
-        _firestore = firestore ?? FirebaseFirestore.instance;
+  AuthService({SupabaseClient? client}) : _client = client ?? supabase;
 
-  CollectionReference<Map<String, dynamic>> get _users =>
-      _firestore.collection(AppConstants.usersCollection);
+  GoTrueClient get _auth => _client.auth;
 
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
+  SupabaseQueryBuilder get _profiles => _client.from(Tables.profiles);
 
-  User? get firebaseUser => _auth.currentUser;
+  Stream<AuthState> get authStateChanges => _auth.onAuthStateChange;
+
+  User? get authUser => _auth.currentUser;
+
+  GoogleSignIn get _google => GoogleSignIn(
+        clientId: (!kIsWeb && (Platform.isIOS || Platform.isMacOS)) &&
+                SupabaseConfig.googleIosClientId.isNotEmpty
+            ? SupabaseConfig.googleIosClientId
+            : null,
+        serverClientId: SupabaseConfig.googleWebClientId,
+      );
+
+  Future<AppUser?> _fetchProfile(String uid) async {
+    final row = await _profiles.select().eq('id', uid).maybeSingle();
+    return row == null ? null : AppUser.fromRow(row);
+  }
+
+  /// The profile row is created by a database trigger right after sign-up.
+  /// A brand-new OAuth user can race that trigger, so retry briefly.
+  Future<AppUser?> _fetchProfileWithRetry(String uid) async {
+    for (var attempt = 0; attempt < 5; attempt++) {
+      final user = await _fetchProfile(uid);
+      if (user != null) return user;
+      await Future<void>.delayed(Duration(milliseconds: 300 * (attempt + 1)));
+    }
+    return null;
+  }
 
   Future<AppUser?> getCurrentUser() async {
     final user = _auth.currentUser;
     if (user == null) return null;
-    final doc = await _users.doc(user.uid).get();
-    if (!doc.exists) return null;
-    return AppUser.fromFirestore(doc);
+    return _fetchProfile(user.id);
   }
 
   Future<AppUser?> signIn(String email, String password) async {
-    final credential = await _auth.signInWithEmailAndPassword(
+    final res = await _auth.signInWithPassword(
       email: email.trim(),
       password: password,
     );
-    final uid = credential.user?.uid;
+    final uid = res.user?.id;
     if (uid == null) return null;
-    final doc = await _users.doc(uid).get();
-    if (!doc.exists) return null;
-    return AppUser.fromFirestore(doc);
+    return _fetchProfileWithRetry(uid);
   }
 
+  /// Creates the auth account. `name`, `role` and `ward_id` travel as user
+  /// metadata; the `handle_new_user` trigger turns them into a profile row.
   Future<AppUser?> registerUser({
     required String name,
     required String email,
@@ -65,83 +80,61 @@ class AuthService {
     required String role,
     String? wardId,
   }) async {
-    final credential = await _auth.createUserWithEmailAndPassword(
+    final res = await _auth.signUp(
       email: email.trim(),
       password: password,
+      emailRedirectTo: kIsWeb ? null : SupabaseConfig.authRedirectUrl,
+      data: {
+        'name': name,
+        'role': role,
+        'ward_id': wardId ?? '',
+      },
     );
-    final user = credential.user;
+    final user = res.user;
     if (user == null) return null;
-
-    await user.updateDisplayName(name);
-
-    final now = DateTime.now();
-    final data = {
-      'name': name,
-      'email': email.trim(),
-      'role': role,
-      'wardId': wardId ?? '',
-      'wardIds': wardId != null && wardId.isNotEmpty ? [wardId] : <String>[],
-      'avatarUrl': null,
-      'createdAt': Timestamp.fromDate(now),
-    };
-    await _users.doc(user.uid).set(data);
-    MetricsService.bump('user', summary: 'New account: $name');
-
-    final doc = await _users.doc(user.uid).get();
-    return AppUser.fromFirestore(doc);
+    if (res.session == null) {
+      // Email confirmation is enabled in Supabase Auth settings.
+      throw const AuthException(
+        'Check your inbox to confirm your email, then sign in.',
+        code: 'email_not_confirmed',
+      );
+    }
+    return _fetchProfileWithRetry(user.id);
   }
 
   Future<AppUser?> signInWithGoogle() async {
-    try {
-      UserCredential cred;
-      if (kIsWeb) {
-        final googleProvider = GoogleAuthProvider();
-        cred = await _auth.signInWithPopup(googleProvider);
-      } else {
-        final googleUser = await GoogleSignIn(
-          clientId: DefaultFirebaseOptions.currentPlatform.iosClientId,
-        ).signIn();
-        if (googleUser == null) return null;
-        final googleAuth = await googleUser.authentication;
-        final credential = GoogleAuthProvider.credential(
-          accessToken: googleAuth.accessToken,
-          idToken: googleAuth.idToken,
-        );
-        cred = await _auth.signInWithCredential(credential);
-      }
-      final user = cred.user;
-      if (user == null) return null;
-
-      final doc = await _users.doc(user.uid).get();
-      if (!doc.exists) {
-        final now = DateTime.now();
-        final displayName =
-            user.displayName ?? (user.email ?? 'User').split('@').first;
-        await _users.doc(user.uid).set({
-          'name': displayName,
-          'email': user.email ?? '',
-          'role': 'doctor',
-          'wardId': '',
-          'wardIds': <String>[],
-          'avatarUrl': user.photoURL,
-          'createdAt': Timestamp.fromDate(now),
-        });
-        // First-time Google sign-in is also a new account → bump userCount
-        // so the public dashboard tally stays honest.
-        MetricsService.bump('user',
-            summary: 'New Google account: $displayName');
-      }
-      final fresh = await _users.doc(user.uid).get();
-      return AppUser.fromFirestore(fresh);
-    } catch (e) {
-      rethrow;
+    if (kIsWeb) {
+      // Web: full-page redirect; the session is restored on return and the
+      // splash screen routes the user from there.
+      await _auth.signInWithOAuth(
+        OAuthProvider.google,
+        // Return to wherever the app is served (e.g. /app/), not the site root.
+        redirectTo: '${Uri.base.origin}${Uri.base.path}',
+      );
+      return null;
     }
+    final googleUser = await _google.signIn();
+    if (googleUser == null) return null; // cancelled
+    final googleAuth = await googleUser.authentication;
+    final idToken = googleAuth.idToken;
+    if (idToken == null) {
+      throw const AuthException(
+        'Google did not return an ID token. Check GOOGLE_WEB_CLIENT_ID.',
+        code: 'google_no_id_token',
+      );
+    }
+    final res = await _auth.signInWithIdToken(
+      provider: OAuthProvider.google,
+      idToken: idToken,
+      accessToken: googleAuth.accessToken,
+    );
+    final uid = res.user?.id;
+    if (uid == null) return null;
+    return _fetchProfileWithRetry(uid);
   }
 
-  /// Sign in with Apple — iOS-only. Apple App Review rejects apps that
-  /// offer third-party social sign-in (Google, in our case) but not
-  /// Apple Sign-In, so this exists purely to satisfy that requirement
-  /// on iOS. Android raises a runtime error if called there.
+  /// Sign in with Apple — iOS/macOS only. Apple App Review rejects apps
+  /// that offer Google sign-in without Apple sign-in.
   Future<AppUser?> signInWithApple() async {
     if (kIsWeb) {
       throw UnsupportedError('Sign in with Apple is not available on web.');
@@ -149,13 +142,8 @@ class AuthService {
     if (!Platform.isIOS && !Platform.isMacOS) {
       throw UnsupportedError('Sign in with Apple requires iOS or macOS.');
     }
-    // Firebase verifies Apple Sign-In with a nonce to block replay attacks:
-    //  1. generate a random rawNonce
-    //  2. send its SHA-256 hash to Apple (baked into the returned idToken)
-    //  3. hand the RAW nonce to Firebase, which re-hashes it and compares.
-    // Skipping this makes Firebase reject the credential with
-    // `invalid-credential` — which the UI then mislabels as a wrong
-    // email/password. The nonce flow is mandatory, not optional.
+    // Nonce flow: Apple receives the SHA-256 hash (baked into the ID
+    // token); Supabase receives the raw nonce, re-hashes and compares.
     final rawNonce = _generateNonce();
     final hashedNonce = _sha256ofString(rawNonce);
 
@@ -166,41 +154,30 @@ class AuthService {
       ],
       nonce: hashedNonce,
     );
-    final oauth = OAuthProvider('apple.com').credential(
-      idToken: credential.identityToken,
-      rawNonce: rawNonce,
-      // Apple only sends email on the FIRST grant, so a display name is
-      // synthesised below if it comes back null on later sign-ins.
-    );
-    final cred = await _auth.signInWithCredential(oauth);
-    final user = cred.user;
-    if (user == null) return null;
-
-    final doc = await _users.doc(user.uid).get();
-    if (!doc.exists) {
-      final now = DateTime.now();
-      final composed = [
-        credential.givenName ?? '',
-        credential.familyName ?? '',
-      ].where((s) => s.isNotEmpty).join(' ').trim();
-      final displayName = composed.isNotEmpty
-          ? composed
-          : (user.displayName ??
-              (user.email ?? 'Apple user').split('@').first);
-      await _users.doc(user.uid).set({
-        'name': displayName,
-        'email': user.email ?? credential.email ?? '',
-        'role': 'doctor',
-        'wardId': '',
-        'wardIds': <String>[],
-        'avatarUrl': user.photoURL,
-        'createdAt': Timestamp.fromDate(now),
-      });
-      MetricsService.bump('user',
-          summary: 'New Apple account: $displayName');
+    final idToken = credential.identityToken;
+    if (idToken == null) {
+      throw const AuthException('Apple did not return an identity token.',
+          code: 'apple_no_id_token');
     }
-    final fresh = await _users.doc(user.uid).get();
-    return AppUser.fromFirestore(fresh);
+    final res = await _auth.signInWithIdToken(
+      provider: OAuthProvider.apple,
+      idToken: idToken,
+      nonce: rawNonce,
+    );
+    final uid = res.user?.id;
+    if (uid == null) return null;
+
+    // Apple only sends the name on the FIRST grant — store it if we got it.
+    final composed = [credential.givenName ?? '', credential.familyName ?? '']
+        .where((s) => s.isNotEmpty)
+        .join(' ')
+        .trim();
+    final profile = await _fetchProfileWithRetry(uid);
+    if (profile != null && composed.isNotEmpty && profile.name != composed) {
+      await _profiles.update({'name': composed}).eq('id', uid);
+      return _fetchProfile(uid);
+    }
+    return profile;
   }
 
   /// Cryptographically-random nonce for Apple Sign-In (see [signInWithApple]).
@@ -220,33 +197,39 @@ class AuthService {
     return sha256.convert(bytes).toString();
   }
 
-  /// Sends a branded password-reset email via our Cloud Function + Resend.
-  ///
-  /// Firebase's built-in delivery (noreply@foliomed.firebaseapp.com)
-  /// is silently dropped by many providers, so we generate the reset link
-  /// with the Admin SDK and hand delivery to Resend.
-  ///
-  /// The Cloud Function always returns 200 regardless of whether the address
-  /// is registered — we intentionally never reveal that to callers either.
+  /// Sends a password-reset email via Supabase Auth. Delivery goes through
+  /// the custom SMTP configured in the Supabase dashboard (Resend).
+  /// Supabase never reveals whether the address is registered.
   Future<void> sendPasswordReset(String email) async {
-    const url =
-        'https://us-central1-foliomed.cloudfunctions.net/sendPasswordResetEmail';
-    await http.post(
-      Uri.parse(url),
-      headers: {'Content-Type': 'application/json'},
-      body: '{"email":"${email.trim().toLowerCase()}"}',
+    await _auth.resetPasswordForEmail(
+      email.trim().toLowerCase(),
+      redirectTo: kIsWeb ? null : SupabaseConfig.authRedirectUrl,
     );
-    // We don't check the response body — the function always returns ok:true.
-    // The caller shows a neutral "check your inbox" message.
+  }
+
+  /// Re-checks the password for a sensitive action (account deletion).
+  Future<void> reauthenticate(String password) async {
+    final email = _auth.currentUser?.email;
+    if (email == null || email.isEmpty) {
+      throw const AuthException('No email on this account.');
+    }
+    await _auth.signInWithPassword(email: email, password: password);
+  }
+
+  /// Permanently deletes the signed-in account and everything it owns
+  /// (cascades in Postgres via `delete_my_account`).
+  Future<void> deleteAccount() async {
+    await _client.rpc('delete_my_account');
+    await signOut();
   }
 
   Future<void> signOut() async {
-    if (!_isDesktop) {
+    if (!_isDesktop && !kIsWeb) {
       try {
-        await GoogleSignIn(
-          clientId: DefaultFirebaseOptions.currentPlatform.iosClientId,
-        ).signOut();
-      } catch (_) {}
+        await _google.signOut();
+      } catch (e) {
+        debugPrint('Google sign-out skipped: $e');
+      }
     }
     await _auth.signOut();
   }
@@ -259,21 +242,20 @@ class AuthService {
   }) async {
     final user = _auth.currentUser;
     if (user == null) return;
-    final updates = <String, dynamic>{};
-    if (name != null) updates['name'] = name;
-    if (avatarUrl != null) updates['avatarUrl'] = avatarUrl;
-    if (avatarEmoji != null) updates['avatarEmoji'] = avatarEmoji;
-    if (specialty != null) updates['specialty'] = specialty;
+    final updates = <String, dynamic>{
+      if (name != null) 'name': name,
+      if (avatarUrl != null) 'avatar_url': avatarUrl,
+      if (avatarEmoji != null) 'avatar_emoji': avatarEmoji,
+      if (specialty != null) 'specialty': specialty,
+    };
     if (updates.isEmpty) return;
-    await _users.doc(user.uid).update(updates);
-    if (name != null) {
-      await user.updateDisplayName(name);
-    }
+    await _profiles.update(updates).eq('id', user.id);
   }
 
   Stream<AppUser?> userStream(String uid) {
-    return _users.doc(uid).snapshots().map(
-          (doc) => doc.exists ? AppUser.fromFirestore(doc) : null,
-        );
+    return _profiles
+        .stream(primaryKey: ['id'])
+        .eq('id', uid)
+        .map((rows) => rows.isEmpty ? null : AppUser.fromRow(rows.first));
   }
 }

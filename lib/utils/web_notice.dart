@@ -1,4 +1,3 @@
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -153,15 +152,7 @@ class WebNotice {
     } catch (_) {/* swallow */}
   }
 
-  static Future<void> _requestNotificationPermission() async {
-    try {
-      await FirebaseMessaging.instance.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
-    } catch (_) {
-      // user dismissed or unsupported
-    }
-  }
+  /// Browser push isn't wired up yet (see PushService TODO); in-app
+  /// realtime alerts need no permission, so there is nothing to request.
+  static Future<void> _requestNotificationPermission() async {}
 }

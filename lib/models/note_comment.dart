@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'row_parsing.dart';
 
 class NoteComment {
   final String id;
@@ -19,26 +19,25 @@ class NoteComment {
     this.isAcknowledgement = false,
   });
 
-  factory NoteComment.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>? ?? {};
+  /// Builds a comment from a `note_comments` row.
+  factory NoteComment.fromRow(DbRow row) {
     return NoteComment(
-      id: doc.id,
-      text: data['text'] as String? ?? '',
-      authorId: data['authorId'] as String? ?? '',
-      authorName: data['authorName'] as String? ?? '',
-      authorRole: data['authorRole'] as String? ?? '',
-      createdAt:
-          (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      isAcknowledgement: data['isAcknowledgement'] as bool? ?? false,
+      id: row['id'] as String? ?? '',
+      text: row['text'] as String? ?? '',
+      authorId: row['author_id'] as String? ?? '',
+      authorName: row['author_name'] as String? ?? '',
+      authorRole: row['author_role'] as String? ?? '',
+      createdAt: parseTimestamp(row['created_at']),
+      isAcknowledgement: row['is_acknowledgement'] as bool? ?? false,
     );
   }
 
-  Map<String, dynamic> toMap() => {
+  DbRow toRow(String noteId) => {
+        'note_id': noteId,
         'text': text,
-        'authorId': authorId,
-        'authorName': authorName,
-        'authorRole': authorRole,
-        'createdAt': Timestamp.fromDate(createdAt),
-        'isAcknowledgement': isAcknowledgement,
+        'author_id': authorId.isEmpty ? null : authorId,
+        'author_name': authorName,
+        'author_role': authorRole,
+        'is_acknowledgement': isAcknowledgement,
       };
 }

@@ -1,65 +1,125 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:math';
+
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/app_user.dart';
 import '../models/ward.dart';
-import '../utils/app_constants.dart';
+import 'metrics_service.dart';
+import 'supabase_service.dart';
 
 class WardService {
-  final FirebaseFirestore _firestore;
+  final SupabaseClient _client;
 
-  WardService({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+  WardService({SupabaseClient? client}) : _client = client ?? supabase;
 
-  CollectionReference<Map<String, dynamic>> get _wards =>
-      _firestore.collection(AppConstants.wardsCollection);
+  SupabaseQueryBuilder get _wards => _client.from(Tables.wards);
+  SupabaseQueryBuilder get _profiles => _client.from(Tables.profiles);
 
-  CollectionReference<Map<String, dynamic>> get _users =>
-      _firestore.collection(AppConstants.usersCollection);
+  /// Postgres error code for a primary-key collision.
+  static const String _uniqueViolation = '23505';
+  static const int _maxCodeAttempts = 8;
 
-  /// Streams the wards a user is a member of. Pass the user's wardIds list.
-  /// An empty list yields an empty stream — no Firestore query, no rule
-  /// denial. Caller is responsible for chunking past 30 ids if ever needed.
+  /// Streams the wards a user is a member of. An empty list yields an
+  /// empty stream without touching the network.
   Stream<List<Ward>> wardsForUser(List<String> wardIds) {
     if (wardIds.isEmpty) return Stream.value(const <Ward>[]);
-    final ids = wardIds.length > 30 ? wardIds.sublist(0, 30) : wardIds;
     return _wards
-        .where(FieldPath.documentId, whereIn: ids)
-        .snapshots()
-        .map((snapshot) => snapshot.docs.map(Ward.fromFirestore).toList());
+        .stream(primaryKey: ['id'])
+        .inFilter('id', wardIds)
+        .map((rows) => rows.map(Ward.fromRow).toList());
   }
 
-  /// Legacy admin-only helper — fetches every ward in the system. With the
-  /// current Firestore rules this only returns wards the caller is a
-  /// member of, so for non-admin paths use [wardsForUser] instead.
+  /// Every ward the caller can see (RLS limits this to their own wards).
   Stream<List<Ward>> getAllWards() {
-    return _wards.orderBy('name').snapshots().map(
-          (snapshot) => snapshot.docs.map(Ward.fromFirestore).toList(),
-        );
+    return _wards
+        .stream(primaryKey: ['id'])
+        .order('name', ascending: true)
+        .map((rows) => rows.map(Ward.fromRow).toList());
   }
 
   Future<Ward?> getWard(String wardId) async {
-    final doc = await _wards.doc(wardId).get();
-    if (!doc.exists) return null;
-    return Ward.fromFirestore(doc);
+    final row = await _wards.select().eq('id', wardId).maybeSingle();
+    return row == null ? null : Ward.fromRow(row);
   }
 
-  Future<String> addWard(Ward ward) async {
-    final ref = await _wards.add(ward.toMap());
-    return ref.id;
+  /// Creates a ward under a fresh random 5-digit code, retrying on the
+  /// (rare) collision, then adds the creator as a member.
+  Future<String> createWard({
+    required String name,
+    required String floor,
+    required int capacity,
+    required String headDoctorName,
+  }) async {
+    final user = _client.auth.currentUser;
+    if (user == null) throw const AuthException('Not signed in');
+    final random = Random.secure();
+    for (var attempt = 0; attempt < _maxCodeAttempts; attempt++) {
+      final code = (10000 + random.nextInt(90000)).toString();
+      final ward = Ward(
+        id: code,
+        name: name,
+        floor: floor,
+        capacity: capacity,
+        headDoctorName: headDoctorName,
+        creatorId: user.id,
+        creatorEmail: user.email ?? '',
+        createdAt: DateTime.now(),
+      );
+      try {
+        await _wards.insert(ward.toRow());
+      } on PostgrestException catch (e) {
+        if (e.code == _uniqueViolation) continue;
+        rethrow;
+      }
+      await joinWard(code);
+      MetricsService.bump('ward', summary: 'New ward: $name');
+      return code;
+    }
+    throw StateError('Could not allocate a free ward code — try again.');
   }
 
   Future<void> updateWard(Ward ward) async {
-    await _wards.doc(ward.id).update(ward.toMap());
+    await _wards.update(ward.toRow()).eq('id', ward.id);
   }
 
-  /// Capped at 100 — even a large hospital ward rarely has more staff
-  /// than that. Hard cap stops any runaway live-stream cost.
+  /// Joins by code. Returns false when no ward has that code.
+  Future<bool> joinWard(String wardId) async {
+    final ok = await _client.rpc('join_ward', params: {'p_ward_id': wardId});
+    return ok == true;
+  }
+
+  Future<void> leaveWard(String wardId) async {
+    await _client.rpc('leave_ward', params: {'p_ward_id': wardId});
+  }
+
+  /// Creator-only. Patients, notes and comments cascade in Postgres and a
+  /// trigger strips the code from every member's profile.
+  Future<void> deleteWard(String wardId) async {
+    await _wards.delete().eq('id', wardId);
+  }
+
+  Future<int> memberCount(String wardId) async {
+    final count =
+        await _client.rpc('ward_member_count', params: {'p_ward_id': wardId});
+    return (count as num?)?.toInt() ?? 0;
+  }
+
+  /// Members of a ward (anyone whose `ward_ids` contains it), capped at 100.
+  Future<List<AppUser>> getWardMembers(String wardId) async {
+    final rows = await _profiles
+        .select()
+        .contains('ward_ids', [wardId])
+        .order('name')
+        .limit(100);
+    return rows.map(AppUser.fromRow).toList();
+  }
+
+  /// Staff whose primary ward is [wardId], capped at 100.
   Stream<List<AppUser>> getWardStaff(String wardId) {
-    return _users
-        .where('wardId', isEqualTo: wardId)
+    return _profiles
+        .stream(primaryKey: ['id'])
+        .eq('ward_id', wardId)
         .limit(100)
-        .snapshots()
-        .map((snapshot) =>
-            snapshot.docs.map(AppUser.fromFirestore).toList());
+        .map((rows) => rows.map(AppUser.fromRow).toList());
   }
 }

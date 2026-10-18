@@ -1,8 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider, EmailAuthProvider;
-import 'package:firebase_auth/firebase_auth.dart' as fba show EmailAuthProvider;
-import 'package:google_sign_in/google_sign_in.dart';
-import '../../utils/app_constants.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show UserAttributes;
+import '../../models/row_parsing.dart';
+import '../../services/auth_service.dart';
+import '../../services/supabase_service.dart';
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:flutter/material.dart';
@@ -489,9 +488,9 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _aboutCard(BuildContext context) {
-    final fbUser = FirebaseAuth.instance.currentUser;
-    final lastSignIn = fbUser?.metadata.lastSignInTime;
-    final created = fbUser?.metadata.creationTime;
+    final authUser = supabase.auth.currentUser;
+    final lastSignIn = parseTimestampOrNull(authUser?.lastSignInAt);
+    final created = parseTimestampOrNull(authUser?.createdAt);
     return _cardWrapper(children: [
       FutureBuilder<PackageInfo>(
         future: PackageInfo.fromPlatform(),
@@ -821,20 +820,22 @@ Account: $email
     BuildContext context,
     AuthProvider auth,
   ) async {
-    final fbUser = FirebaseAuth.instance.currentUser;
-    if (fbUser == null) return;
+    final authUser = supabase.auth.currentUser;
+    if (authUser == null) return;
 
     // Load wards this user created so we can warn them specifically.
     List<String> ownedWardNames = [];
     try {
-      final snap = await FirebaseFirestore.instance
-          .collection(AppConstants.wardsCollection)
-          .where('creatorId', isEqualTo: fbUser.uid)
-          .get();
-      ownedWardNames = snap.docs
-          .map((d) => d.data()['name'] as String? ?? 'Unnamed ward')
+      final rows = await supabase
+          .from(Tables.wards)
+          .select('name')
+          .eq('creator_id', authUser.id);
+      ownedWardNames = rows
+          .map((r) => r['name'] as String? ?? 'Unnamed ward')
           .toList();
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Owned-ward lookup failed: $e');
+    }
 
     if (!context.mounted) return;
 
@@ -900,56 +901,19 @@ Account: $email
     await _doDeleteAccount(context, auth);
   }
 
-  /// Performs the actual deletion — removes user from all ward memberIds,
-  /// deletes the Firestore user doc, then deletes the Firebase Auth account.
-  /// If Firebase requires re-authentication first, prompts for it and retries.
+  /// Deletes the account via the `delete_my_account` Postgres function,
+  /// which cascades to owned wards (patients, notes, replies) and removes
+  /// the user from every ward they joined.
   Future<void> _doDeleteAccount(
     BuildContext context,
-    AuthProvider auth, {
-    bool isRetry = false,
-  }) async {
+    AuthProvider auth,
+  ) async {
     try {
-      final fbUser = FirebaseAuth.instance.currentUser;
-      if (fbUser == null) return;
-
-      final db = FirebaseFirestore.instance;
-      final uid = fbUser.uid;
-
-      // 1. Delete the Firestore profile doc (user has permission for own doc).
-      await db.collection(AppConstants.usersCollection).doc(uid).delete();
-
-      // 2. Delete the Firebase Auth account.
-      //    This triggers the onUserDeletedCleanup Cloud Function server-side,
-      //    which cascade-deletes owned wards (notes + patients) and removes
-      //    the UID from all joined ward memberIds — using Admin SDK so it
-      //    bypasses Firestore security rules entirely. No permissions needed
-      //    client-side for any of that cleanup.
-      await fbUser.delete();
-
+      await AuthService().deleteAccount();
       await auth.signOut();
       if (context.mounted) {
         Navigator.of(context)
             .pushNamedAndRemoveUntil('/login', (_) => false);
-      }
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'requires-recent-login' && !isRetry) {
-        // Firebase needs fresh credentials before deleting an account.
-        if (!context.mounted) return;
-        final ok = await _reAuthenticate(context);
-        if (ok && context.mounted) {
-          // Retry once after successful re-auth.
-          await _doDeleteAccount(context, auth, isRetry: true);
-        }
-      } else {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              backgroundColor: AppColors.danger,
-              content: Text(
-                  'Could not delete account — ${friendlyError(e)}'),
-            ),
-          );
-        }
       }
     } catch (e) {
       if (context.mounted) {
@@ -960,99 +924,6 @@ Account: $email
                 'Could not delete account — ${friendlyError(e)}'),
           ),
         );
-      }
-    }
-  }
-
-  /// Re-authenticates the current Firebase user before a sensitive op.
-  /// Google users get a Google sign-in prompt; email/password users get
-  /// a password dialog. Returns true on success.
-  Future<bool> _reAuthenticate(BuildContext context) async {
-    final fbUser = FirebaseAuth.instance.currentUser;
-    if (fbUser == null) return false;
-
-    final isGoogle =
-        fbUser.providerData.any((p) => p.providerId == 'google.com');
-
-    if (isGoogle) {
-      try {
-        final googleUser = await GoogleSignIn().signIn();
-        if (googleUser == null) return false;
-        final googleAuth = await googleUser.authentication;
-        final cred = GoogleAuthProvider.credential(
-          accessToken: googleAuth.accessToken,
-          idToken: googleAuth.idToken,
-        );
-        await fbUser.reauthenticateWithCredential(cred);
-        return true;
-      } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              backgroundColor: AppColors.danger,
-              content: Text(
-                  'Re-authentication failed — ${friendlyError(e)}'),
-            ),
-          );
-        }
-        return false;
-      }
-    } else {
-      // Email/password re-auth.
-      final passwordController = TextEditingController();
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: const Text('Confirm your identity'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'For security, enter your current password to confirm account deletion.',
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: passwordController,
-                obscureText: true,
-                autofocus: true,
-                decoration:
-                    const InputDecoration(labelText: 'Current password'),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.danger),
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Confirm'),
-            ),
-          ],
-        ),
-      );
-      if (confirmed != true || !context.mounted) return false;
-      try {
-        final cred = fba.EmailAuthProvider.credential(
-          email: fbUser.email!,
-          password: passwordController.text,
-        );
-        await fbUser.reauthenticateWithCredential(cred);
-        return true;
-      } catch (e) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              backgroundColor: AppColors.danger,
-              content: Text('Incorrect password — ${friendlyError(e)}'),
-            ),
-          );
-        }
-        return false;
       }
     }
   }
@@ -1204,15 +1075,14 @@ Account: $email
                 );
                 return;
               }
-              final user = FirebaseAuth.instance.currentUser;
+              final user = supabase.auth.currentUser;
               if (user == null || user.email == null) return;
               try {
-                final cred = fba.EmailAuthProvider.credential(
-                  email: user.email!,
-                  password: currentController.text,
+                // Verify the current password before changing it.
+                await AuthService().reauthenticate(currentController.text);
+                await supabase.auth.updateUser(
+                  UserAttributes(password: newController.text),
                 );
-                await user.reauthenticateWithCredential(cred);
-                await user.updatePassword(newController.text);
                 if (context.mounted) {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(

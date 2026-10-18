@@ -1,165 +1,155 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/note.dart';
 import '../models/note_comment.dart';
-import '../utils/app_constants.dart';
+import '../models/row_parsing.dart';
 import 'metrics_service.dart';
+import 'supabase_service.dart';
 
 class NoteService {
-  final FirebaseFirestore _firestore;
+  final SupabaseClient _client;
 
-  NoteService({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+  NoteService({SupabaseClient? client}) : _client = client ?? supabase;
 
-  CollectionReference<Map<String, dynamic>> get _notes =>
-      _firestore.collection(AppConstants.notesCollection);
+  SupabaseQueryBuilder get _notes => _client.from(Tables.notes);
+  SupabaseQueryBuilder get _comments => _client.from(Tables.noteComments);
 
-  /// Hard-capped at 150 to keep Firestore reads predictable. Older notes
+  /// Hard-capped at 150 to keep realtime payloads predictable. Older notes
   /// remain in the database — they just don't stream into the live feed.
   static const int kNoteFeedLimit = 150;
+
+  /// Unacknowledged notes are capped at 150 — the badge shows '150+'.
+  static const int kUnackCountCap = 150;
+
+  static List<Note> _toNotes(List<DbRow> rows) =>
+      rows.map(Note.fromRow).toList();
 
   Stream<List<Note>> getNotesForWards(List<String> wardIds) {
     if (wardIds.isEmpty) return Stream.value(const []);
     return _notes
-        .where('wardId', whereIn: wardIds)
-        .orderBy('createdAt', descending: true)
+        .stream(primaryKey: ['id'])
+        .inFilter('ward_id', wardIds)
+        .order('created_at', ascending: false)
         .limit(kNoteFeedLimit)
-        .snapshots()
-        .map((snapshot) =>
-            snapshot.docs.map(Note.fromFirestore).toList());
+        .map(_toNotes);
   }
 
-  /// Capped at 150 — the badge shows '150+' if there are more, but we
-  /// never read more than 150 docs to compute it. Without this cap a ward
-  /// with thousands of un-ack'd notes would burn thousands of Firestore
-  /// reads on every snapshot tick.
-  static const int kUnackCountCap = 150;
+  /// Realtime streams accept a single filter, so this streams every
+  /// unacknowledged note the caller can see (RLS already limits that to
+  /// their wards) and narrows to [wardIds] client-side.
+  Stream<List<Note>> _unacknowledgedForWards(List<String> wardIds) {
+    final wanted = wardIds.toSet();
+    return _notes
+        .stream(primaryKey: ['id'])
+        .eq('is_acknowledged', false)
+        .order('created_at', ascending: false)
+        .limit(kUnackCountCap)
+        .map((rows) => _toNotes(rows)
+            .where((n) => wanted.contains(n.wardId))
+            .toList());
+  }
 
   Stream<int> getUnacknowledgedCountForWards(List<String> wardIds) {
     if (wardIds.isEmpty) return Stream.value(0);
-    return _notes
-        .where('wardId', whereIn: wardIds)
-        .where('isAcknowledged', isEqualTo: false)
-        .limit(kUnackCountCap)
-        .snapshots()
-        .map((snapshot) => snapshot.docs.length);
+    return _unacknowledgedForWards(wardIds).map((notes) => notes.length);
   }
 
   Stream<List<Note>> getNotesByWard(String wardId) {
     return _notes
-        .where('wardId', isEqualTo: wardId)
-        .orderBy('createdAt', descending: true)
+        .stream(primaryKey: ['id'])
+        .eq('ward_id', wardId)
+        .order('created_at', ascending: false)
         .limit(kNoteFeedLimit)
-        .snapshots()
-        .map((snapshot) =>
-            snapshot.docs.map(Note.fromFirestore).toList());
+        .map(_toNotes);
   }
 
-  /// Per-patient timeline. Capped at 100 — older notes still exist in
-  /// Firestore, they just don't stream into the UI in one go.
+  /// Per-patient timeline, capped at 100.
   Stream<List<Note>> getNotesByPatient(String patientId) {
     return _notes
-        .where('patientId', isEqualTo: patientId)
-        .orderBy('createdAt', descending: true)
+        .stream(primaryKey: ['id'])
+        .eq('patient_id', patientId)
+        .order('created_at', ascending: false)
         .limit(100)
-        .snapshots()
-        .map((snapshot) =>
-            snapshot.docs.map(Note.fromFirestore).toList());
+        .map(_toNotes);
   }
 
-  Stream<List<Note>> getUnacknowledgedNotes(String wardId) {
+  Stream<List<Note>> getUnacknowledgedNotes(String wardId) =>
+      _unacknowledgedForWards([wardId]);
+
+  Stream<int> getUnacknowledgedCount(String wardId) =>
+      getUnacknowledgedCountForWards([wardId]);
+
+  /// Live acknowledgement state of a single note.
+  Stream<bool> acknowledgedStream(String noteId) {
     return _notes
-        .where('wardId', isEqualTo: wardId)
-        .where('isAcknowledged', isEqualTo: false)
-        .orderBy('createdAt', descending: true)
-        .limit(kUnackCountCap)
-        .snapshots()
-        .map((snapshot) =>
-            snapshot.docs.map(Note.fromFirestore).toList());
+        .stream(primaryKey: ['id'])
+        .eq('id', noteId)
+        .map((rows) =>
+            rows.isNotEmpty && (rows.first['is_acknowledged'] as bool? ?? false));
   }
 
   Future<String> addNote(Note note) async {
-    final ref = await _notes.add(note.toMap());
+    final row = await _notes.insert(note.toRow()).select('id').single();
     MetricsService.bump('note',
         summary: '${note.authorName} → ${note.patientName}');
-    return ref.id;
+    return row['id'] as String;
   }
 
   Future<void> updateNote(Note note) async {
-    await _notes.doc(note.id).update({
-      ...note.toMap(),
-      'updatedAt': Timestamp.fromDate(DateTime.now()),
-    });
+    await _notes.update(note.toRow()).eq('id', note.id);
   }
 
   Future<void> acknowledgeNote(String noteId, String acknowledgedBy) async {
-    await _notes.doc(noteId).update({
-      'isAcknowledged': true,
-      'acknowledgedBy': acknowledgedBy,
-      'acknowledgedAt': Timestamp.fromDate(DateTime.now()),
-    });
+    await _notes.update({
+      'is_acknowledged': true,
+      'acknowledged_by': acknowledgedBy,
+      'acknowledged_at': toTimestamp(DateTime.now()),
+    }).eq('id', noteId);
     MetricsService.bump('ack', summary: '$acknowledgedBy ack\'d a note');
   }
 
   Future<void> acknowledgeAllNotes(
       List<String> noteIds, String acknowledgedBy) async {
     if (noteIds.isEmpty) return;
-    final now = Timestamp.fromDate(DateTime.now());
-    final batch = _firestore.batch();
-    for (final id in noteIds) {
-      batch.update(_notes.doc(id), {
-        'isAcknowledged': true,
-        'acknowledgedBy': acknowledgedBy,
-        'acknowledgedAt': now,
-      });
-    }
-    await batch.commit();
+    await _notes.update({
+      'is_acknowledged': true,
+      'acknowledged_by': acknowledgedBy,
+      'acknowledged_at': toTimestamp(DateTime.now()),
+    }).inFilter('id', noteIds);
     MetricsService.bump('ack',
         summary: '$acknowledgedBy cleared ${noteIds.length} notifications');
   }
 
   Future<void> unacknowledgeNote(String noteId) async {
-    await _notes.doc(noteId).update({
-      'isAcknowledged': false,
-      'acknowledgedBy': null,
-      'acknowledgedAt': null,
-    });
+    await _notes.update({
+      'is_acknowledged': false,
+      'acknowledged_by': null,
+      'acknowledged_at': null,
+    }).eq('id', noteId);
   }
 
+  /// Comments cascade-delete in Postgres.
   Future<void> deleteNote(String noteId) async {
-    await _notes.doc(noteId).delete();
+    await _notes.delete().eq('id', noteId);
   }
-
-  CollectionReference<Map<String, dynamic>> _commentsRef(String noteId) =>
-      _notes.doc(noteId).collection('comments');
 
   /// Capped at 100 — a single note rarely needs more comments than that.
-  /// Older replies still exist in Firestore, they just don't stream into
-  /// the thread bubble in one go.
   Stream<List<NoteComment>> commentsStream(String noteId) {
-    return _commentsRef(noteId)
-        .orderBy('createdAt')
+    return _comments
+        .stream(primaryKey: ['id'])
+        .eq('note_id', noteId)
+        .order('created_at', ascending: true)
         .limit(100)
-        .snapshots()
-        .map((s) => s.docs.map(NoteComment.fromFirestore).toList());
+        .map((rows) => rows.map(NoteComment.fromRow).toList());
   }
 
   Future<void> addComment(String noteId, NoteComment comment) async {
-    await _commentsRef(noteId).add(comment.toMap());
+    await _comments.insert(comment.toRow(noteId));
     MetricsService.bump('comment',
         summary: '${comment.authorName} replied');
   }
 
   Future<void> deleteComment(String noteId, String commentId) async {
-    await _commentsRef(noteId).doc(commentId).delete();
-  }
-
-  Stream<int> getUnacknowledgedCount(String wardId) {
-    return _notes
-        .where('wardId', isEqualTo: wardId)
-        .where('isAcknowledged', isEqualTo: false)
-        .limit(kUnackCountCap)
-        .snapshots()
-        .map((snapshot) => snapshot.docs.length);
+    await _comments.delete().eq('id', commentId).eq('note_id', noteId);
   }
 }

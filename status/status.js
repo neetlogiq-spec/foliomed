@@ -1,35 +1,14 @@
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js';
 import {
-  getFirestore,
-  doc,
-  getDoc,
-  collection,
-  query,
-  orderBy,
-  limit,
-  getDocs,
-} from 'https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js';
+  fetchTotals,
+  fetchActivity,
+  pingAuth,
+  isConfigured,
+} from '../supabase-public.js';
 
-// Cost note (Blaze pay-as-you-go):
-// This page used to open three live `onSnapshot` listeners (metrics doc,
-// recent_activity feed, and a fresh Firestore probe every 30s). With the
-// status tab left open in a browser, that quietly burned thousands of
-// Firestore reads per day per viewer. We now do every read as a single
-// `getDoc` / `getDocs` and only re-run on user click or every 5 minutes.
+// Every read is a one-shot REST call, re-run on click or every 5 minutes
+// and paused while the tab is hidden.
 const REFRESH_MS = 5 * 60 * 1000; // 5 minutes
 const FEED_LIMIT = 20;
-
-const firebaseConfig = {
-  apiKey: 'AIzaSyBS8MKN-vzLCFLDmGfws7uJg5_I4fJKnqM',
-  authDomain: 'foliomed.firebaseapp.com',
-  projectId: 'foliomed',
-  storageBucket: 'foliomed.firebasestorage.app',
-  messagingSenderId: '525482754887',
-  appId: '1:525482754887:web:2886f69b6402f4718a8262',
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 
 // ────────── Health checks ──────────
 function setStatus(cardId, state, detailText) {
@@ -48,38 +27,28 @@ function setStatus(cardId, state, detailText) {
 }
 
 async function checkAuth() {
-  const start = performance.now();
   try {
-    const res = await fetch(
-      `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${firebaseConfig.apiKey}`,
-      { method: 'POST', body: JSON.stringify({ idToken: 'none' }) }
-    );
-    const ms = Math.round(performance.now() - start);
-    if (res.status < 500) {
-      setStatus('svc-auth', 'green',
-        `Auth API reachable · ${ms}ms · Email/Password + Google enabled`);
-    } else {
-      setStatus('svc-auth', 'red',
-        `HTTP ${res.status} — Auth API unreachable`);
-    }
+    const ms = await pingAuth();
+    setStatus('svc-auth', 'green',
+      `Auth API reachable · ${ms}ms · Email/Password, Google, Apple`);
   } catch (e) {
     setStatus('svc-auth', 'red', `Error: ${e.message}`);
   }
 }
 
-async function checkFirestore() {
-  // One-shot read of the public metrics doc as a probe. Used to be a
-  // live `onSnapshot` listener — that billed reads on every metrics tick
-  // even though the probe only needs a single round-trip.
+async function checkDatabase() {
+  if (!isConfigured()) {
+    setStatus('svc-firestore', 'amber', 'Supabase anon key not configured');
+    return;
+  }
   const start = performance.now();
   try {
-    await getDoc(doc(db, 'metrics', 'totals'));
+    await fetchTotals();
     const ms = Math.round(performance.now() - start);
     setStatus('svc-firestore', 'green',
       `Connected · ${ms}ms · Public metrics readable`);
   } catch (e) {
-    setStatus('svc-firestore', 'red',
-      `${e.code || 'error'} — ${e.message}`);
+    setStatus('svc-firestore', 'red', `Error — ${e.message}`);
   }
 }
 
@@ -126,25 +95,18 @@ function setCounter(id, value) {
 
 async function loadCounters() {
   try {
-    const snap = await getDoc(doc(db, 'metrics', 'totals'));
-    if (!snap.exists()) {
-      ['ct-users','ct-wards','ct-patients','ct-notes','ct-acks','ct-comments']
-        .forEach(id => setCounter(id, '0'));
-      setCounter('last-activity', 'no activity yet');
-      return;
-    }
-    const d = snap.data();
-    setCounter('ct-users', d.userCount ?? 0);
-    setCounter('ct-wards', d.wardCount ?? 0);
-    setCounter('ct-patients', d.patientCount ?? 0);
-    setCounter('ct-notes', d.noteCount ?? 0);
-    setCounter('ct-acks', d.ackCount ?? 0);
-    setCounter('ct-comments', d.commentCount ?? 0);
-
-    const ts = d.lastActivityAt?.toDate?.();
-    if (ts) {
-      setCounter('last-activity', timeAgo(ts));
+    const d = await fetchTotals();
+    setCounter('ct-users', d.users);
+    setCounter('ct-wards', d.wards);
+    setCounter('ct-patients', d.patients);
+    setCounter('ct-notes', d.notes);
+    setCounter('ct-acks', d.acks);
+    setCounter('ct-comments', d.comments);
+    if (d.lastActivityAt) {
+      setCounter('last-activity', timeAgo(d.lastActivityAt));
       document.getElementById('live-pulse')?.classList.add('pulsing');
+    } else {
+      setCounter('last-activity', 'no activity yet');
     }
   } catch (e) {
     console.warn('loadCounters failed:', e);
@@ -156,30 +118,20 @@ async function loadFeed() {
   const feed = document.getElementById('activity-feed');
   if (!feed) return;
   try {
-    const q = query(
-      collection(db, 'recent_activity'),
-      orderBy('at', 'desc'),
-      limit(FEED_LIMIT),
-    );
-    const snap = await getDocs(q);
-    if (snap.empty) {
+    const events = await fetchActivity(FEED_LIMIT);
+    if (events.length === 0) {
       feed.innerHTML = '<div class="feed-empty">No activity yet — once your team starts using FolioMed, events appear here.</div>';
       return;
     }
-    const items = [];
-    snap.forEach((d) => {
-      const data = d.data();
-      const at = data.at?.toDate?.() || new Date();
-      items.push(`
+    // Summaries stay private (they can name patients) — show type + time.
+    feed.innerHTML = events.map(({ type, at }) => `
         <div class="feed-item">
-          <div class="feed-icon ${typeColor(data.type)}">${typeEmoji(data.type)}</div>
+          <div class="feed-icon ${typeColor(type)}">${typeEmoji(type)}</div>
           <div class="feed-body">
-            <div class="feed-summary">${escape(data.summary || labelFor(data.type))}</div>
-            <div class="feed-meta">${labelFor(data.type)} · ${timeAgo(at)}</div>
+            <div class="feed-summary">${escape(labelFor(type))}</div>
+            <div class="feed-meta">${timeAgo(at)}</div>
           </div>
-        </div>`);
-    });
-    feed.innerHTML = items.join('');
+        </div>`).join('');
   } catch (e) {
     console.warn('loadFeed failed:', e);
     feed.innerHTML =
@@ -210,7 +162,7 @@ function escape(s) {
 
 // ────────── Orchestration ──────────
 async function runAll() {
-  await Promise.all([checkAuth(), checkFirestore(), loadCounters(), loadFeed()]);
+  await Promise.all([checkAuth(), checkDatabase(), loadCounters(), loadFeed()]);
   updateHeader();
   setTimeout(tally, 200);
 }

@@ -2,15 +2,14 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../providers/theme_provider.dart';
+import '../../services/supabase_service.dart';
 import '../../services/video_call_service.dart';
 import '../../services/vitals_ocr_service.dart';
 import '../../utils/app_theme.dart';
@@ -148,7 +147,7 @@ class _BedsideSenderScreenState extends State<BedsideSenderScreen> with WidgetsB
       if (parsed != null && parsed.hasAnyVital) {
         _frameCount++;
         setState(() => _lastParsed = parsed);
-        await _pushVitalsToFirestore(parsed);
+        await _pushVitals(parsed);
       }
 
       try { await file.delete(); } catch (_) {}
@@ -157,37 +156,30 @@ class _BedsideSenderScreenState extends State<BedsideSenderScreen> with WidgetsB
     }
   }
 
-  Future<void> _pushVitalsToFirestore(ParsedVitals parsed) async {
+  /// Upserts the latest reading and appends it to the history table.
+  Future<void> _pushVitals(ParsedVitals parsed) async {
     try {
-      final uid = FirebaseAuth.instance.currentUser?.uid;
+      final uid = supabase.auth.currentUser?.id;
       if (uid == null) return;
 
       final vitalsMap = parsed.toVitalMap();
       if (vitalsMap.isEmpty) return;
 
-      final data = <String, dynamic>{
-        'timestamp': FieldValue.serverTimestamp(),
-        'confidence': parsed.confidence,
+      final row = <String, dynamic>{
+        'patient_id': widget.patientId,
+        'sender_id': uid,
         'source': 'ocr',
-        'senderUid': uid,
+        'confidence': parsed.confidence,
+        'vitals': {
+          for (final entry in vitalsMap.entries) entry.key.name: entry.value,
+        },
+        'recorded_at': DateTime.now().toUtc().toIso8601String(),
       };
 
-      for (final entry in vitalsMap.entries) {
-        data[entry.key.name] = entry.value;
-      }
-
-      await FirebaseFirestore.instance
-          .collection('monitor_vitals')
-          .doc(widget.patientId)
-          .set(data);
-
-      await FirebaseFirestore.instance
-          .collection('monitor_vitals')
-          .doc(widget.patientId)
-          .collection('history')
-          .add(data);
+      await supabase.from(Tables.monitorVitals).upsert(row);
+      await supabase.from(Tables.monitorVitalsHistory).insert(row);
     } catch (e) {
-      debugPrint('Firestore push error: $e');
+      debugPrint('Vitals push error: $e');
     }
   }
 
@@ -198,9 +190,14 @@ class _BedsideSenderScreenState extends State<BedsideSenderScreen> with WidgetsB
       final xFile = await _cameraCtrl!.takePicture();
       final bytes = await xFile.readAsBytes();
 
-      final ref = FirebaseStorage.instance
-          .ref('monitor_snapshots/${widget.patientId}/latest.jpg');
-      await ref.putData(bytes, SettableMetadata(contentType: 'image/jpeg'));
+      await supabase.storage.from(Buckets.monitorSnapshots).uploadBinary(
+            '${widget.patientId}/latest.jpg',
+            bytes,
+            fileOptions: const FileOptions(
+              contentType: 'image/jpeg',
+              upsert: true,
+            ),
+          );
 
       try { await File(xFile.path).delete(); } catch (_) {}
     } catch (e) {

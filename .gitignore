@@ -56,3 +56,9 @@ play-assets.zip
 # Generated / vendored
 functions/node_modules/
 graphify-out/
+
+# Local build secrets
+env.json
+supabase/.temp/
+supabase/.env
+*.p8

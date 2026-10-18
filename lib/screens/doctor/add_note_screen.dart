@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -7,7 +6,10 @@ import 'package:uuid/uuid.dart';
 import '../../models/models.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/note_provider.dart';
+import '../../services/patient_service.dart';
 import '../../utils/app_constants.dart';
+import '../../services/ward_service.dart';
+import '../../utils/stream_cache.dart';
 import '../../utils/app_theme.dart';
 import 'add_patient_screen.dart';
 import '../../providers/theme_provider.dart';
@@ -34,6 +36,9 @@ class AddNoteBottomSheet extends StatefulWidget {
 }
 
 class _AddNoteBottomSheetState extends State<AddNoteBottomSheet> {
+  final _wardStreams = StreamCache<List<Ward>>();
+  final _patientStreams = StreamCache<List<Patient>>();
+
   final _contentController = TextEditingController();
 
   Patient? _selectedPatient;
@@ -287,13 +292,10 @@ class _AddNoteBottomSheetState extends State<AddNoteBottomSheet> {
         style: GoogleFonts.dmSans(color: AppColors.textSecondary),
       );
     }
-    // Firestore whereIn only allows up to 30 ids; trim if needed.
-    final ids = myWardIds.length > 30 ? myWardIds.sublist(0, 30) : myWardIds;
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection(AppConstants.wardsCollection)
-          .where(FieldPath.documentId, whereIn: ids)
-          .snapshots(),
+    final ids = myWardIds;
+    return StreamBuilder<List<Ward>>(
+      stream: _wardStreams.get(
+          ids.join(','), () => WardService().wardsForUser(ids)),
       builder: (context, snap) {
         if (snap.hasError) {
           return Text(
@@ -310,9 +312,7 @@ class _AddNoteBottomSheetState extends State<AddNoteBottomSheet> {
             ),
           );
         }
-        final wards = snap.data!.docs
-            .map((d) => Ward.fromFirestore(d))
-            .toList();
+        final wards = snap.data!;
         if (wards.isEmpty) {
           return Text(
             'No wards yet. Create or join one from the Wards tab.',
@@ -382,17 +382,12 @@ class _AddNoteBottomSheetState extends State<AddNoteBottomSheet> {
         ),
       );
     }
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection(AppConstants.patientsCollection)
-          .where('wardId', isEqualTo: _selectedWardId)
-          .where('isActive', isEqualTo: true)
-          .limit(200) // hard cap on reads
-          .snapshots(),
+    final wardId = _selectedWardId!;
+    return StreamBuilder<List<Patient>>(
+      stream: _patientStreams.get(
+          wardId, () => PatientService().getPatientsByWard(wardId)),
       builder: (context, snap) {
-        final patients = snap.hasData
-            ? snap.data!.docs.map(Patient.fromFirestore).toList()
-            : <Patient>[];
+        final patients = snap.data ?? const <Patient>[];
         return InkWell(
           borderRadius: BorderRadius.circular(12),
           onTap: () async {

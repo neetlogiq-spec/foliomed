@@ -3,21 +3,24 @@
 #
 # Usage:  ./tools/ios_release.sh
 #
-# Prereqs (all already set up — one-time, do not need to redo):
-#   - Distribution cert in Keychain
+# Prereqs (one-time):
+#   - Apple Distribution cert in Keychain
 #   - ~/Library/MobileDevice/Provisioning Profiles/FolioMed_App_Store.mobileprovision
-#   - ios/ExportOptions.plist (manual signing, committed)
-#   - project.pbxproj Release config = Manual signing (committed)
-#   - ~/.appstoreconnect/private_keys/AuthKey_SDMDVN88HB.p8
+#   - ios/ExportOptions.plist + project.pbxproj with your Team ID
+#   - ~/.appstoreconnect/private_keys/AuthKey_ZCU49PSMCN.p8
+#     (mkdir -p ~/.appstoreconnect/private_keys && mv ~/Downloads/AuthKey_ZCU49PSMCN.p8 "$_")
+#   - env.json with SUPABASE_ANON_KEY + GOOGLE_IOS_CLIENT_ID (see env.example.json)
+#   - APP_STORE_ISSUER_ID exported (App Store Connect → Users and Access →
+#     Integrations → App Store Connect API → Issuer ID)
 #
 # After this finishes: wait ~10 min, the build shows up in App Store
 # Connect > TestFlight. Then select it on the version page + Submit.
 
 set -e
 
-PROJECT_DIR="/Users/kashyapanand/Public/foliomed"
-API_KEY_ID="SDMDVN88HB"
-API_ISSUER_ID="d74c90c0-e215-495a-b937-27d3619b1874"
+PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+API_KEY_ID="ZCU49PSMCN"
+API_ISSUER_ID="${APP_STORE_ISSUER_ID:?Set APP_STORE_ISSUER_ID to your App Store Connect issuer ID}"
 
 cd "$PROJECT_DIR"
 
@@ -31,7 +34,7 @@ sed -i '' "s/^version: .*/version: ${NAME}+${NEW_BUILD}/" pubspec.yaml
 echo "    ${CURRENT}  ->  ${NAME}+${NEW_BUILD}"
 
 echo "==> Building release IPA (15-30 min on this Mac, be patient)..."
-flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
+flutter build ipa --release --dart-define-from-file=env.json --export-options-plist=ios/ExportOptions.plist
 
 IPA=$(ls -t build/ios/ipa/*.ipa | head -1)
 if [ ! -f "$IPA" ]; then

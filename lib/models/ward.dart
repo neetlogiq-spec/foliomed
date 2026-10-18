@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'row_parsing.dart';
 
 class Ward {
   final String id;
@@ -21,30 +21,31 @@ class Ward {
     required this.createdAt,
   });
 
-  factory Ward.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>? ?? {};
+  /// Builds a ward from a `wards` row.
+  factory Ward.fromRow(DbRow row) {
     return Ward(
-      id: doc.id,
-      name: data['name'] as String? ?? '',
-      floor: data['floor'] as String? ?? '',
-      capacity: (data['capacity'] as num?)?.toInt() ?? 0,
-      headDoctorName: data['headDoctorName'] as String? ?? '',
-      creatorId: data['creatorId'] as String? ?? '',
-      creatorEmail: data['creatorEmail'] as String? ?? '',
-      createdAt:
-          (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      id: row['id'] as String? ?? '',
+      name: row['name'] as String? ?? '',
+      floor: row['floor'] as String? ?? '',
+      capacity: (row['capacity'] as num?)?.toInt() ?? 0,
+      headDoctorName: row['head_doctor_name'] as String? ?? '',
+      creatorId: row['creator_id'] as String? ?? '',
+      creatorEmail: row['creator_email'] as String? ?? '',
+      createdAt: parseTimestamp(row['created_at']),
     );
   }
 
-  Map<String, dynamic> toMap() {
+  /// Columns written on insert/update. `id` is included so a new ward can
+  /// claim its 5-digit code; Postgres rejects duplicates via the PK.
+  DbRow toRow() {
     return {
+      'id': id,
       'name': name,
       'floor': floor,
       'capacity': capacity,
-      'headDoctorName': headDoctorName,
-      'creatorId': creatorId,
-      'creatorEmail': creatorEmail,
-      'createdAt': Timestamp.fromDate(createdAt),
+      'head_doctor_name': headDoctorName,
+      'creator_id': creatorId.isEmpty ? null : creatorId,
+      'creator_email': creatorEmail,
     };
   }
 }

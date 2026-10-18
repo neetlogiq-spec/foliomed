@@ -1,12 +1,13 @@
-import 'package:firebase_auth/firebase_auth.dart' as fba;
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:share_plus/share_plus.dart';
+
+import '../services/supabase_service.dart';
 
 /// Centralised share text. Returns a download/use link appropriate
 /// for the current platform. When the app is published these links
 /// can be swapped without changing call sites.
 class ShareHelper {
-  static const String _webUrl = 'https://app.foliomed.com';
+  static const String _webUrl = 'https://www.foliomed.com/app/';
 
   // Switch to Play / App Store URLs once published.
   static String _platformLink() => _webUrl;
@@ -19,19 +20,21 @@ class ShareHelper {
   /// Returns a personalised share message including the signed-in user's
   /// name and (if set) specialty.
   static Future<String> personalisedMessage() async {
-    final uid = fba.FirebaseAuth.instance.currentUser?.uid;
+    final uid = supabase.auth.currentUser?.id;
     String? name;
     String? specialty;
     if (uid != null) {
       try {
-        final doc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(uid)
-            .get();
-        final data = doc.data();
-        name = data?['name'] as String?;
-        specialty = data?['specialty'] as String?;
-      } catch (_) {}
+        final row = await supabase
+            .from(Tables.profiles)
+            .select('name, specialty')
+            .eq('id', uid)
+            .maybeSingle();
+        name = row?['name'] as String?;
+        specialty = row?['specialty'] as String?;
+      } catch (e) {
+        debugPrint('ShareHelper: profile lookup failed: $e');
+      }
     }
     final byLine = (name != null && name.trim().isNotEmpty)
         ? (specialty != null && specialty.trim().isNotEmpty

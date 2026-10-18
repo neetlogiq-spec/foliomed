@@ -51,9 +51,16 @@ class WardProvider extends ChangeNotifier {
     });
   }
 
+  /// Creates a ward from [ward]'s details. The id is ignored — the service
+  /// allocates a fresh 5-digit join code.
   Future<bool> addWard(Ward ward) async {
     try {
-      await _wardService.addWard(ward);
+      await _wardService.createWard(
+        name: ward.name,
+        floor: ward.floor,
+        capacity: ward.capacity,
+        headDoctorName: ward.headDoctorName,
+      );
       return true;
     } catch (e) {
       _error = e.toString();

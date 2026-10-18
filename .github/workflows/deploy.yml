@@ -3,46 +3,16 @@ name: Deploy FolioMed
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  # Landing + Status → GitHub Pages (www.foliomed.com)
-  deploy-pages:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Prepare output directory
-        run: mkdir -p build
-
-      - name: Copy landing page to root
-        run: cp -r landing/. build/
-
-      - name: Copy status page
-        run: |
-          mkdir -p build/status
-          cp -r status/. build/status/
-
-      - name: Add CNAME for custom domain
-        run: echo "www.foliomed.com" > build/CNAME
-
-      - name: Add .nojekyll
-        run: touch build/.nojekyll
-
-      - name: Deploy to gh-pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build
-          publish_branch: gh-pages
-          force_orphan: true
-
-  # Flutter web → Firebase Hosting (app.foliomed.com)
-  deploy-app:
+  # Tests + analyzer on every push / PR.
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -52,16 +22,63 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version: 3.41.7
           cache: true
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build web
-        run: flutter build web --release --base-href "/" --no-tree-shake-icons
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
-      - name: Deploy to Firebase Hosting
+      - name: Unit tests
+        run: flutter test
+
+  # Landing (/) + status (/status/) + Flutter web app (/app/) → GitHub Pages
+  # at www.foliomed.com. Only runs on main.
+  deploy-pages:
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Repository secrets (Settings → Secrets and variables → Actions):
+      #   SUPABASE_ANON_KEY     — public anon key (required for a working app)
+      #   GOOGLE_WEB_CLIENT_ID  — optional override of the default in code
+      - name: Build web app
+        env:
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          GOOGLE_WEB_CLIENT_ID: ${{ secrets.GOOGLE_WEB_CLIENT_ID }}
         run: |
-          npm install -g firebase-tools
-          firebase deploy --only hosting:app --token "${{ secrets.FIREBASE_TOKEN }}"
+          DEFINES="--dart-define=SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}"
+          if [ -n "${GOOGLE_WEB_CLIENT_ID}" ]; then
+            DEFINES="$DEFINES --dart-define=GOOGLE_WEB_CLIENT_ID=${GOOGLE_WEB_CLIENT_ID}"
+          fi
+          flutter build web --release --base-href "/app/" --no-tree-shake-icons $DEFINES
+
+      - name: Assemble site
+        run: |
+          mkdir -p site/status site/app
+          cp -r landing/. site/
+          cp -r status/. site/status/
+          cp -r build/web/. site/app/
+          echo "www.foliomed.com" > site/CNAME
+          touch site/.nojekyll
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
+          publish_branch: gh-pages
+          force_orphan: true

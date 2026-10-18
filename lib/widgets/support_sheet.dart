@@ -108,7 +108,7 @@ class _SupportSheet extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              "I've poured a lot of late nights into building FolioMed and keeping it free for everyone. Servers, Firebase, and hosting all cost real money.\n\nIf FolioMed helps your ward team, please consider buying me a chai. Even a small contribution keeps the lights on and lets me keep adding features.",
+              "I've poured a lot of late nights into building FolioMed and keeping it free for everyone. Servers, database, and hosting all cost real money.\n\nIf FolioMed helps your ward team, please consider buying me a chai. Even a small contribution keeps the lights on and lets me keep adding features.",
               textAlign: TextAlign.center,
               style: GoogleFonts.dmSans(
                 color: AppColors.textSecondary,

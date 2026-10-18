@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -8,7 +7,9 @@ import '../../models/note.dart';
 import '../../models/patient.dart';
 import '../../models/ward.dart';
 import '../../providers/ward_provider.dart';
-import '../../utils/app_constants.dart';
+import '../../services/note_service.dart';
+import '../../services/patient_service.dart';
+import '../../services/ward_service.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/note_card.dart';
 import '../../widgets/patient_card.dart';
@@ -29,6 +30,11 @@ class _WardDetailScreenState extends State<WardDetailScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   Ward? _ward;
+  // Created once so rebuilds don't open a new realtime channel each time.
+  late final Stream<List<Patient>> _patientsStream =
+      PatientService().getPatientsByWard(widget.wardId);
+  late final Stream<List<Note>> _notesStream =
+      NoteService().getNotesByWard(widget.wardId);
 
   @override
   void initState() {
@@ -41,12 +47,9 @@ class _WardDetailScreenState extends State<WardDetailScreen>
   }
 
   Future<void> _loadWard() async {
-    final doc = await FirebaseFirestore.instance
-        .collection(AppConstants.wardsCollection)
-        .doc(widget.wardId)
-        .get();
+    final ward = await WardService().getWard(widget.wardId);
     if (!mounted) return;
-    if (doc.exists) setState(() => _ward = Ward.fromFirestore(doc));
+    if (ward != null) setState(() => _ward = ward);
   }
 
   @override
@@ -347,20 +350,13 @@ class _WardDetailScreenState extends State<WardDetailScreen>
   }
 
   Widget _patientsTab() {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection(AppConstants.patientsCollection)
-          .where('wardId', isEqualTo: widget.wardId)
-          .where('isActive', isEqualTo: true)
-          .orderBy('admittedAt', descending: true)
-          .limit(200) // hard cap on reads
-          .snapshots(),
+    return StreamBuilder<List<Patient>>(
+      stream: _patientsStream,
       builder: (context, snap) {
         if (!snap.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
-        final patients =
-            snap.data!.docs.map(Patient.fromFirestore).toList();
+        final patients = snap.data!;
         if (patients.isEmpty) {
           return Center(
             child: Text(
@@ -394,18 +390,13 @@ class _WardDetailScreenState extends State<WardDetailScreen>
   }
 
   Widget _notesTab() {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection(AppConstants.notesCollection)
-          .where('wardId', isEqualTo: widget.wardId)
-          .orderBy('createdAt', descending: true)
-          .limit(50)
-          .snapshots(),
+    return StreamBuilder<List<Note>>(
+      stream: _notesStream,
       builder: (context, snap) {
         if (!snap.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
-        final notes = snap.data!.docs.map(Note.fromFirestore).toList();
+        final notes = snap.data!.take(50).toList();
         if (notes.isEmpty) {
           return Center(
             child: Text(

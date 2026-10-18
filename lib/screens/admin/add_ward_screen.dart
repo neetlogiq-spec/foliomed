@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../models/ward.dart';
 import '../../providers/ward_provider.dart';
@@ -35,7 +34,7 @@ class _AddWardScreenState extends State<AddWardScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
     final ward = Ward(
-      id: const Uuid().v4(),
+      id: '', // allocated by WardService.createWard
       name: _nameController.text.trim(),
       floor: _floorController.text.trim(),
       capacity: int.tryParse(_capacityController.text.trim()) ?? 0,

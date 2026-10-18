@@ -1,22 +1,18 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
-import 'dart:math';
 
+import '../../models/app_user.dart';
 import '../../models/ward.dart';
 import '../../providers/auth_provider.dart';
-import '../../services/metrics_service.dart';
-import '../../utils/app_constants.dart';
+import '../../services/supabase_service.dart';
+import '../../services/ward_service.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/friendly_error.dart';
 import '../../widgets/support_action.dart';
 import '../../providers/theme_provider.dart';
-
-class _IdCollision implements Exception {}
 
 class WardsScreen extends StatelessWidget {
   const WardsScreen({super.key});
@@ -122,22 +118,17 @@ class WardsScreen extends StatelessWidget {
                 ),
                 const Divider(height: 1),
                 Expanded(
-                  // One-shot get() instead of a live snapshots stream.
-                  // Members lists barely change while the sheet is open;
-                  // a stream here would have billed reads on every minor
-                  // user-doc tweak (push token refresh, etc).
-                  child: FutureBuilder<QuerySnapshot>(
-                    future: FirebaseFirestore.instance
-                        .collection(AppConstants.usersCollection)
-                        .where('wardIds', arrayContains: w.id)
-                        .get(),
+                  // One-shot fetch: member lists barely change while the
+                  // sheet is open, so a live stream isn't worth it.
+                  child: FutureBuilder<List<AppUser>>(
+                    future: WardService().getWardMembers(w.id),
                     builder: (context, snap) {
                       if (!snap.hasData) {
                         return const Center(
                           child: CircularProgressIndicator(),
                         );
                       }
-                      final users = snap.data!.docs;
+                      final users = snap.data!;
                       if (users.isEmpty) {
                         return Center(
                           child: Text(
@@ -155,14 +146,12 @@ class WardsScreen extends StatelessWidget {
                         separatorBuilder: (_, __) =>
                             const Divider(height: 1),
                         itemBuilder: (_, i) {
-                          final doc = users[i];
-                          final data =
-                              doc.data() as Map<String, dynamic>;
-                          final name = data['name'] as String? ?? 'User';
-                          final email = data['email'] as String? ?? '';
-                          final role =
-                              data['role'] as String? ?? 'doctor';
-                          final isOwner = doc.id == w.creatorId;
+                          final member = users[i];
+                          final name =
+                              member.name.isEmpty ? 'User' : member.name;
+                          final email = member.email;
+                          final role = member.role.name;
+                          final isOwner = member.uid == w.creatorId;
                           final roleColor = role == 'nurse'
                               ? AppColors.nurseColor
                               : role == 'admin'
@@ -289,68 +278,9 @@ class WardsScreen extends StatelessWidget {
     );
     if (confirm != true) return;
     try {
-      final fs = FirebaseFirestore.instance;
-
-      // Batched cascade — one big atomic-ish chain instead of one network
-      // round-trip per doc. Caps at 450 ops per batch (Firestore allows
-      // 500); flushes and resets when the cap is hit.
-      var batch = fs.batch();
-      var ops = 0;
-      Future<void> flushIfNeeded() async {
-        if (ops >= 450) {
-          await batch.commit();
-          batch = fs.batch();
-          ops = 0;
-        }
-      }
-
-      // 1. Delete every note in this ward (and its comment subcollection).
-      final notes = await fs
-          .collection(AppConstants.notesCollection)
-          .where('wardId', isEqualTo: w.id)
-          .get();
-      for (final n in notes.docs) {
-        final comments = await n.reference.collection('comments').get();
-        for (final c in comments.docs) {
-          batch.delete(c.reference);
-          ops++;
-          await flushIfNeeded();
-        }
-        batch.delete(n.reference);
-        ops++;
-        await flushIfNeeded();
-      }
-
-      // 2. Delete every patient in this ward.
-      final patients = await fs
-          .collection(AppConstants.patientsCollection)
-          .where('wardId', isEqualTo: w.id)
-          .get();
-      for (final p in patients.docs) {
-        batch.delete(p.reference);
-        ops++;
-        await flushIfNeeded();
-      }
-      if (ops > 0) await batch.commit();
-
-      // 3. Remove this ward from the deleter's own wardIds (the only user
-      // doc they're allowed to update). Other members' wardIds will hold
-      // a harmless stale id — their UI will simply not render this ward
-      // since the ward doc is gone.
-      final myUid = FirebaseAuth.instance.currentUser?.uid;
-      if (myUid != null) {
-        try {
-          await fs
-              .collection(AppConstants.usersCollection)
-              .doc(myUid)
-              .update({
-            'wardIds': FieldValue.arrayRemove([w.id]),
-          });
-        } catch (_) {/* not fatal */}
-      }
-
-      // 4. Finally delete the ward doc.
-      await fs.collection(AppConstants.wardsCollection).doc(w.id).delete();
+      // Patients, notes and comments cascade in Postgres; a trigger strips
+      // the code from every member's profile.
+      await WardService().deleteWard(w.id);
 
       // Refresh local user so the ward vanishes from the UI immediately.
       if (context.mounted) {
@@ -417,11 +347,8 @@ class WardsScreen extends StatelessWidget {
             ),
           );
         }
-        return StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection(AppConstants.wardsCollection)
-            .where(FieldPath.documentId, whereIn: myWardIds)
-            .snapshots(),
+        return StreamBuilder<List<Ward>>(
+        stream: WardService().wardsForUser(myWardIds),
         builder: (context, snap) {
           if (snap.hasError) {
             return Center(
@@ -438,7 +365,7 @@ class WardsScreen extends StatelessWidget {
           if (!snap.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
-          final wards = snap.data!.docs.map(Ward.fromFirestore).toList();
+          final wards = snap.data!;
           if (wards.isEmpty) {
             return Center(
               child: Column(
@@ -476,7 +403,7 @@ class WardsScreen extends StatelessWidget {
             itemBuilder: (_, i) => _wardCard(
               context,
               wards[i],
-              FirebaseAuth.instance.currentUser?.uid ??
+              supabase.auth.currentUser?.id ??
                   context.read<AuthProvider>().currentUser?.uid ??
                   '',
             ),
@@ -542,7 +469,7 @@ class WardsScreen extends StatelessWidget {
 
   Widget _wardCard(BuildContext context, Ward w, String currentUid) {
     final me = context.watch<AuthProvider>().currentUser;
-    final fbUid = FirebaseAuth.instance.currentUser?.uid ?? '';
+    final fbUid = supabase.auth.currentUser?.id ?? '';
     final myUid = fbUid.isNotEmpty ? fbUid : (me?.uid ?? currentUid);
     final isCreator =
         w.creatorId.isNotEmpty && myUid.isNotEmpty && w.creatorId == myUid;
@@ -780,14 +707,9 @@ class WardsScreen extends StatelessWidget {
               if (id.isEmpty) return;
               Navigator.pop(context);
               try {
-                final uid = FirebaseAuth.instance.currentUser?.uid;
-                if (uid == null) return;
-                // Check ward exists.
-                final wardDoc = await FirebaseFirestore.instance
-                    .collection(AppConstants.wardsCollection)
-                    .doc(id)
-                    .get();
-                if (!wardDoc.exists) {
+                if (supabase.auth.currentUser == null) return;
+                final joined = await WardService().joinWard(id);
+                if (!joined) {
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
@@ -798,12 +720,7 @@ class WardsScreen extends StatelessWidget {
                   }
                   return;
                 }
-                await FirebaseFirestore.instance
-                    .collection(AppConstants.usersCollection)
-                    .doc(uid)
-                    .set({
-                  'wardIds': FieldValue.arrayUnion([id]),
-                }, SetOptions(merge: true));
+                if (!context.mounted) return;
                 await context.read<AuthProvider>().loadCurrentUser();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -868,60 +785,15 @@ class WardsScreen extends StatelessWidget {
               if (name.isEmpty) return;
               Navigator.pop(context);
               try {
-                final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
-                // Allocate a unique 5-digit numeric ward ID. We try a random
-                // 10000–99999 number, and use a transaction so two clients
-                // can never both grab the same ID. Retry a handful of times
-                // on collision (90,000 IDs vs. expected ward count → very
-                // rare, but be safe).
-                final fs = FirebaseFirestore.instance;
-                final rand = Random.secure();
-                final wardData = {
-                  'name': name,
-                  'floor': floorController.text.trim(),
-                  'capacity': 0,
-                  'headDoctorName': auth.currentUser?.name ?? '',
-                  'creatorId': uid,
-                  'creatorEmail': auth.currentUser?.email ?? '',
-                  'createdAt': Timestamp.fromDate(DateTime.now()),
-                };
-                String? id;
-                for (var attempt = 0; attempt < 12; attempt++) {
-                  final candidate =
-                      (10000 + rand.nextInt(90000)).toString();
-                  final ref = fs
-                      .collection(AppConstants.wardsCollection)
-                      .doc(candidate);
-                  try {
-                    await fs.runTransaction((tx) async {
-                      final snap = await tx.get(ref);
-                      if (snap.exists) {
-                        throw _IdCollision();
-                      }
-                      tx.set(ref, wardData);
-                    });
-                    id = candidate;
-                    break;
-                  } on _IdCollision {
-                    continue; // try another number
-                  }
-                }
-                if (id == null) {
-                  throw Exception(
-                    "Couldn't allocate a free ward ID — please try again.",
-                  );
-                }
-                MetricsService.bump('ward',
-                    summary: 'New ward "$name"');
-                if (uid.isNotEmpty) {
-                  await FirebaseFirestore.instance
-                      .collection(AppConstants.usersCollection)
-                      .doc(uid)
-                      .set({
-                    'wardIds': FieldValue.arrayUnion([id]),
-                  }, SetOptions(merge: true));
-                  await auth.loadCurrentUser();
-                }
+                // Claims a random free 5-digit code (Postgres PK rejects
+                // collisions; the service retries) and joins the creator.
+                final id = await WardService().createWard(
+                  name: name,
+                  floor: floorController.text.trim(),
+                  capacity: 0,
+                  headDoctorName: auth.currentUser?.name ?? '',
+                );
+                await auth.loadCurrentUser();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(

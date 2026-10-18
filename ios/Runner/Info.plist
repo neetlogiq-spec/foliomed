@@ -70,7 +70,7 @@
 	<string>FolioMed only records audio when you tap the mic to dictate a note. Recording stops the moment you save or cancel.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>FolioMed transcribes your voice into text only while you're tapping the mic icon, so you can post a note hands-free.</string>
-	<!-- Push notifications via Firebase Cloud Messaging -->
+	<!-- Remote notifications: kept for the upcoming push provider (see PushService TODO) -->
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
@@ -87,9 +87,12 @@
 		<string>tel</string>
 		<string>itms-apps</string>
 	</array>
-	<!-- Google Sign-In return URL — REVERSED_CLIENT_ID from
-	     GoogleService-Info.plist. Without this, Google Sign-In on iOS
-	     opens the OAuth screen but never returns to the app. -->
+	<!-- URL schemes:
+	     1. Google Sign-In return URL = the iOS OAuth client ID reversed
+	        (com.googleusercontent.apps.<id>). Replace the placeholder once
+	        the iOS client exists in Google Cloud, or Google Sign-In on iOS
+	        never returns to the app.
+	     2. Supabase auth deep link: com.foliomed.app://login-callback -->
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -97,12 +100,13 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.525482754887-739hr7jh8oc0ojdqcvso2u26lqev9q84</string>
+				<string>com.googleusercontent.apps.YOUR_IOS_CLIENT_ID</string>
+				<string>com.foliomed.app</string>
 			</array>
 		</dict>
 	</array>
 	<!-- ITSAppUsesNonExemptEncryption=false — FolioMed only uses standard
-	     HTTPS / TLS encryption (Firebase). Declaring this saves us from
+	     HTTPS / TLS encryption (Supabase). Declaring this saves us from
 	     filling out the export-compliance form on every TestFlight upload. -->
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>

@@ -1,7 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../utils/app_theme.dart';
+import 'row_parsing.dart';
 
 enum UserRole { doctor, nurse, admin }
 
@@ -45,35 +45,32 @@ class AppUser {
     required this.createdAt,
   });
 
-  factory AppUser.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>? ?? {};
+  /// Builds a user from a `profiles` row.
+  factory AppUser.fromRow(DbRow row) {
     return AppUser(
-      uid: doc.id,
-      name: data['name'] as String? ?? '',
-      email: data['email'] as String? ?? '',
-      role: _roleFromString(data['role'] as String?),
-      wardId: data['wardId'] as String? ?? '',
-      wardIds: (data['wardIds'] as List?)?.whereType<String>().toList() ??
-          const [],
-      avatarUrl: data['avatarUrl'] as String?,
-      avatarEmoji: data['avatarEmoji'] as String?,
-      specialty: data['specialty'] as String?,
-      createdAt:
-          (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      uid: row['id'] as String? ?? '',
+      name: row['name'] as String? ?? '',
+      email: row['email'] as String? ?? '',
+      role: _roleFromString(row['role'] as String?),
+      wardId: row['ward_id'] as String? ?? '',
+      wardIds: parseStringList(row['ward_ids']),
+      avatarUrl: row['avatar_url'] as String?,
+      avatarEmoji: row['avatar_emoji'] as String?,
+      specialty: row['specialty'] as String?,
+      createdAt: parseTimestamp(row['created_at']),
     );
   }
 
-  Map<String, dynamic> toMap() {
+  DbRow toRow() {
     return {
       'name': name,
       'email': email,
       'role': _roleToString(role),
-      'wardId': wardId,
-      'wardIds': wardIds,
-      'avatarUrl': avatarUrl,
-      'avatarEmoji': avatarEmoji,
+      'ward_id': wardId,
+      'ward_ids': wardIds,
+      'avatar_url': avatarUrl,
+      'avatar_emoji': avatarEmoji,
       'specialty': specialty,
-      'createdAt': Timestamp.fromDate(createdAt),
     };
   }
 

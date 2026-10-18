@@ -1,7 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../utils/app_theme.dart';
+import 'row_parsing.dart';
 
 class Note {
   final String id;
@@ -38,47 +38,43 @@ class Note {
     required this.updatedAt,
   });
 
-  factory Note.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>? ?? {};
+  /// Builds a note from a `notes` row.
+  factory Note.fromRow(DbRow row) {
     return Note(
-      id: doc.id,
-      patientId: data['patientId'] as String? ?? '',
-      patientName: data['patientName'] as String? ?? '',
-      wardId: data['wardId'] as String? ?? '',
-      authorId: data['authorId'] as String? ?? '',
-      authorName: data['authorName'] as String? ?? '',
-      authorRole: data['authorRole'] as String? ?? '',
-      content: data['content'] as String? ?? '',
-      category: data['category'] as String? ?? 'General',
-      priority: data['priority'] as String? ?? 'Normal',
-      isAcknowledged: data['isAcknowledged'] as bool? ?? false,
-      acknowledgedBy: data['acknowledgedBy'] as String?,
-      acknowledgedAt: (data['acknowledgedAt'] as Timestamp?)?.toDate(),
-      createdAt:
-          (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      updatedAt:
-          (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      id: row['id'] as String? ?? '',
+      patientId: row['patient_id'] as String? ?? '',
+      patientName: row['patient_name'] as String? ?? '',
+      wardId: row['ward_id'] as String? ?? '',
+      authorId: row['author_id'] as String? ?? '',
+      authorName: row['author_name'] as String? ?? '',
+      authorRole: row['author_role'] as String? ?? '',
+      content: row['content'] as String? ?? '',
+      category: row['category'] as String? ?? 'General',
+      priority: row['priority'] as String? ?? 'Normal',
+      isAcknowledged: row['is_acknowledged'] as bool? ?? false,
+      acknowledgedBy: row['acknowledged_by'] as String?,
+      acknowledgedAt: parseTimestampOrNull(row['acknowledged_at']),
+      createdAt: parseTimestamp(row['created_at']),
+      updatedAt: parseTimestamp(row['updated_at']),
     );
   }
 
-  Map<String, dynamic> toMap() {
+  /// Columns written on insert/update. `id`, `created_at` and
+  /// `updated_at` are maintained by Postgres.
+  DbRow toRow() {
     return {
-      'patientId': patientId,
-      'patientName': patientName,
-      'wardId': wardId,
-      'authorId': authorId,
-      'authorName': authorName,
-      'authorRole': authorRole,
+      'patient_id': patientId,
+      'patient_name': patientName,
+      'ward_id': wardId,
+      'author_id': authorId.isEmpty ? null : authorId,
+      'author_name': authorName,
+      'author_role': authorRole,
       'content': content,
       'category': category,
       'priority': priority,
-      'isAcknowledged': isAcknowledged,
-      'acknowledgedBy': acknowledgedBy,
-      'acknowledgedAt': acknowledgedAt == null
-          ? null
-          : Timestamp.fromDate(acknowledgedAt!),
-      'createdAt': Timestamp.fromDate(createdAt),
-      'updatedAt': Timestamp.fromDate(updatedAt),
+      'is_acknowledged': isAcknowledged,
+      'acknowledged_by': acknowledgedBy,
+      'acknowledged_at': toTimestampOrNull(acknowledgedAt),
     };
   }
 
