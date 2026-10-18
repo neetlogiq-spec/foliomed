@@ -9,7 +9,7 @@
 #   - ios/ExportOptions.plist + project.pbxproj with your Team ID
 #   - ~/.appstoreconnect/private_keys/AuthKey_ZCU49PSMCN.p8
 #     (mkdir -p ~/.appstoreconnect/private_keys && mv ~/Downloads/AuthKey_ZCU49PSMCN.p8 "$_")
-#   - env.json with SUPABASE_ANON_KEY + GOOGLE_IOS_CLIENT_ID (see env.example.json)
+#   - env.json with SUPABASE_ANON_KEY (see env.example.json)
 #   - APP_STORE_ISSUER_ID exported (App Store Connect → Users and Access →
 #     Integrations → App Store Connect API → Issuer ID)
 #

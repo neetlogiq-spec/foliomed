@@ -16,7 +16,7 @@ which is a dead end — see Gotchas).
 PROJECT VARIABLES (I fill these in):
 - App display name:        <e.g. FolioMed>
 - Desired bundle ID:       <e.g. com.mycompany.app  — must be unique in Apple's registry>
-- Apple Developer Team ID: <10-char, e.g. YOUR_APPLE_TEAM_ID — find at developer.apple.com/account → Membership>
+- Apple Developer Team ID: <10-char, e.g. AB12CD34EF — find at developer.apple.com/account → Membership>
 - Support URL:             <e.g. https://mysite.com/support>
 - Privacy Policy URL:      <must be a real, live page>
 

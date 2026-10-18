@@ -87,12 +87,8 @@
 		<string>tel</string>
 		<string>itms-apps</string>
 	</array>
-	<!-- URL schemes:
-	     1. Google Sign-In return URL = the iOS OAuth client ID reversed
-	        (com.googleusercontent.apps.<id>). Replace the placeholder once
-	        the iOS client exists in Google Cloud, or Google Sign-In on iOS
-	        never returns to the app.
-	     2. Supabase auth deep link: com.foliomed.app://login-callback -->
+	<!-- Supabase auth deep link (Google OAuth return, email links):
+	     com.foliomed.app://login-callback -->
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -100,7 +96,6 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.YOUR_IOS_CLIENT_ID</string>
 				<string>com.foliomed.app</string>
 			</array>
 		</dict>

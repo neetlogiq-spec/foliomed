@@ -15,7 +15,7 @@ workflows:
         distribution_type: app_store
         bundle_identifier: com.foliomed.app
       # Environment group "foliomed" (Codemagic → App settings → Environment
-      # variables) must define SUPABASE_ANON_KEY and GOOGLE_IOS_CLIENT_ID.
+      # variables) must define SUPABASE_ANON_KEY.
       groups:
         - foliomed
       vars:
@@ -57,7 +57,6 @@ workflows:
         script: |
           flutter build ipa --release \
             --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
-            --dart-define=GOOGLE_IOS_CLIENT_ID="$GOOGLE_IOS_CLIENT_ID" \
             --export-options-plist=/Users/builder/export_options.plist
 
     artifacts:

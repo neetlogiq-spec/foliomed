@@ -53,18 +53,13 @@ jobs:
         run: flutter pub get
 
       # Repository secrets (Settings → Secrets and variables → Actions):
-      #   SUPABASE_ANON_KEY     — public anon key (required for a working app)
-      #   GOOGLE_WEB_CLIENT_ID  — optional override of the default in code
+      #   SUPABASE_ANON_KEY — public anon key (required for a working app)
       - name: Build web app
         env:
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          GOOGLE_WEB_CLIENT_ID: ${{ secrets.GOOGLE_WEB_CLIENT_ID }}
         run: |
-          DEFINES="--dart-define=SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}"
-          if [ -n "${GOOGLE_WEB_CLIENT_ID}" ]; then
-            DEFINES="$DEFINES --dart-define=GOOGLE_WEB_CLIENT_ID=${GOOGLE_WEB_CLIENT_ID}"
-          fi
-          flutter build web --release --base-href "/app/" --no-tree-shake-icons $DEFINES
+          flutter build web --release --base-href "/app/" --no-tree-shake-icons \
+            --dart-define=SUPABASE_ANON_KEY="${SUPABASE_ANON_KEY}"
 
       - name: Assemble site
         run: |

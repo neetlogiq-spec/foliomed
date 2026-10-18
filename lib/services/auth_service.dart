@@ -1,22 +1,17 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io' show Platform;
 import 'dart:math';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter/widgets.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../config/supabase_config.dart';
 import '../models/app_user.dart';
 import 'supabase_service.dart';
-
-bool get _isDesktop =>
-    !kIsWeb &&
-    (defaultTargetPlatform == TargetPlatform.macOS ||
-     defaultTargetPlatform == TargetPlatform.windows ||
-     defaultTargetPlatform == TargetPlatform.linux);
 
 class AuthService {
   final SupabaseClient _client;
@@ -31,13 +26,12 @@ class AuthService {
 
   User? get authUser => _auth.currentUser;
 
-  GoogleSignIn get _google => GoogleSignIn(
-        clientId: (!kIsWeb && (Platform.isIOS || Platform.isMacOS)) &&
-                SupabaseConfig.googleIosClientId.isNotEmpty
-            ? SupabaseConfig.googleIosClientId
-            : null,
-        serverClientId: SupabaseConfig.googleWebClientId,
-      );
+  /// How long to wait for the OAuth browser round-trip to finish.
+  static const Duration _oauthTimeout = Duration(minutes: 5);
+
+  /// After the app returns to the foreground without a session, the user
+  /// most likely closed the browser — give the deep link this long to land.
+  static const Duration _oauthResumeGrace = Duration(seconds: 3);
 
   Future<AppUser?> _fetchProfile(String uid) async {
     final row = await _profiles.select().eq('id', uid).maybeSingle();
@@ -102,10 +96,16 @@ class AuthService {
     return _fetchProfileWithRetry(user.id);
   }
 
+  /// Google sign-in through Supabase's hosted OAuth flow (the Google
+  /// provider is configured in the Supabase dashboard).
+  ///
+  /// Web: full-page redirect — the session is restored when the browser
+  /// comes back and the splash screen routes from there, so this returns
+  /// null. Mobile/desktop: opens the system browser, then waits for the
+  /// `com.foliomed.app://login-callback` deep link to deliver the session.
+  /// Returns null if the user abandons the browser.
   Future<AppUser?> signInWithGoogle() async {
     if (kIsWeb) {
-      // Web: full-page redirect; the session is restored on return and the
-      // splash screen routes the user from there.
       await _auth.signInWithOAuth(
         OAuthProvider.google,
         // Return to wherever the app is served (e.g. /app/), not the site root.
@@ -113,24 +113,35 @@ class AuthService {
       );
       return null;
     }
-    final googleUser = await _google.signIn();
-    if (googleUser == null) return null; // cancelled
-    final googleAuth = await googleUser.authentication;
-    final idToken = googleAuth.idToken;
-    if (idToken == null) {
-      throw const AuthException(
-        'Google did not return an ID token. Check GOOGLE_WEB_CLIENT_ID.',
-        code: 'google_no_id_token',
+
+    final signedIn = Completer<Session?>();
+    final authSub = _auth.onAuthStateChange.listen((state) {
+      if (state.event == AuthChangeEvent.signedIn &&
+          state.session != null &&
+          !signedIn.isCompleted) {
+        signedIn.complete(state.session);
+      }
+    });
+    final resumeWatcher = _ResumeWatcher(() {
+      Future<void>.delayed(_oauthResumeGrace, () {
+        if (!signedIn.isCompleted) signedIn.complete(null); // abandoned
+      });
+    });
+    try {
+      final launched = await _auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: SupabaseConfig.authRedirectUrl,
+        authScreenLaunchMode: LaunchMode.externalApplication,
       );
+      if (!launched) return null;
+      final session = await signedIn.future
+          .timeout(_oauthTimeout, onTimeout: () => null);
+      if (session == null) return null;
+      return await _fetchProfileWithRetry(session.user.id);
+    } finally {
+      resumeWatcher.dispose();
+      await authSub.cancel();
     }
-    final res = await _auth.signInWithIdToken(
-      provider: OAuthProvider.google,
-      idToken: idToken,
-      accessToken: googleAuth.accessToken,
-    );
-    final uid = res.user?.id;
-    if (uid == null) return null;
-    return _fetchProfileWithRetry(uid);
   }
 
   /// Sign in with Apple — iOS/macOS only. Apple App Review rejects apps
@@ -224,13 +235,6 @@ class AuthService {
   }
 
   Future<void> signOut() async {
-    if (!_isDesktop && !kIsWeb) {
-      try {
-        await _google.signOut();
-      } catch (e) {
-        debugPrint('Google sign-out skipped: $e');
-      }
-    }
     await _auth.signOut();
   }
 
@@ -258,4 +262,20 @@ class AuthService {
         .eq('id', uid)
         .map((rows) => rows.isEmpty ? null : AppUser.fromRow(rows.first));
   }
+}
+
+/// Calls [onResumed] whenever the app comes back to the foreground.
+class _ResumeWatcher with WidgetsBindingObserver {
+  final VoidCallback onResumed;
+
+  _ResumeWatcher(this.onResumed) {
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) onResumed();
+  }
+
+  void dispose() => WidgetsBinding.instance.removeObserver(this);
 }

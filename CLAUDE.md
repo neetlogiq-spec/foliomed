@@ -19,7 +19,7 @@ station) and Web. **Free for everyone** — `SubscriptionProvider.freeForEveryon
 
 ## Tech Stack
 - **Flutter** (Dart) — Android, iOS, macOS, Web
-- **Supabase Auth** — email/password, Google (native ID token), Apple (iOS/macOS, nonce flow)
+- **Supabase Auth** — email/password, Google (Supabase-hosted OAuth + `com.foliomed.app://login-callback` deep link), Apple (iOS/macOS, nonce flow)
 - **Supabase Postgres** — data, row-level security, triggers, RPCs
 - **Supabase Realtime** — live lists (`.stream()`) + in-app note alerts (`PushService`)
 - **Supabase Storage** — bucket `monitor-snapshots`
@@ -91,9 +91,9 @@ Test the schema locally without Docker: `supabase/tests/README.md`.
 ## Android Signing
 - Upload keystore: `android/app/foliomed-upload-key.jks`, credentials in `android/key.properties` (both gitignored; backup in `~/Public/foliomed/secrets/`).
 - Upload key SHA-1 `43:79:9C:B3:F1:5C:C7:80:2C:40:2E:68:84:42:FF:DD:26:FD:1B:26`
-- Register this SHA-1 (and Play App Signing's SHA-1 once enabled) on the Android OAuth client in Google Cloud.
+- Google sign-in runs through Supabase OAuth, so no Android OAuth client / SHA-1 registration is needed for it.
 
 ## iOS Signing
 - App Store Connect API key: Key ID `ZCU49PSMCN` (`AuthKey_ZCU49PSMCN.p8`, keep out of git).
-- Team ID and App Store Apple ID are placeholders (`YOUR_APPLE_TEAM_ID`, `YOUR_APP_STORE_APPLE_ID`) until provided.
+- Team ID (App ID Prefix): `A6787TZ6CR`. App Store Apple ID is still a placeholder (`YOUR_APP_STORE_APPLE_ID`).
 - Build number must increase on every upload (`+N` in pubspec).

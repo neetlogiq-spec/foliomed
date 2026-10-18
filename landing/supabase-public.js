@@ -3,8 +3,8 @@
 // row-level security only exposes the `metrics` table and the
 // `public_activity()` function to anonymous visitors.
 export const SUPABASE_URL = 'https://zfnucugpbpyrymyyrary.supabase.co';
-// TODO: paste the project's anon public key (Settings → API). Safe to ship.
-export const SUPABASE_ANON_KEY = '';
+// Anon (public) key — safe to ship; row-level security protects the data.
+export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpmbnVjdWdwYnB5cnlteXlyYXJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzNDI4NzYsImV4cCI6MjEwNzkxODg3Nn0.EfnY502tfuZ_qjsiLA0q0ul07t3zXs2K1YQwVnG80cA';
 
 const headers = () => ({
   apikey: SUPABASE_ANON_KEY,
