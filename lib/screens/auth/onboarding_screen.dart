@@ -245,7 +245,7 @@ class _SlideSolution extends StatelessWidget {
                 ),
                 child: Center(
                   child: Text(
-                    'W',
+                    'F',
                     style: GoogleFonts.dmSans(
                       color: Colors.white,
                       fontSize: 32,

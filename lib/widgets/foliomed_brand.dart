@@ -26,7 +26,7 @@ class FolioMedBrand extends StatelessWidget {
           ),
           child: Center(
             child: Text(
-              'W',
+              'F',
               style: GoogleFonts.dmSans(
                 color: Colors.white,
                 fontSize: size * 0.6,

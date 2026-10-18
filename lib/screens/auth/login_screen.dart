@@ -358,7 +358,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             child: Center(
                               child: Text(
-                                'W',
+                                'F',
                                 style: GoogleFonts.dmSans(
                                   color: Colors.white,
                                   fontSize: 46,

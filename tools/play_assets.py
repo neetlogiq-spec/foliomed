@@ -4,7 +4,7 @@ Generates Play Store visual assets for FolioMed.
 Layout philosophy (after design feedback):
   - Solid brand colours, no gradient mess.
   - One brand language across every slide: deep-navy canvas, a brand
-    header bar at the top (W-in-blue-square logo + FOLIOMED wordmark
+    header bar at the top (F-in-blue-square logo + FOLIOMED wordmark
     + thin divider), then the slide-specific content below.
   - 7 slides total, same count for phone / 7-inch / 10-inch tablet:
       1. Brand intro (hero text, no phone)
@@ -166,21 +166,21 @@ def fit_font(draw, text, base_size, max_width, weight="black", min_size=18):
     return font(min_size, weight)
 
 
-# ── App icon: 512×512, solid blue, big W, FOLIOMED below ──────────────────
+# ── App icon: 512×512, solid blue, big F, FOLIOMED below ──────────────────
 def make_icon():
     SIZE = 512
     img = Image.new("RGB", (SIZE, SIZE), PRIMARY)
     d = ImageDraw.Draw(img)
 
-    # Big W in the upper ~65% of the icon. Centred horizontally, with
+    # Big F in the upper ~65% of the icon. Centred horizontally, with
     # the bottom of the glyph leaving room for the wordmark below.
     w_top = 70                # padding above the W
     w_max_h = 280              # how tall the W is allowed to be
     w_font = font(w_max_h, "black")
-    tw, th = text_size(d, "W", w_font)
+    tw, th = text_size(d, "F", w_font)
     # Pillow's textbbox returns the visual height; centre using that.
     d.text(((SIZE - tw) / 2, w_top - int(th * 0.15)),
-           "W", font=w_font, fill=(255, 255, 255))
+           "F", font=w_font, fill=(255, 255, 255))
 
     # FOLIOMED wordmark — letter-spaced, in the lower band.
     wm_size = 48
@@ -211,7 +211,7 @@ def draw_brand_header(d, w, h):
                 pad + logo_size, logo_y + logo_size),
             r=int(logo_size * 0.22), fill=PRIMARY_HI)
     text_centered(d, (pad, logo_y), logo_size, logo_size,
-                  "W", font(int(logo_size * 0.7), "black"),
+                  "F", font(int(logo_size * 0.7), "black"),
                   (255, 255, 255))
 
     # FOLIOMED wordmark
@@ -269,7 +269,7 @@ def make_feature_graphic():
                 pad + logo_size, logo_y + logo_size),
             r=22, fill=(255, 255, 255))
     text_centered(d, (pad, logo_y), logo_size, logo_size,
-                  "W", font(76, "black"), PRIMARY)
+                  "F", font(76, "black"), PRIMARY)
 
     # FOLIOMED wordmark next to logo
     wm_x = pad + logo_size + 28
@@ -487,7 +487,7 @@ def screen_wards(width, height):
             rounded(d, (cx + 28, cy + 28, cx + 110, cy + 110),
                     r=18, fill=PRIMARY)
             text_centered(d, (cx + 28, cy + 28), 82, 82,
-                          "W", font(46, "black"), (255, 255, 255))
+                          "F", font(46, "black"), (255, 255, 255))
             d.text((cx + 130, cy + 32), name,
                    font=font(34, "bold"), fill=TEXT_PRIMARY)
             d.text((cx + 130, cy + 80), floor,
@@ -833,7 +833,7 @@ def slide_intro(w, h):
     rounded(d, (lx, ly, lx + logo_size, ly + logo_size),
             r=int(logo_size * 0.22), fill=PRIMARY)
     text_centered(d, (lx, ly), logo_size, logo_size,
-                  "W", font(int(logo_size * 0.7), "black"),
+                  "F", font(int(logo_size * 0.7), "black"),
                   (255, 255, 255))
 
     # Hero copy

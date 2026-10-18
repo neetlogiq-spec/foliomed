@@ -76,7 +76,7 @@ em { font-style: normal; color: var(--accent); font-weight: 700; }
   height: 64px;
 }
 .brand { display: flex; align-items: center; gap: 10px; }
-.w-logo {
+.fm-logo {
   width: 36px; height: 36px;
   border-radius: 9px;
   background: linear-gradient(135deg, var(--primary), var(--primary-2));
@@ -85,7 +85,7 @@ em { font-style: normal; color: var(--accent); font-weight: 700; }
   font-weight: 900; font-size: 20px; letter-spacing: -2px;
   box-shadow: 0 4px 14px rgba(10, 92, 138, 0.4);
 }
-.w-logo.small { width: 28px; height: 28px; font-size: 16px; }
+.fm-logo.small { width: 28px; height: 28px; font-size: 16px; }
 .brand-text { font-weight: 800; letter-spacing: 4px; font-size: 14px; }
 .nav-links { display: flex; align-items: center; gap: 22px; }
 .nav-links a {
@@ -728,7 +728,7 @@ em { font-style: normal; color: var(--accent); font-weight: 700; }
   display: inline-flex; align-items: center; gap: 10px;
   margin-bottom: 16px;
 }
-.pro-w {
+.pro-mark {
   width: 44px; height: 44px; border-radius: 11px;
   background: linear-gradient(135deg, var(--primary), var(--primary-2));
   color: white;

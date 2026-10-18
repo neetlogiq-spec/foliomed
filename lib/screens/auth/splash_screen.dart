@@ -99,7 +99,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'W',
+                    'F',
                     style: GoogleFonts.dmSans(
                       color: Colors.white,
                       fontSize: 180,

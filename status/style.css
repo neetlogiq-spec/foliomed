@@ -47,13 +47,13 @@ code {
 }
 .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
 .brand { display: flex; align-items: center; gap: 10px; }
-.w-logo {
+.fm-logo {
   width: 34px; height: 34px; border-radius: 7px;
   background: var(--primary); color: white;
   display: grid; place-items: center;
   font-weight: 900; font-size: 20px; letter-spacing: -2px;
 }
-.w-logo.small { width: 26px; height: 26px; font-size: 15px; }
+.fm-logo.small { width: 26px; height: 26px; font-size: 15px; }
 .brand-text { font-weight: 800; letter-spacing: 3px; font-size: 13px; }
 .nav-links { display: flex; gap: 24px; }
 .nav-links a { color: var(--text-2); font-size: 14px; font-weight: 500; }
