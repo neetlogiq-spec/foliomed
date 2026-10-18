@@ -1,7 +1,7 @@
 #!/bin/bash
 # Verifies the app and pushes to GitHub. GitHub Actions
 # (.github/workflows/deploy.yml) then builds the web app and publishes
-# landing + status + app to GitHub Pages at www.foliomed.com.
+# landing + status + app to GitHub Pages at www.foliomed.app.
 #
 # Deliberately does NOT `git add` / commit anything — commit yourself first.
 set -euo pipefail
@@ -27,5 +27,5 @@ echo "  ✓ Checks passed"
 echo ""
 echo "→ Pushing to GitHub..."
 git push origin HEAD
-echo "  ✓ Pushed — GitHub Actions will publish https://www.foliomed.com"
+echo "  ✓ Pushed — GitHub Actions will publish https://www.foliomed.app"
 echo ""

@@ -7,7 +7,7 @@ import '../services/supabase_service.dart';
 /// for the current platform. When the app is published these links
 /// can be swapped without changing call sites.
 class ShareHelper {
-  static const String _webUrl = 'https://www.foliomed.com/app/';
+  static const String _webUrl = 'https://www.foliomed.app/app/';
 
   // Switch to Play / App Store URLs once published.
   static String _platformLink() => _webUrl;

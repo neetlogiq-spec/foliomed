@@ -12,7 +12,7 @@ import '../providers/theme_provider.dart';
 
 // Support tile + daily chai popup both land here. The ?from=foliomed
 // query param lets the support page attribute the visitor source.
-const String _chaiUrl = 'https://www.foliomed.com/support';
+const String _chaiUrl = 'https://www.foliomed.app/support';
 const String _kLastShownKey = 'support_popup_last_shown';
 const String _kDisabledKey = 'support_popup_disabled';
 const Duration _interval = Duration(hours: 24);

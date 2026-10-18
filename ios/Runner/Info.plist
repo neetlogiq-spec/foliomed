@@ -77,7 +77,7 @@
 		<string>remote-notification</string>
 	</array>
 	<!-- url_launcher needs these schemes whitelisted on iOS to open
-	     external links from inside the app: www.foliomed.com, mailto:
+	     external links from inside the app: www.foliomed.app, mailto:
 	     bug-report links, the App Store rating fallback. -->
 	<key>LSApplicationQueriesSchemes</key>
 	<array>

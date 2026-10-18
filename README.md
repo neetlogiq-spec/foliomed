@@ -2,9 +2,9 @@
 Real-time clinical notes app for hospital ward teams.
 Built with Flutter + Supabase. Free for everyone.
 
-- Landing: https://www.foliomed.com
-- Web app: https://www.foliomed.com/app/
-- Status: https://www.foliomed.com/status/
+- Landing: https://www.foliomed.app
+- Web app: https://www.foliomed.app/app/
+- Status: https://www.foliomed.app/status/
 
 ## Setup
 
@@ -34,7 +34,7 @@ Database smoke tests: see `supabase/tests/README.md`.
 
 ## Deploy
 Push to `main`. GitHub Actions runs the tests, builds the web app and
-publishes landing + status + app to GitHub Pages (`www.foliomed.com`).
+publishes landing + status + app to GitHub Pages (`www.foliomed.app`).
 Add the `SUPABASE_ANON_KEY` repository secret first.
 
 ## Roles

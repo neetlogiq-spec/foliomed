@@ -34,7 +34,7 @@ void main() {
       final user = AppUser.fromRow({
         'id': 'u1',
         'name': 'Dr K',
-        'email': 'k@foliomed.com',
+        'email': 'k@www.foliomed.app',
         'role': 'nurse',
         'ward_id': '12345',
         'ward_ids': ['12345', '67890'],
@@ -68,7 +68,7 @@ void main() {
         'capacity': 12,
         'head_doctor_name': 'Dr K',
         'creator_id': 'u1',
-        'creator_email': 'k@foliomed.com',
+        'creator_email': 'k@www.foliomed.app',
         'created_at': '2026-10-19T00:00:00Z',
       });
       final row = ward.toRow();

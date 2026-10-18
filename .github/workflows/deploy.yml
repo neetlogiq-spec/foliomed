@@ -34,7 +34,7 @@ jobs:
         run: flutter test
 
   # Landing (/) + status (/status/) + Flutter web app (/app/) → GitHub Pages
-  # at www.foliomed.com. Only runs on main.
+  # at www.foliomed.app. Only runs on main.
   deploy-pages:
     needs: test
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
@@ -67,7 +67,7 @@ jobs:
           cp -r landing/. site/
           cp -r status/. site/status/
           cp -r build/web/. site/app/
-          echo "www.foliomed.com" > site/CNAME
+          echo "www.foliomed.app" > site/CNAME
           touch site/.nojekyll
 
       - name: Deploy to gh-pages

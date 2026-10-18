@@ -7,10 +7,10 @@ Codemagic or `tools/ios_release.sh`), macOS desktop (FolioMed Edge
 station) and Web. **Free for everyone** — `SubscriptionProvider.freeForEveryone`.
 
 **Developer:** Kashyap Anand (kashyap2k007@gmail.com)
-**Landing page:** https://www.foliomed.com
-**Web app:** https://www.foliomed.com/app/
-**Status page:** https://www.foliomed.com/status/
-**Support link:** https://www.foliomed.com/support
+**Landing page:** https://www.foliomed.app
+**Web app:** https://www.foliomed.app/app/
+**Status page:** https://www.foliomed.app/status/
+**Support link:** https://www.foliomed.app/support
 **GitHub:** https://github.com/neetlogiq-spec/foliomed (legacy Next.js app on branch `archive/nextjs-app`)
 **Supabase project:** https://zfnucugpbpyrymyyrary.supabase.co
 **Bundle ID (Android + iOS):** com.foliomed.app
