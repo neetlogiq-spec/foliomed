@@ -1,0 +1,68 @@
+workflows:
+  ios-release:
+    name: FolioMed iOS - App Store
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+
+    integrations:
+      app_store_connect: Codemagic FolioMed
+
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.foliomed.app
+      vars:
+        BUNDLE_ID: "com.foliomed.app"
+        APP_STORE_APPLE_ID: "6769839332"
+      flutter: 3.41.9
+      xcode: latest
+      cocoapods: default
+
+    cache:
+      cache_paths:
+        - $HOME/Library/Caches/CocoaPods
+        - $HOME/.pub-cache
+        - $FCI_BUILD_DIR/ios/Pods
+
+    scripts:
+      - name: Initialize keychain
+        script: keychain initialize
+
+      - name: Fetch Flutter packages
+        script: flutter pub get
+
+      - name: Set up provisioning profiles
+        script: xcode-project use-profiles
+
+      - name: Pod install
+        script: |
+          cd ios
+          pod install --repo-update
+
+      - name: Auto-bump build number
+        script: |
+          cd ios
+          LATEST=$(app-store-connect get-latest-app-store-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo "0")
+          agvtool new-version -all $((LATEST + 1))
+
+      - name: Build IPA
+        script: |
+          flutter build ipa --release \
+            --export-options-plist=/Users/builder/export_options.plist
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        submit_to_app_store: false
+      email:
+        recipients:
+          - kashyap2k007@gmail.com
+        notify:
+          success: true
+          failure: true
+

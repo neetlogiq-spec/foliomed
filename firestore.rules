@@ -1,0 +1,82 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function myWardIds() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.wardIds;
+    }
+
+    function isMember(wardId) {
+      return signedIn() && wardId in myWardIds();
+    }
+
+    match /users/{userId} {
+      // Members of the same ward can look each other up.
+      allow read: if signedIn();
+      allow create: if signedIn() && request.auth.uid == userId;
+      allow update: if signedIn() && request.auth.uid == userId;
+      allow delete: if signedIn() && request.auth.uid == userId;
+    }
+
+    match /wards/{wardId} {
+      // Direct lookup by ID: anyone signed in (needed for Join Ward to
+      // verify the ID exists). IDs are 5-digit numbers — guessable, but the
+      // worst a guesser can do is join a ward; reads/writes inside the ward
+      // are still gated by membership.
+      allow get: if signedIn();
+      // Query/list: only the creator OR existing member sees the doc in
+      // results. Keeps the Wards tab strictly member-scoped.
+      allow list: if signedIn() && (
+        resource.data.creatorId == request.auth.uid ||
+        wardId in myWardIds()
+      );
+      // Create: any signed-in user can claim a free ID (the doc must not
+      // exist — Firestore enforces this for `create` rules) and they must
+      // stamp themselves as the creator.
+      allow create: if signedIn() &&
+        request.resource.data.creatorId == request.auth.uid;
+      // Delete: creator only.
+      allow delete: if signedIn() &&
+        resource.data.creatorId == request.auth.uid;
+      // Update: creator can change anything.
+      // Any member can change ONLY memberIds (join / leave / account deletion).
+      allow update: if signedIn() && (
+        resource.data.creatorId == request.auth.uid ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberIds'])
+      );
+    }
+
+    match /patients/{patientId} {
+      // Read: only members of the ward can see the patient.
+      allow read: if isMember(resource.data.wardId);
+      // Write: any signed-in user (UI gates non-member writes).
+      allow create, update, delete: if signedIn();
+    }
+
+    match /notes/{noteId} {
+      // Read: only members of the note's ward can see it.
+      allow read: if isMember(resource.data.wardId);
+      // Write: any signed-in user (UI gates non-member writes).
+      allow create, update, delete: if signedIn();
+
+      match /comments/{commentId} {
+        allow read, write: if signedIn();
+      }
+    }
+
+    // Public-readable metrics for the admin dashboard.
+    match /metrics/{doc} {
+      allow read: if true;
+      allow write: if signedIn();
+    }
+    match /recent_activity/{doc} {
+      allow read: if true;
+      allow create: if signedIn();
+      allow update, delete: if false;
+    }
+  }
+}

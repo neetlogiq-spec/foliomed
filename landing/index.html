@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FolioMed — Ward, connected</title>
+  <meta name="description" content="Ward management software for hospital teams. Real-time clinical notes, patient tracking, orders, acknowledgements — plus AI-powered vital sign monitoring with FolioMed Pro." />
+  <meta property="og:title" content="FolioMed — Ward, connected" />
+  <meta property="og:description" content="Ward management software with AI-powered monitoring. Notes, orders, alerts — one app for the whole ward team." />
+  <meta property="og:type" content="website" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ═══════════ BANNER ═══════════ -->
+  <div class="launch-banner">
+    <div class="launch-banner-inner">
+      <span class="pulse-dot"></span>
+      <span class="launch-text">FolioMed is <strong>live on the App Store &amp; Google Play</strong></span>
+      <a href="#download" class="launch-download-btn">Download ↓</a>
+    </div>
+  </div>
+
+  <!-- ═══════════ NAV ═══════════ -->
+  <header class="nav">
+    <div class="container nav-inner">
+      <div class="brand">
+        <div class="w-logo">W</div>
+        <span class="brand-text">FOLIOMED</span>
+      </div>
+      <nav class="nav-links">
+        <a href="#problem">Problem</a>
+        <a href="#solution">FolioMed</a>
+        <a href="#screens">App</a>
+        <a href="#pro">FolioMed Pro</a>
+        <a href="#stats">Live Stats</a>
+        <a href="./privacy.html">Privacy</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ═══════════ HERO ═══════════ -->
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <svg class="ecg-line" viewBox="0 0 1400 120" preserveAspectRatio="none" aria-hidden="true">
+      <path class="ecg-path" d="M0,60 L180,60 L200,60 L215,20 L230,95 L245,60 L280,60 L430,60 L450,60 L465,15 L480,100 L495,60 L530,60 L680,60 L700,60 L715,22 L730,92 L745,60 L780,60 L930,60 L950,60 L965,18 L980,98 L995,60 L1030,60 L1180,60 L1200,60 L1215,20 L1230,95 L1245,60 L1280,60 L1400,60" />
+    </svg>
+    <div class="container hero-container">
+      <div class="hero-content">
+        <div class="hero-badge">WARD MANAGEMENT SOFTWARE</div>
+        <h1 class="hero-title">Your ward,<br/><span class="accent-grad">connected.</span></h1>
+        <p class="hero-sub">
+          One app for the whole ward team. Real-time clinical notes, patient tracking,
+          orders with acknowledgements, and AI-powered vital sign monitoring — built so a
+          hospital ward never loses an update again.
+        </p>
+        <div class="store-badges img-badges">
+          <a href="https://apps.apple.com/app/foliomed/idYOUR_APP_STORE_ID" target="_blank" rel="noopener">
+            <img src="badge-appstore-white.png" alt="Download on the App Store" height="52">
+          </a>
+          <a href="https://play.google.com/store/apps/details?id=com.foliomed.app" target="_blank" rel="noopener">
+            <img src="badge-google-white.png" alt="Get it on Google Play" height="52">
+          </a>
+        </div>
+        <p class="hero-web-link"><a href="https://app.foliomed.com" target="_blank" rel="noopener">Or use the web app →</a></p>
+      </div>
+
+      <!-- Phone mockup: the FolioMed home feed -->
+      <div class="hero-mock">
+        <div class="float-card float-toast">
+          <span class="ft-icon">🔔</span>
+          <span class="ft-body"><strong>URGENT · Bed 12</strong><br/>BP dropping — please review</span>
+        </div>
+        <div class="phone">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <div class="p-appbar">
+              <span class="p-logo">W</span>
+              <span class="p-title">FolioMed</span>
+              <span class="p-bell">🔔<span class="p-bell-dot"></span></span>
+            </div>
+            <div class="p-stats">
+              <div class="p-stat"><span class="p-stat-num">12</span><span class="p-stat-label">Patients</span></div>
+              <div class="p-stat"><span class="p-stat-num">34</span><span class="p-stat-label">Notes today</span></div>
+              <div class="p-stat p-stat-urgent"><span class="p-stat-num">3</span><span class="p-stat-label">Urgent</span></div>
+            </div>
+            <div class="p-sec-label">ACTIVE PATIENTS</div>
+            <div class="p-chips">
+              <span class="p-chip"><b>Bed 3</b> Baby Kiran</span>
+              <span class="p-chip"><b>Bed 12</b> Mr. Kumar</span>
+              <span class="p-chip"><b>Bed 18</b> Mrs. Shah</span>
+            </div>
+            <div class="p-sec-label">RECENT NOTES</div>
+            <div class="p-note">
+              <div class="p-note-top"><span class="p-pill p-pill-urgent">● Urgent</span><span class="p-note-meta">Bed 12 · Mr. Kumar</span></div>
+              <div class="p-note-text">BP dropping — please review. Started fluids, awaiting cardiology callback.</div>
+              <div class="p-note-foot">Dr. Kashyap · 2 min ago</div>
+            </div>
+            <div class="p-note">
+              <div class="p-note-top"><span class="p-pill p-pill-normal">● Normal</span><span class="p-note-meta">Bed 3 · Baby Kiran</span></div>
+              <div class="p-note-text">Feeds increased to 20 ml/kg. Tolerating well.</div>
+              <div class="p-note-ack">✓ Acknowledged by Nurse Priya</div>
+            </div>
+          </div>
+        </div>
+        <div class="float-card float-ack">
+          <span class="fa-check">✓</span>
+          <span>Acknowledged · <strong>Dr. Asha</strong> · now</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ VISITOR COUNTER ═══════════ -->
+  <div class="visitor-counter">
+    <div class="visitor-count accent-grad" id="visitorCount">···</div>
+    <div class="visitor-label">Visitors</div>
+  </div>
+
+  <!-- ═══════════ FEATURE TICKER ═══════════ -->
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker-track">
+      <span>⚡ Real-time notes</span><span>✅ Acknowledgements</span><span>📋 Clinical orders</span><span>🔑 5-digit ward codes</span><span>🫀 Live vitals</span><span>🚨 AI alerts</span><span>🔒 Ward-private</span><span>📱 iOS · Android · Web</span>
+      <span>⚡ Real-time notes</span><span>✅ Acknowledgements</span><span>📋 Clinical orders</span><span>🔑 5-digit ward codes</span><span>🫀 Live vitals</span><span>🚨 AI alerts</span><span>🔒 Ward-private</span><span>📱 iOS · Android · Web</span>
+    </div>
+  </div>
+
+  <!-- ═══════════ PROBLEM ═══════════ -->
+  <section id="problem" class="section section-alt">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <div class="eyebrow eyebrow-danger">THE PROBLEM</div>
+        <h2>What goes wrong on a real ward</h2>
+        <p>Every team has lived through these. FolioMed was built around fixing each one.</p>
+      </div>
+      <div class="grid grid-3 pain-grid">
+        <div class="pain-card" data-reveal>
+          <div class="pain-icon">💬</div>
+          <h3>WhatsApp burial</h3>
+          <p>Urgent updates buried under hundreds of unrelated messages in the ward group.</p>
+        </div>
+        <div class="pain-card" data-reveal>
+          <div class="pain-icon">📝</div>
+          <h3>Lost paper notes</h3>
+          <p>Plans scribbled on a chart that nobody can find — or read — by handover.</p>
+        </div>
+        <div class="pain-card" data-reveal>
+          <div class="pain-icon">❓</div>
+          <h3>No ack trail</h3>
+          <p>"Did you see the new plan?" "Did anyone act on it?" Nobody can prove it.</p>
+        </div>
+        <div class="pain-card" data-reveal>
+          <div class="pain-icon">⏱</div>
+          <h3>Phone tag</h3>
+          <p>Nurse calls doctor, doctor calls back, patient waits. Minutes you don't have.</p>
+        </div>
+        <div class="pain-card" data-reveal>
+          <div class="pain-icon">🔄</div>
+          <h3>Broken handover</h3>
+          <p>Outgoing team carries the context home in their head. Incoming team starts from zero.</p>
+        </div>
+        <div class="pain-card" data-reveal>
+          <div class="pain-icon">👁</div>
+          <h3>Can't watch every monitor</h3>
+          <p>Nurses cover 4-6 patients. Vitals change while they're with another bed. Nobody sees it in time.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ SOLUTION — Ward Management ═══════════ -->
+  <section id="solution" class="section">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <div class="eyebrow">FOLIOMED — THE CORE</div>
+        <h2>One live feed for the whole ward team</h2>
+        <p>
+          FolioMed puts every patient note, plan, and alert in one shared timeline.
+          Anyone on your ward — senior or junior, doctor or nurse — sees the same
+          updates the moment they happen.
+        </p>
+      </div>
+      <div class="grid grid-2 benefits">
+        <div class="benefit" data-reveal>
+          <div class="benefit-icon">⚡</div>
+          <div>
+            <h3>Real-time, every device</h3>
+            <p>Post once — the whole team gets it instantly with a push notification. Works on phone, tablet, and browser.</p>
+          </div>
+        </div>
+        <div class="benefit" data-reveal>
+          <div class="benefit-icon">✅</div>
+          <div>
+            <h3>Acknowledged, on the record</h3>
+            <p>See exactly who has seen and acted on every note. Timestamped. No more guessing.</p>
+          </div>
+        </div>
+        <div class="benefit" data-reveal>
+          <div class="benefit-icon">📋</div>
+          <div>
+            <h3>Orders &amp; notes per patient</h3>
+            <p>Post clinical orders and notes against specific patients. Normal, Urgent, or Low priority. Threaded replies.</p>
+          </div>
+        </div>
+        <div class="benefit" data-reveal>
+          <div class="benefit-icon">🔒</div>
+          <div>
+            <h3>Ward-private by design</h3>
+            <p>Members of your ward see your ward — nothing more. No cross-ward data leakage.</p>
+          </div>
+        </div>
+        <div class="benefit" data-reveal>
+          <div class="benefit-icon">🗂</div>
+          <div>
+            <h3>Permanent patient history</h3>
+            <p>Every note is filed against the patient, ready when handover hits. No more context lost between shifts.</p>
+          </div>
+        </div>
+        <div class="benefit" data-reveal>
+          <div class="benefit-icon">👥</div>
+          <div>
+            <h3>5-digit ward codes</h3>
+            <p>Create a ward, share the code. Team members join in seconds. No IT department needed.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ APP SCREENS SHOWCASE ═══════════ -->
+  <section id="screens" class="section section-alt screens-section">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <div class="eyebrow">INSIDE THE APP</div>
+        <h2>Three taps to everything</h2>
+        <p>Wards, notes, and live monitoring — the whole ward in your pocket.</p>
+      </div>
+      <div class="screens-row">
+
+        <!-- Phone 1: Wards -->
+        <div class="screen-item" data-reveal>
+          <div class="phone phone-sm">
+            <div class="phone-notch"></div>
+            <div class="phone-screen">
+              <div class="p-appbar"><span class="p-logo">W</span><span class="p-title">Wards</span><span class="p-plus">＋</span></div>
+              <div class="w-card">
+                <div class="w-icon">🏥</div>
+                <div class="w-body">
+                  <div class="w-name">NICU</div>
+                  <div class="w-code">Code <b>47291</b> · 8 members</div>
+                </div>
+                <span class="w-share">↗</span>
+              </div>
+              <div class="w-card">
+                <div class="w-icon">🛏️</div>
+                <div class="w-body">
+                  <div class="w-name">ICU Ward A</div>
+                  <div class="w-code">Code <b>83502</b> · 12 members</div>
+                </div>
+                <span class="w-share">↗</span>
+              </div>
+              <div class="w-card">
+                <div class="w-icon">🩺</div>
+                <div class="w-body">
+                  <div class="w-name">Post-Op</div>
+                  <div class="w-code">Code <b>19467</b> · 6 members</div>
+                </div>
+                <span class="w-share">↗</span>
+              </div>
+              <div class="w-join">＋ Join a ward with a 5-digit code</div>
+            </div>
+          </div>
+          <h3>Wards</h3>
+          <p>Create, share a code, and your whole team is in — no IT setup.</p>
+        </div>
+
+        <!-- Phone 2: Notes feed -->
+        <div class="screen-item screen-item-center" data-reveal>
+          <div class="phone phone-sm">
+            <div class="phone-notch"></div>
+            <div class="phone-screen">
+              <div class="p-appbar"><span class="p-logo">W</span><span class="p-title">Notes</span><span class="p-bell">🔔<span class="p-bell-dot"></span></span></div>
+              <div class="p-note">
+                <div class="p-note-top"><span class="p-pill p-pill-urgent">● Urgent</span><span class="p-note-meta">Bed 12</span></div>
+                <div class="p-note-text">BP dropping — please review. Started fluids.</div>
+                <div class="p-note-foot">Dr. Kashyap · 2m</div>
+              </div>
+              <div class="p-note">
+                <div class="p-note-top"><span class="p-pill p-pill-normal">● Normal</span><span class="p-note-meta">Bed 3</span></div>
+                <div class="p-note-text">Feeds increased to 20 ml/kg. Tolerating well.</div>
+                <div class="p-note-ack">✓ Acknowledged by Nurse Priya</div>
+              </div>
+              <div class="p-note">
+                <div class="p-note-top"><span class="p-pill p-pill-low">● Low</span><span class="p-note-meta">Bed 18</span></div>
+                <div class="p-note-text">Discharge summary drafted, review when free.</div>
+                <div class="p-note-foot">Dr. Asha · 1h</div>
+              </div>
+              <div class="p-fab">＋ New Note</div>
+            </div>
+          </div>
+          <h3>Notes &amp; orders</h3>
+          <p>Priority pills, threaded replies, acknowledgements on the record.</p>
+        </div>
+
+        <!-- Phone 3: Monitor -->
+        <div class="screen-item" data-reveal>
+          <div class="phone phone-sm">
+            <div class="phone-notch"></div>
+            <div class="phone-screen phone-screen-dark">
+              <div class="p-appbar p-appbar-dark"><span class="p-logo">W</span><span class="p-title">Monitor</span><span class="p-pro-chip">PRO</span></div>
+              <div class="m-statbar">
+                <div class="m-stat"><b>8</b><span>Monitored</span></div>
+                <div class="m-stat m-stat-crit"><b>1</b><span>Critical</span></div>
+                <div class="m-stat m-stat-ok"><b>7</b><span>Stable</span></div>
+              </div>
+              <div class="m-patient m-patient-crit">
+                <div class="m-p-head"><span class="m-p-name">Baby Kiran · Bed 3</span><span class="m-sev">CRIT</span></div>
+                <div class="m-vitals">
+                  <span class="m-v"><i>HR</i><b class="m-red">88</b></span>
+                  <span class="m-v"><i>SpO₂</i><b class="m-red">87</b></span>
+                  <span class="m-v"><i>RR</i><b>48</b></span>
+                  <span class="m-v"><i>BP</i><b class="m-warn">52/32</b></span>
+                </div>
+                <div class="m-alert">⚠ SpO₂ below critical threshold</div>
+              </div>
+              <div class="m-patient">
+                <div class="m-p-head"><span class="m-p-name">Mr. Kumar · Bed 12</span><span class="m-sev m-sev-ok">STABLE</span></div>
+                <div class="m-vitals">
+                  <span class="m-v"><i>HR</i><b>83</b></span>
+                  <span class="m-v"><i>SpO₂</i><b>99</b></span>
+                  <span class="m-v"><i>RR</i><b>16</b></span>
+                  <span class="m-v"><i>BP</i><b>126/65</b></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <h3>Monitor <span class="pro-tag">PRO</span></h3>
+          <p>Every monitored bed, live vitals and alerts — read by AI.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ HOW IT WORKS ═══════════ -->
+  <section class="section">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <div class="eyebrow">GET STARTED</div>
+        <h2>Up and running in minutes</h2>
+        <p>No IT department needed. Any doctor or nurse can set up FolioMed for their ward.</p>
+      </div>
+      <ol class="how-steps">
+        <li data-reveal>
+          <div class="how-num">1</div>
+          <div class="how-body">
+            <h3>Create or join your ward</h3>
+            <p>One person creates the ward — FolioMed hands them a 5-digit code. Share it with the team and they're in.</p>
+            <div class="mock ward-mock">
+              <div class="ward-icon">🏥</div>
+              <div>
+                <div class="ward-name">ICU Ward A</div>
+                <div class="ward-code">Code: <strong>47291</strong> · tap to copy</div>
+              </div>
+              <div class="ward-copy">📋</div>
+            </div>
+          </div>
+        </li>
+        <li data-reveal>
+          <div class="how-num">2</div>
+          <div class="how-body">
+            <h3>Add the patients</h3>
+            <p>Add patients on your ward once. Notes and vitals get filed against the right person automatically.</p>
+            <div class="mock patient-row">
+              <div class="patient-chip"><span class="bed">Bed 3</span> Baby Kiran</div>
+              <div class="patient-chip"><span class="bed">Bed 12</span> Mr. R. Kumar</div>
+              <div class="patient-chip"><span class="bed">Bed 18</span> Mrs. A. Shah</div>
+            </div>
+          </div>
+        </li>
+        <li data-reveal>
+          <div class="how-num">3</div>
+          <div class="how-body">
+            <h3>Post a note or order</h3>
+            <p>Write the update, set Normal, Urgent or Low priority, hit post. Done. The whole ward sees it instantly.</p>
+            <div class="mock note-mock">
+              <div class="note-head">
+                <span class="priority-pill urgent">● Urgent</span>
+                <span class="note-meta">Bed 12 · Mr. R. Kumar</span>
+              </div>
+              <div class="note-body">BP dropping — please review. Started fluids, awaiting cardiology callback.</div>
+              <div class="note-foot">Dr. Kashyap · 2 min ago</div>
+            </div>
+          </div>
+        </li>
+        <li data-reveal>
+          <div class="how-num">4</div>
+          <div class="how-body">
+            <h3>Team sees it &amp; acknowledges</h3>
+            <p>Push notifications fire across the ward. A teammate taps Acknowledge — the whole team sees who, when, and what they replied.</p>
+            <div class="mock ack-mock">
+              <div class="ack-head">
+                <span class="avatar">SM</span>
+                <span class="ack-name">Kashyap Anand</span>
+                <span class="role-pill doctor">Doctor</span>
+                <span class="ack-time">now</span>
+              </div>
+              <div class="ack-banner">✓ Acknowledged by Kashyap Anand</div>
+              <div class="ack-text">On it — calling cardiology now.</div>
+            </div>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ═══════════ FOLIOMED PRO — Monitoring + AI ═══════════ -->
+  <section id="pro" class="section pro-section">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <div class="pro-badge-large">
+          <span class="pro-w">W</span>
+          <span class="pro-title">FolioMed <span class="pro-tag">PRO</span></span>
+        </div>
+        <h2>Add live patient monitoring.<br/><span class="accent-grad">Powered by AI.</span></h2>
+        <p>
+          Upgrade any ward to FolioMed Pro and get a real-time vitals dashboard, auto-alerts on threshold breaches,
+          and a custom-trained Vision AI that reads vital signs from any patient monitor through your existing cameras.
+        </p>
+      </div>
+
+      <!-- Mock Dashboard in a browser frame -->
+      <div class="browser-frame" data-reveal>
+        <div class="browser-bar">
+          <span class="b-dot b-red"></span><span class="b-dot b-yellow"></span><span class="b-dot b-green"></span>
+          <span class="b-url">app.foliomed.com — Monitor</span>
+        </div>
+        <div class="dashboard-showcase">
+          <div class="dash-col dash-col-main">
+            <div class="dash-section-label">Patient Monitor</div>
+            <div class="dash-detail-header">
+              <div>
+                <div class="dash-pname">Baby Kiran · M · 2 days</div>
+                <div class="dash-pmeta">PPHN · HFO Ventilator · Bed 3 · NICU</div>
+              </div>
+              <span class="mock-sev mock-sev-crit">Critical</span>
+            </div>
+            <div class="dash-camera-area">
+              <div class="dash-camera-icon">📹</div>
+              <span>Live camera feed</span>
+              <span class="rec-chip"><span class="rec-dot"></span>LIVE</span>
+            </div>
+            <div class="dash-label">LIVE VITALS</div>
+            <div class="dash-vitals-grid">
+              <div class="dash-vital-card">
+                <div class="dv-icon" style="color:#e74c3c;">&#9829;</div>
+                <div class="dv-label">Heart Rate</div>
+                <div class="dv-value dv-crit">88</div>
+                <div class="dv-unit">bpm</div>
+                <div class="dv-status dv-status-crit">Critical</div>
+              </div>
+              <div class="dash-vital-card">
+                <div class="dv-icon" style="color:#2ecc71;">&#9679;</div>
+                <div class="dv-label">SpO<sub>2</sub></div>
+                <div class="dv-value dv-crit">87</div>
+                <div class="dv-unit">%</div>
+                <div class="dv-status dv-status-crit">Critical</div>
+              </div>
+              <div class="dash-vital-card">
+                <div class="dv-icon" style="color:#f39c12;">&#8776;</div>
+                <div class="dv-label">Resp. Rate</div>
+                <div class="dv-value">48</div>
+                <div class="dv-unit">br/min</div>
+                <div class="dv-status dv-status-ok">Normal</div>
+              </div>
+              <div class="dash-vital-card">
+                <div class="dv-icon" style="color:#3498db;">&#8593;</div>
+                <div class="dv-label">Blood Pressure</div>
+                <div class="dv-value dv-warn">52<span class="dv-slash">/</span>32</div>
+                <div class="dv-unit">MAP 39 mmHg</div>
+                <div class="dv-status dv-status-warn">Low</div>
+              </div>
+            </div>
+            <div class="dash-actions">
+              <div class="dash-action-btn primary-btn">&#9650; Trends</div>
+              <div class="dash-action-btn warn-btn">&#9881; Thresholds</div>
+            </div>
+          </div>
+          <div class="dash-col dash-col-side">
+            <div class="dash-section-label">Alert Log</div>
+            <div class="dash-alerts">
+              <div class="dash-alert crit">
+                <span class="da-icon">&#9888;</span>
+                <span class="da-text">SpO2 below critical: 87%</span>
+                <span class="da-time">2m ago</span>
+              </div>
+              <div class="dash-alert crit">
+                <span class="da-icon">&#9888;</span>
+                <span class="da-text">HR below critical: 88 bpm</span>
+                <span class="da-time">5m ago</span>
+              </div>
+              <div class="dash-alert warn">
+                <span class="da-icon">&#9888;</span>
+                <span class="da-text">BP MAP below warning: 39</span>
+                <span class="da-time">8m ago</span>
+              </div>
+            </div>
+            <div class="dash-section-label" style="margin-top:16px;">Orders &amp; Notes</div>
+            <div class="dash-orders">
+              <div class="dash-order">
+                <span class="do-type do-order">Order</span>
+                <span class="do-text">iNO started at 20 ppm, wean by 5 ppm q4h if SpO2 &gt; 90%</span>
+                <span class="do-author">Dr. Kashyap · 2h ago</span>
+              </div>
+              <div class="dash-order">
+                <span class="do-type do-note">Note</span>
+                <span class="do-text">Parents counselled about PPHN prognosis. Echo tomorrow.</span>
+                <span class="do-author">Dr. Kashyap · 3h ago</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ AI ENGINE ═══════════ -->
+  <section class="section section-alt">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <div class="eyebrow">THE AI BEHIND FOLIOMED PRO</div>
+        <h2>A custom Vision AI that reads any monitor</h2>
+        <p>No proprietary hardware. No brand lock-in. Point your existing hospital camera at the bedside monitor — FolioMed's custom-trained AI does the rest.</p>
+      </div>
+
+      <div class="pipeline" data-reveal>
+        <div class="pipe-step">
+          <div class="pipe-icon">📹</div>
+          <div class="pipe-num">1</div>
+          <h3>Camera captures</h3>
+          <p>Your existing IP/CCTV camera points at the bedside patient monitor. One camera covers 2-3 beds.</p>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step highlight">
+          <div class="pipe-icon">🧠</div>
+          <div class="pipe-num">2</div>
+          <h3>AI reads vitals</h3>
+          <p>Our custom Vision Language Model extracts HR, SpO2, RR, BP from the screen — any brand, any layout.</p>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step">
+          <div class="pipe-icon">📊</div>
+          <div class="pipe-num">3</div>
+          <h3>Live dashboard</h3>
+          <p>Every patient's vitals update on your phone in real time. One screen, whole ward.</p>
+        </div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step">
+          <div class="pipe-icon">🚨</div>
+          <div class="pipe-num">4</div>
+          <h3>Auto-alerts</h3>
+          <p>Thresholds breached? Push notification fires to the entire ward team instantly.</p>
+        </div>
+      </div>
+
+      <div class="grid grid-3" style="margin-top:48px;">
+        <div class="tech-card" data-reveal>
+          <div class="tech-icon">🔌</div>
+          <h3>Any monitor brand</h3>
+          <p>Philips, GE, Mindray, Drager, BPL, Schiller — the AI reads them all. Different colors, layouts, label styles. No integration needed.</p>
+        </div>
+        <div class="tech-card" data-reveal>
+          <div class="tech-icon">📷</div>
+          <h3>Uses existing cameras</h3>
+          <p>Works with your hospital's existing CCTV/IP cameras. No new hardware, no monitor-specific adapters, no HL7 gateway.</p>
+        </div>
+        <div class="tech-card" data-reveal>
+          <div class="tech-icon">🫀</div>
+          <h3>HR + PR independently</h3>
+          <p>Reads Heart Rate (ECG) and Pulse Rate (SpO2 probe) as separate values — catches pulse-deficit, a real clinical finding most systems miss.</p>
+        </div>
+        <div class="tech-card" data-reveal>
+          <div class="tech-icon">🛡️</div>
+          <h3>Safety-first design</h3>
+          <p>The model is trained to say "I don't know" rather than guess. Blurry digits, disconnected sensors, alarm limits — all handled. Wrong numbers don't reach the doctor.</p>
+        </div>
+        <div class="tech-card" data-reveal>
+          <div class="tech-icon">🇮🇳</div>
+          <h3>Made for Indian hospitals</h3>
+          <p>Trained on photos from real Indian ICU/NICU wards. Handles the glare, angles, and mixed monitor brands that actually exist here.</p>
+        </div>
+        <div class="tech-card" data-reveal>
+          <div class="tech-icon">⚡</div>
+          <h3>Runs locally</h3>
+          <p>The AI runs on a small box at the hospital. No cloud dependency for vitals. Your patient data stays inside your hospital.</p>
+        </div>
+      </div>
+
+      <div class="ai-status-card" data-reveal>
+        <div class="ai-status-left">
+          <div class="ai-status-badge">AI STATUS</div>
+          <h3>Built &amp; in active testing</h3>
+          <p>The custom Vision Language Model is fully trained, exported, and running on local hardware. Currently being validated against real hospital monitor photos from multiple brands.</p>
+        </div>
+        <div class="ai-status-right">
+          <div class="ai-milestone done"><span class="ai-check">&#10003;</span><span>Model architecture &amp; training pipeline</span></div>
+          <div class="ai-milestone done"><span class="ai-check">&#10003;</span><span>Trained on real hospital monitor photos</span></div>
+          <div class="ai-milestone done"><span class="ai-check">&#10003;</span><span>Exported to local deployment format</span></div>
+          <div class="ai-milestone done"><span class="ai-check">&#10003;</span><span>Running on local hardware (Mac / GPU)</span></div>
+          <div class="ai-milestone active"><span class="ai-dot"></span><span>Real-photo validation &amp; accuracy testing</span></div>
+          <div class="ai-milestone pending"><span class="ai-circle"></span><span>Shadow-mode hospital pilot</span></div>
+          <div class="ai-milestone pending"><span class="ai-circle"></span><span>Production deployment</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ FOLIOMED EDGE ═══════════ -->
+  <section class="section edge-section">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <div class="eyebrow">FOLIOMED EDGE</div>
+        <h2>The always-on station inside the hospital</h2>
+        <p>FolioMed Edge is the desktop that sits at the nursing station — it runs the cameras, reads the monitors, and relays every vital to the team's phones. Included with Pro.</p>
+      </div>
+
+      <div class="laptop" data-reveal>
+        <div class="laptop-screen">
+          <div class="edge-header">
+            <span class="p-logo">W</span>
+            <span class="edge-title">FolioMed Edge · NICU</span>
+            <span class="rec-chip"><span class="rec-dot"></span>4 CAMERAS LIVE</span>
+          </div>
+          <div class="edge-grid">
+            <div class="edge-tile edge-tile-crit">
+              <div class="e-head"><b>Bed 3</b><span>Baby Kiran</span></div>
+              <div class="e-vitals"><span>HR <b class="m-red">88</b></span><span>SpO₂ <b class="m-red">87</b></span><span>RR <b>48</b></span></div>
+              <div class="e-alert">⚠ ALERT</div>
+            </div>
+            <div class="edge-tile">
+              <div class="e-head"><b>Bed 5</b><span>Baby Ananya</span></div>
+              <div class="e-vitals"><span>HR <b>142</b></span><span>SpO₂ <b>97</b></span><span>RR <b>44</b></span></div>
+            </div>
+            <div class="edge-tile">
+              <div class="e-head"><b>Bed 7</b><span>Baby Rohan</span></div>
+              <div class="e-vitals"><span>HR <b>136</b></span><span>SpO₂ <b>98</b></span><span>RR <b>40</b></span></div>
+            </div>
+            <div class="edge-tile">
+              <div class="e-head"><b>Bed 12</b><span>Mr. Kumar</span></div>
+              <div class="e-vitals"><span>HR <b>83</b></span><span>SpO₂ <b>99</b></span><span>RR <b>16</b></span></div>
+            </div>
+            <div class="edge-tile">
+              <div class="e-head"><b>Bed 18</b><span>Mrs. Shah</span></div>
+              <div class="e-vitals"><span>HR <b>76</b></span><span>SpO₂ <b>98</b></span><span>RR <b>14</b></span></div>
+            </div>
+            <div class="edge-tile edge-tile-add">＋ Add camera</div>
+          </div>
+        </div>
+        <div class="laptop-base"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ PRODUCT TIERS ═══════════ -->
+  <section class="section section-alt">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <div class="eyebrow">CHOOSE YOUR PLAN</div>
+        <h2>FolioMed grows with your ward</h2>
+      </div>
+
+      <div class="tiers-grid">
+        <div class="tier-card" data-reveal>
+          <div class="tier-header">
+            <h3>FolioMed</h3>
+            <div class="tier-price">Free</div>
+          </div>
+          <p class="tier-desc">Ward management for every team</p>
+          <div class="tier-features">
+            <div class="tier-feat"><span class="pf-check">&#10003;</span> Create &amp; join wards</div>
+            <div class="tier-feat"><span class="pf-check">&#10003;</span> Patient management</div>
+            <div class="tier-feat"><span class="pf-check">&#10003;</span> Clinical notes &amp; orders</div>
+            <div class="tier-feat"><span class="pf-check">&#10003;</span> Push notifications</div>
+            <div class="tier-feat"><span class="pf-check">&#10003;</span> Acknowledgement system</div>
+            <div class="tier-feat"><span class="pf-check">&#10003;</span> Patient history</div>
+          </div>
+        </div>
+
+        <div class="tier-card tier-featured" data-reveal>
+          <div class="tier-popular">RECOMMENDED</div>
+          <div class="tier-header">
+            <h3>FolioMed <span class="pro-tag">PRO</span></h3>
+            <div class="tier-price">&#8377;2,999<span class="tier-period">/ward/month</span></div>
+          </div>
+          <p class="tier-desc">Everything in FolioMed, plus live monitoring</p>
+          <div class="tier-features">
+            <div class="tier-feat"><span class="pf-check">&#10003;</span> Everything in FolioMed</div>
+            <div class="tier-feat feat-highlight"><span class="pf-check accent-check">&#10003;</span> AI-powered vital monitoring</div>
+            <div class="tier-feat feat-highlight"><span class="pf-check accent-check">&#10003;</span> Live vitals dashboard</div>
+            <div class="tier-feat feat-highlight"><span class="pf-check accent-check">&#10003;</span> Auto-alerts &amp; thresholds</div>
+            <div class="tier-feat feat-highlight"><span class="pf-check accent-check">&#10003;</span> Vital trends &amp; history</div>
+            <div class="tier-feat feat-highlight"><span class="pf-check accent-check">&#10003;</span> Bedside camera integration</div>
+            <div class="tier-feat"><span class="pf-check">&#10003;</span> Unlimited team members</div>
+          </div>
+        </div>
+
+        <div class="tier-card" data-reveal>
+          <div class="tier-header">
+            <h3>FolioMed Edge</h3>
+            <div class="tier-price tier-price-sm">Included with Pro</div>
+          </div>
+          <p class="tier-desc">Desktop station for the hospital</p>
+          <div class="tier-features">
+            <div class="tier-feat"><span class="pf-check">&#10003;</span> Desktop ward dashboard</div>
+            <div class="tier-feat"><span class="pf-check">&#10003;</span> RTSP camera management</div>
+            <div class="tier-feat"><span class="pf-check">&#10003;</span> Multi-camera setup</div>
+            <div class="tier-feat"><span class="pf-check">&#10003;</span> Region-of-interest editor</div>
+            <div class="tier-feat"><span class="pf-check">&#10003;</span> Always-on monitoring</div>
+            <div class="tier-feat"><span class="pf-check">&#10003;</span> Relays to mobile app</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ LIVE STATS ═══════════ -->
+  <section id="stats" class="section">
+    <div class="container">
+      <div class="section-head" data-reveal>
+        <div class="eyebrow">TRACTION</div>
+        <h2>FolioMed, by the numbers — live</h2>
+        <p>Pulled live from the production database. These tick up as teams use the app.</p>
+      </div>
+      <div class="stats-grid" data-reveal>
+        <div class="stat-card"><div class="stat-num" data-stat="users">—</div><div class="stat-label">Total users</div></div>
+        <div class="stat-card"><div class="stat-num" data-stat="wards">—</div><div class="stat-label">Wards</div></div>
+        <div class="stat-card"><div class="stat-num" data-stat="patients">—</div><div class="stat-label">Patients</div></div>
+        <div class="stat-card"><div class="stat-num" data-stat="notes">—</div><div class="stat-label">Notes posted</div></div>
+        <div class="stat-card"><div class="stat-num" data-stat="acks">—</div><div class="stat-label">Acknowledgements</div></div>
+        <div class="stat-card"><div class="stat-num" data-stat="comments">—</div><div class="stat-label">Replies</div></div>
+      </div>
+      <p class="stats-note">Last updated <span data-stat="updated">just now</span> · cumulative since launch.</p>
+    </div>
+  </section>
+
+  <!-- ═══════════ CTA ═══════════ -->
+  <section class="cta-section" id="download">
+    <div class="cta-glow"></div>
+    <div class="container cta-inner">
+      <h2>Ready to connect your ward?</h2>
+      <p>Download the app, create your ward, and your team is connected in under 5 minutes.</p>
+      <div class="store-badges img-badges" style="justify-content:center; margin-bottom:16px;">
+        <a href="https://apps.apple.com/app/foliomed/idYOUR_APP_STORE_ID" target="_blank" rel="noopener">
+          <img src="badge-appstore-white.png" alt="Download on the App Store" height="48">
+        </a>
+        <a href="https://play.google.com/store/apps/details?id=com.foliomed.app" target="_blank" rel="noopener">
+          <img src="badge-google-white.png" alt="Get it on Google Play" height="48">
+        </a>
+      </div>
+      <a class="btn btn-ghost" href="https://app.foliomed.com" target="_blank" rel="noopener">Or launch in browser →</a>
+      <p class="cta-contact">Want a demo or partnership discussion? <a href="mailto:kashyap2k007@gmail.com">kashyap2k007@gmail.com</a></p>
+    </div>
+  </section>
+
+  <!-- ═══════════ FOOTER ═══════════ -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div class="brand">
+        <div class="w-logo small">W</div>
+        <span class="brand-text">FOLIOMED</span>
+      </div>
+      <div class="footer-links">
+        <a href="https://app.foliomed.com">Web App</a>
+        <a href="https://apps.apple.com/app/foliomed/idYOUR_APP_STORE_ID" target="_blank" rel="noopener">App Store</a>
+        <a href="https://play.google.com/store/apps/details?id=com.foliomed.app" target="_blank" rel="noopener">Play Store</a>
+        <a href="./privacy.html">Privacy</a>
+        <a href="mailto:kashyap2k007@gmail.com">Contact</a>
+      </div>
+      <div class="footer-note">Built with Flutter &amp; Firebase. Monitoring powered by a custom Vision Language Model. Ward-private by design.</div>
+    </div>
+  </footer>
+
+  <!-- ═══════════ SCROLL REVEAL ═══════════ -->
+  <script>
+    (function () {
+      var els = document.querySelectorAll('[data-reveal]');
+      if (!('IntersectionObserver' in window) ||
+          window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        els.forEach(function (el) { el.classList.add('revealed'); });
+        return;
+      }
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+            io.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+      els.forEach(function (el) { io.observe(el); });
+    })();
+  </script>
+
+  <!-- ═══════════ VISITOR COUNTER SCRIPT ═══════════ -->
+  <script>
+    (function () {
+      const el = document.getElementById("visitorCount");
+      if (!el) return;
+
+      // CounterAPI dedupes "up" hits per visitor, so a fresh namespace
+      // starts at 1 no matter how many times it's called. This offset is a
+      // one-time seed so the counter doesn't launch at "1" — remove it
+      // once real traffic has organically passed it.
+      const BASE_OFFSET = 77;
+
+      const fmt = (n) => {
+        if (n == null || isNaN(n)) return "—";
+        if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, "") + "k";
+        return String(Math.round(n));
+      };
+
+      const animate = (target) => {
+        const dur = 700;
+        const t0 = performance.now();
+        const step = (t) => {
+          const p = Math.min(1, (t - t0) / dur);
+          el.textContent = fmt(target * (1 - Math.pow(1 - p, 3)));
+          if (p < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      };
+
+      fetch("https://counterapi.com/api/www.foliomed.com/visits/up")
+        .then((r) => r.json())
+        .then((data) => {
+          const n = Number(data && (data.value ?? data.count ?? data.up_count));
+          if (!isNaN(n)) animate(n + BASE_OFFSET);
+          else el.textContent = "—";
+        })
+        .catch(() => { el.textContent = "—"; });
+    })();
+  </script>
+
+  <!-- ═══════════ LIVE STATS SCRIPT ═══════════ -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBS8MKN-vzLCFLDmGfws7uJg5_I4fJKnqM",
+      authDomain: "foliomed.firebaseapp.com",
+      projectId: "foliomed",
+      storageBucket: "foliomed.firebasestorage.app",
+      messagingSenderId: "525482754887",
+      appId: "1:525482754887:web:2886f69b6402f4718a8262",
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const fmt = (n) => {
+      if (n == null || isNaN(n)) return "—";
+      if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, "") + "k";
+      return String(n);
+    };
+
+    const animate = (el, target) => {
+      const dur = 700;
+      const t0 = performance.now();
+      const step = (t) => {
+        const p = Math.min(1, (t - t0) / dur);
+        el.textContent = fmt(Math.round(target * (1 - Math.pow(1 - p, 3))));
+        if (p < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    };
+
+    const CACHE_KEY = "foliomed_stats_v1";
+    const CACHE_TTL_MS = 5 * 60 * 1000;
+    const STAT_KEYS = ["users", "wards", "patients", "notes", "acks", "comments"];
+
+    function paint(map, lastActivityIso) {
+      const m = map || {};
+      for (const key of STAT_KEYS) {
+        const el = document.querySelector(`[data-stat="${key}"]`);
+        if (!el) continue;
+        if (typeof m[key] === "number") animate(el, m[key]);
+        else el.textContent = "0";
+      }
+      const u = document.querySelector('[data-stat="updated"]');
+      if (u && lastActivityIso) u.textContent = new Date(lastActivityIso).toLocaleString();
+    }
+
+    async function loadStats() {
+      try {
+        const raw = localStorage.getItem(CACHE_KEY);
+        if (raw) {
+          const cached = JSON.parse(raw);
+          if (cached?.savedAt && Date.now() - cached.savedAt < CACHE_TTL_MS) {
+            paint(cached.map, cached.lastActivityIso);
+            return;
+          }
+        }
+      } catch (_) {}
+
+      try {
+        const snap = await getDoc(doc(db, "metrics", "totals"));
+        const data = snap.exists() ? snap.data() : {};
+        const map = {
+          users: data.userCount, wards: data.wardCount, patients: data.patientCount,
+          notes: data.noteCount, acks: data.ackCount, comments: data.commentCount,
+        };
+        const t = data.lastActivityAt?.toDate ? data.lastActivityAt.toDate() : null;
+        const lastActivityIso = t ? t.toISOString() : null;
+        paint(map, lastActivityIso);
+        try { localStorage.setItem(CACHE_KEY, JSON.stringify({ savedAt: Date.now(), map, lastActivityIso })); } catch (_) {}
+      } catch (e) { console.warn("FolioMed stats load failed:", e); }
+    }
+
+    loadStats();
+  </script>
+</body>
+</html>

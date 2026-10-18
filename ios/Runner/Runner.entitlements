@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- APNs environment. MUST be "production" for any build distributed
+	     via TestFlight or the App Store. Codemagic signs with the literal
+	     entitlements file (no Xcode auto-flip), so "development" here ships
+	     a sandbox-push entitlement on a distribution-signed binary — iOS
+	     then refuses remote-notification registration and getToken() never
+	     returns a token. "production" works for BOTH TestFlight and App Store. -->
+	<key>aps-environment</key>
+	<string>production</string>
+	<!-- Sign In with Apple — required by Apple App Review whenever the
+	     app offers any third-party social sign-in (we have Google). -->
+	<key>com.apple.developer.applesignin</key>
+	<array>
+		<string>Default</string>
+	</array>
+</dict>
+</plist>
