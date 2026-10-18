@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -50,7 +50,7 @@ class FilteredNotesScreen extends StatelessWidget {
             return Center(
               child: Text(
                 'No matching notes.',
-                style: GoogleFonts.dmSans(color: AppColors.textSecondary),
+                style: appText(color: AppColors.textSecondary),
               ),
             );
           }
@@ -73,7 +73,7 @@ class FilteredNotesScreen extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(4, 16, 4, 8),
           child: Text(
             entry.key.toUpperCase(),
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.textSecondary,
               fontSize: 11,
               fontWeight: FontWeight.w700,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../utils/app_typography.dart';
 
 import '../models/app_user.dart';
 import '../utils/app_theme.dart';
@@ -48,7 +48,7 @@ class RoleBadge extends StatelessWidget {
       ),
       child: Text(
         _label,
-        style: GoogleFonts.dmSans(
+        style: appText(
           color: _color,
           fontSize: small ? 10 : 12,
           fontWeight: FontWeight.w600,

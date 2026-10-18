@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -213,7 +213,7 @@ class _BedsideSenderScreenState extends State<BedsideSenderScreen> with WidgetsB
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
-        title: Text('Bedside Monitor', style: GoogleFonts.dmSans(color: Colors.white, fontWeight: FontWeight.w700)),
+        title: Text('Bedside Monitor', style: appText(color: Colors.white, fontWeight: FontWeight.w700)),
         actions: [
           if (_isStreaming)
             Container(
@@ -225,7 +225,7 @@ class _BedsideSenderScreenState extends State<BedsideSenderScreen> with WidgetsB
                 children: [
                   Container(width: 8, height: 8, decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
                   const SizedBox(width: 6),
-                  Text('LIVE', style: GoogleFonts.dmSans(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w800)),
+                  Text('LIVE', style: appText(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w800)),
                 ],
               ),
             ),
@@ -242,7 +242,7 @@ class _BedsideSenderScreenState extends State<BedsideSenderScreen> with WidgetsB
                     child: CameraPreview(_cameraCtrl!),
                   )
                 : Center(
-                    child: Text(_status, style: GoogleFonts.dmSans(color: Colors.white54, fontSize: 14)),
+                    child: Text(_status, style: appText(color: Colors.white54, fontSize: 14)),
                   ),
           ),
 
@@ -253,7 +253,7 @@ class _BedsideSenderScreenState extends State<BedsideSenderScreen> with WidgetsB
               children: [
                 Text(
                   '${widget.patientName} · Sending vitals',
-                  style: GoogleFonts.dmSans(color: Colors.white70, fontSize: 13),
+                  style: appText(color: Colors.white70, fontSize: 13),
                 ),
                 const SizedBox(height: 12),
 
@@ -266,12 +266,12 @@ class _BedsideSenderScreenState extends State<BedsideSenderScreen> with WidgetsB
                   children: [
                     Text(
                       _isStreaming ? 'Frames processed: $_frameCount' : _status,
-                      style: GoogleFonts.dmSans(color: Colors.white38, fontSize: 11),
+                      style: appText(color: Colors.white38, fontSize: 11),
                     ),
                     if (_lastParsed != null)
                       Text(
                         'Confidence: ${_lastParsed!.confidence}%',
-                        style: GoogleFonts.dmSans(
+                        style: appText(
                           color: _lastParsed!.confidence > 50 ? AppColors.accent : AppColors.warning,
                           fontSize: 11, fontWeight: FontWeight.w600,
                         ),
@@ -294,7 +294,7 @@ class _BedsideSenderScreenState extends State<BedsideSenderScreen> with WidgetsB
                       backgroundColor: _isStreaming ? AppColors.danger : AppColors.accent,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                      textStyle: GoogleFonts.dmSans(fontSize: 15, fontWeight: FontWeight.w700),
+                      textStyle: appText(fontSize: 15, fontWeight: FontWeight.w700),
                     ),
                   ),
                 ),
@@ -331,10 +331,10 @@ class _BedsideSenderScreenState extends State<BedsideSenderScreen> with WidgetsB
         ),
         child: Column(
           children: [
-            Text(label, style: GoogleFonts.dmSans(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.w600)),
+            Text(label, style: appText(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.w600)),
             const SizedBox(height: 2),
-            Text(value, style: GoogleFonts.dmSans(color: detected ? Colors.white : Colors.white30, fontSize: 18, fontWeight: FontWeight.w800)),
-            Text(unit, style: GoogleFonts.dmSans(color: Colors.white30, fontSize: 9)),
+            Text(value, style: appText(color: detected ? Colors.white : Colors.white30, fontSize: 18, fontWeight: FontWeight.w800)),
+            Text(unit, style: appText(color: Colors.white30, fontSize: 9)),
           ],
         ),
       ),
@@ -355,7 +355,7 @@ class _BedsideSenderScreenState extends State<BedsideSenderScreen> with WidgetsB
           const SizedBox(width: 10),
           Text(
             _isStreaming ? 'Scanning for vitals...' : 'Point camera at the bedside monitor',
-            style: GoogleFonts.dmSans(color: Colors.white38, fontSize: 13),
+            style: appText(color: Colors.white38, fontSize: 13),
           ),
         ],
       ),

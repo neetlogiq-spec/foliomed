@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../utils/app_typography.dart';
 
 import '../utils/app_theme.dart';
 import '../providers/theme_provider.dart';
@@ -27,7 +27,7 @@ class FolioMedBrand extends StatelessWidget {
           child: Center(
             child: Text(
               'F',
-              style: GoogleFonts.dmSans(
+              style: appText(
                 color: Colors.white,
                 fontSize: size * 0.6,
                 fontWeight: FontWeight.w900,
@@ -40,7 +40,7 @@ class FolioMedBrand extends StatelessWidget {
         const SizedBox(width: 10),
         Text(
           'FOLIOMED',
-          style: GoogleFonts.dmSans(
+          style: appText(
             color: AppColors.textPrimary,
             fontSize: size * 0.5,
             fontWeight: FontWeight.w800,

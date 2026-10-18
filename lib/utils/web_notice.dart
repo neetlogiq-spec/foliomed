@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'app_typography.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -49,7 +49,7 @@ class WebNotice {
             Expanded(
               child: Text(
                 'Best on the app',
-                style: GoogleFonts.dmSans(
+                style: appText(
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -62,7 +62,7 @@ class WebNotice {
           children: [
             Text(
               'FolioMed is built for live ward updates — push notifications, instant alerts, smoother UI. The mobile app gives you the full experience.',
-              style: GoogleFonts.dmSans(
+              style: appText(
                 color: AppColors.textSecondary,
                 fontSize: 14,
                 height: 1.5,
@@ -99,7 +99,7 @@ class WebNotice {
                   Expanded(
                     child: Text(
                       'Continuing on web? Allow browser notifications so urgent alerts reach you.',
-                      style: GoogleFonts.dmSans(
+                      style: appText(
                         color: AppColors.textPrimary,
                         fontSize: 12,
                         height: 1.4,

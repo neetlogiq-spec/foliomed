@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -255,7 +255,6 @@ class _BackgroundSetupScreenState extends State<BackgroundSetupScreen> {
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.divider),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -272,7 +271,7 @@ class _BackgroundSetupScreenState extends State<BackgroundSetupScreen> {
           const SizedBox(height: 16),
           Text(
             title,
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.textPrimary,
               fontSize: 22,
               fontWeight: FontWeight.bold,
@@ -282,7 +281,7 @@ class _BackgroundSetupScreenState extends State<BackgroundSetupScreen> {
           const SizedBox(height: 8),
           Text(
             body,
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.textSecondary,
               fontSize: 14,
               height: 1.55,
@@ -309,7 +308,7 @@ class _BackgroundSetupScreenState extends State<BackgroundSetupScreen> {
                     Expanded(
                       child: RichText(
                         text: TextSpan(
-                          style: GoogleFonts.dmSans(
+                          style: appText(
                             fontSize: 13.5,
                             color: AppColors.textPrimary,
                           ),
@@ -365,14 +364,13 @@ class _BackgroundSetupScreenState extends State<BackgroundSetupScreen> {
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.divider),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.textPrimary,
               fontSize: 15,
               fontWeight: FontWeight.w700,
@@ -381,7 +379,7 @@ class _BackgroundSetupScreenState extends State<BackgroundSetupScreen> {
           const SizedBox(height: 4),
           Text(
             subtitle,
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.textSecondary,
               fontSize: 13,
             ),
@@ -393,7 +391,7 @@ class _BackgroundSetupScreenState extends State<BackgroundSetupScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 3),
                 child: Text(
                   '${i + 1}. ${steps[i]}',
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                     color: AppColors.textPrimary,
                     fontSize: 13,
                     height: 1.5,

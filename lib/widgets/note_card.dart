@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../utils/app_typography.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 import '../models/note.dart';
 import '../utils/app_theme.dart';
+import 'pressable.dart';
 import 'note_comments_sheet.dart';
 import '../providers/theme_provider.dart';
 
@@ -75,16 +76,14 @@ class _NoteCardState extends State<NoteCard> {
 
     return Opacity(
       opacity: acknowledged ? 0.85 : 1,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+      child: Pressable(
         onTap: widget.onTap ??
             () => showNoteCommentsSheet(context, widget.note),
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: AppColors.card,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.divider),
+            borderRadius: BorderRadius.circular(AppRadii.card),
             boxShadow: AppColors.cardShadow,
           ),
           child: Column(
@@ -103,7 +102,7 @@ class _NoteCardState extends State<NoteCard> {
                   const SizedBox(width: 6),
                   Text(
                     n.priority,
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                       color: pColor,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -126,7 +125,7 @@ class _NoteCardState extends State<NoteCard> {
                         const SizedBox(width: 4),
                         Text(
                           n.category,
-                          style: GoogleFonts.dmSans(
+                          style: appText(
                             color: pColor,
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
@@ -138,7 +137,7 @@ class _NoteCardState extends State<NoteCard> {
                   const SizedBox(width: 8),
                   Text(
                     timeago.format(n.createdAt, locale: 'en_short'),
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                       color: AppColors.textSecondary,
                       fontSize: 11,
                     ),
@@ -185,14 +184,14 @@ class _NoteCardState extends State<NoteCard> {
                   const SizedBox(width: 8),
                   Text(
                     'Note by ',
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                       color: AppColors.textSecondary,
                       fontSize: 12,
                     ),
                   ),
                   Text(
                     n.authorName,
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                       color: AppColors.textPrimary,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -210,7 +209,7 @@ class _NoteCardState extends State<NoteCard> {
                     ),
                     child: Text(
                       n.authorRole,
-                      style: GoogleFonts.dmSans(
+                      style: appText(
                         color: rColor,
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
@@ -230,7 +229,7 @@ class _NoteCardState extends State<NoteCard> {
                   const SizedBox(width: 4),
                   Text(
                     'for ${n.patientName}',
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                       color: AppColors.textSecondary,
                       fontSize: 12,
                     ),
@@ -242,7 +241,7 @@ class _NoteCardState extends State<NoteCard> {
                 n.content,
                 maxLines: _expanded ? null : 4,
                 overflow: _expanded ? null : TextOverflow.ellipsis,
-                style: GoogleFonts.dmSans(
+                style: appText(
                   color: AppColors.textPrimary,
                   fontSize: 14,
                   height: 1.4,
@@ -255,7 +254,7 @@ class _NoteCardState extends State<NoteCard> {
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
                       'Show more',
-                      style: GoogleFonts.dmSans(
+                      style: appText(
                         color: AppColors.primary,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -284,7 +283,7 @@ class _NoteCardState extends State<NoteCard> {
                         child: Text(
                           'Acknowledged by ${n.acknowledgedBy ?? 'staff'}',
                           overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.dmSans(
+                          style: appText(
                             color: AppColors.accent,
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -295,7 +294,7 @@ class _NoteCardState extends State<NoteCard> {
                         Text(
                           timeago.format(n.acknowledgedAt!,
                               locale: 'en_short'),
-                          style: GoogleFonts.dmSans(
+                          style: appText(
                             color: AppColors.accent,
                             fontSize: 11,
                           ),
@@ -351,7 +350,7 @@ class _NoteCardState extends State<NoteCard> {
                     const SizedBox(width: 4),
                     Text(
                       'Tap to acknowledge',
-                      style: GoogleFonts.dmSans(
+                      style: appText(
                           color: AppColors.textSecondary, fontSize: 11),
                     ),
                   ],

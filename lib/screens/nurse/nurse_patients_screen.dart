@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/patient_provider.dart';
@@ -55,7 +55,7 @@ class _NursePatientsScreenState extends State<NursePatientsScreen> {
                       const Text('Patients'),
                       Text(
                         '${pp.patientCount} active patients',
-                        style: GoogleFonts.dmSans(
+                        style: appText(
                           color: AppColors.textSecondary,
                           fontSize: 12,
                           fontWeight: FontWeight.normal,

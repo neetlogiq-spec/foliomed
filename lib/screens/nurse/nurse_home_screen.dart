@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/note.dart';
@@ -170,7 +170,7 @@ class _NurseHomeScreenState extends State<NurseHomeScreen> {
               Expanded(
                 child: Text(
                   'You have $count urgent notes requiring attention',
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                     color: Colors.white,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -240,7 +240,6 @@ class _NurseHomeScreenState extends State<NurseHomeScreen> {
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -256,7 +255,7 @@ class _NurseHomeScreenState extends State<NurseHomeScreen> {
           const SizedBox(height: 10),
           Text(
             value,
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.textPrimary,
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -264,7 +263,7 @@ class _NurseHomeScreenState extends State<NurseHomeScreen> {
           ),
           Text(
             label,
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.textSecondary,
               fontSize: 12,
             ),
@@ -280,7 +279,7 @@ class _NurseHomeScreenState extends State<NurseHomeScreen> {
         Expanded(
           child: Text(
             'Pending Actions',
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.textPrimary,
               fontSize: 17,
               fontWeight: FontWeight.w600,
@@ -343,7 +342,6 @@ class _NurseHomeScreenState extends State<NurseHomeScreen> {
             decoration: BoxDecoration(
               color: AppColors.card,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.divider),
             ),
             child: Column(
               children: [
@@ -355,7 +353,7 @@ class _NurseHomeScreenState extends State<NurseHomeScreen> {
                 const SizedBox(height: 8),
                 Text(
                   'All caught up!',
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                     color: AppColors.textPrimary,
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
@@ -387,7 +385,7 @@ class _NurseHomeScreenState extends State<NurseHomeScreen> {
         Expanded(
           child: Text(
             'All Ward Notes',
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.textPrimary,
               fontSize: 17,
               fontWeight: FontWeight.w600,
@@ -417,12 +415,11 @@ class _NurseHomeScreenState extends State<NurseHomeScreen> {
             decoration: BoxDecoration(
               color: AppColors.card,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.divider),
             ),
             child: Text(
               'No notes yet',
               textAlign: TextAlign.center,
-              style: GoogleFonts.dmSans(color: AppColors.textSecondary),
+              style: appText(color: AppColors.textSecondary),
             ),
           );
         }

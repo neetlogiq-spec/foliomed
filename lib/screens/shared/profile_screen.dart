@@ -5,7 +5,7 @@ import '../../services/supabase_service.dart';
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 import 'package:intl/intl.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -40,7 +40,7 @@ class ProfileScreen extends StatelessWidget {
       backgroundColor: AppColors.surface,
       appBar: AppBar(title: const Text('Profile')),
       body: user == null
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator.adaptive())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -86,7 +86,7 @@ class ProfileScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Text(
         text.toUpperCase(),
-        style: GoogleFonts.dmSans(
+        style: appText(
           color: AppColors.textSecondary,
           fontSize: 11,
           fontWeight: FontWeight.w600,
@@ -102,7 +102,6 @@ class ProfileScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.divider),
       ),
       child: Column(
         children: [
@@ -137,7 +136,6 @@ class ProfileScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: AppColors.card,
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.divider),
                   ),
                   child: Icon(
                     Icons.edit,
@@ -151,7 +149,7 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(height: 14),
           Text(
             user.name,
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.textPrimary,
               fontSize: 22,
               fontWeight: FontWeight.bold,
@@ -161,7 +159,7 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               user.specialty!,
-              style: GoogleFonts.dmSans(
+              style: appText(
                 color: AppColors.primary,
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -182,7 +180,7 @@ class ProfileScreen extends StatelessWidget {
                 child: Text(
                   user.email,
                   overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                     color: AppColors.textSecondary,
                     fontSize: 13,
                   ),
@@ -220,7 +218,7 @@ class ProfileScreen extends StatelessWidget {
               padding: const EdgeInsets.only(left: 4, bottom: 12),
               child: Text(
                 'Pick an avatar',
-                style: GoogleFonts.dmSans(
+                style: appText(
                   color: AppColors.textPrimary,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -277,7 +275,6 @@ class ProfileScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(children: tiles),
@@ -457,9 +454,9 @@ class ProfileScreen extends StatelessWidget {
       ListTile(
         leading: const Icon(Icons.settings_input_antenna, color: AppColors.primary),
         title: Text('Manage Cameras',
-            style: GoogleFonts.dmSans(fontWeight: FontWeight.w600)),
+            style: appText(fontWeight: FontWeight.w600)),
         subtitle: Text('View, edit, or add CCTV cameras',
-            style: GoogleFonts.dmSans(fontSize: 12, color: AppColors.textSecondary)),
+            style: appText(fontSize: 12, color: AppColors.textSecondary)),
         trailing: const Icon(Icons.arrow_forward_ios, size: 14),
         onTap: () => Navigator.push(context,
             MaterialPageRoute(builder: (_) => const FolioMedEdgeScreen())),
@@ -468,9 +465,9 @@ class ProfileScreen extends StatelessWidget {
       ListTile(
         leading: const Icon(Icons.add_a_photo_outlined, color: AppColors.primary),
         title: Text('Set Up a New Camera',
-            style: GoogleFonts.dmSans(fontWeight: FontWeight.w600)),
+            style: appText(fontWeight: FontWeight.w600)),
         subtitle: Text('Step-by-step connection wizard',
-            style: GoogleFonts.dmSans(fontSize: 12, color: AppColors.textSecondary)),
+            style: appText(fontSize: 12, color: AppColors.textSecondary)),
         trailing: const Icon(Icons.arrow_forward_ios, size: 14),
         onTap: () => Navigator.push(context,
             MaterialPageRoute(builder: (_) => const EdgeSetupScreen())),
@@ -479,10 +476,10 @@ class ProfileScreen extends StatelessWidget {
       ListTile(
         leading: const Icon(Icons.info_outline, color: AppColors.primary),
         title: Text('What is FolioMed Edge?',
-            style: GoogleFonts.dmSans(fontWeight: FontWeight.w600)),
+            style: appText(fontWeight: FontWeight.w600)),
         subtitle: Text(
             'Connects CCTV cameras → auto-reads vitals → no manual charting',
-            style: GoogleFonts.dmSans(fontSize: 12, color: AppColors.textSecondary)),
+            style: appText(fontSize: 12, color: AppColors.textSecondary)),
       ),
     ]);
   }
@@ -990,7 +987,7 @@ Account: $email
             children: [
               Text(
                 'Edit profile',
-                style: GoogleFonts.dmSans(
+                style: appText(
                   color: AppColors.textPrimary,
                   fontSize: 18,
                   fontWeight: FontWeight.bold,

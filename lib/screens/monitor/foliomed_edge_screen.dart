@@ -2,7 +2,7 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/camera_config.dart';
@@ -58,7 +58,7 @@ class _FolioMedEdgeScreenState extends State<FolioMedEdgeScreen> {
                 color: AppColors.primary, size: 20),
             const SizedBox(width: 8),
             Text('FolioMed Edge',
-                style: GoogleFonts.dmSans(
+                style: appText(
                     fontWeight: FontWeight.w800,
                     color: AppColors.primary,
                     fontSize: 18)),
@@ -74,7 +74,7 @@ class _FolioMedEdgeScreenState extends State<FolioMedEdgeScreen> {
               label: const Text('Webcam Test'),
               style: TextButton.styleFrom(
                 foregroundColor: AppColors.accent,
-                textStyle: GoogleFonts.dmSans(
+                textStyle: appText(
                     fontWeight: FontWeight.w700, fontSize: 13),
               ),
             ),
@@ -84,7 +84,7 @@ class _FolioMedEdgeScreenState extends State<FolioMedEdgeScreen> {
             label: const Text('Add Camera'),
             style: TextButton.styleFrom(
               foregroundColor: AppColors.primary,
-              textStyle: GoogleFonts.dmSans(fontWeight: FontWeight.w700, fontSize: 13),
+              textStyle: appText(fontWeight: FontWeight.w700, fontSize: 13),
             ),
           ),
         ],
@@ -141,7 +141,7 @@ class _FolioMedEdgeScreenState extends State<FolioMedEdgeScreen> {
             Icon(icon, size: 14, color: fg),
             const SizedBox(width: 5),
             Text(label,
-                style: GoogleFonts.dmSans(
+                style: appText(
                     fontSize: 12,
                     fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                     color: fg)),
@@ -180,7 +180,7 @@ class _FolioMedEdgeScreenState extends State<FolioMedEdgeScreen> {
                 color: AppColors.accent, size: 20),
             const SizedBox(width: 8),
             Text('Webcam Test',
-                style: GoogleFonts.dmSans(
+                style: appText(
                     fontWeight: FontWeight.w800,
                     fontSize: 16,
                     color: AppColors.textPrimary)),
@@ -197,7 +197,7 @@ class _FolioMedEdgeScreenState extends State<FolioMedEdgeScreen> {
                 'it at a patient monitor (or a monitor photo on your phone) '
                 'and the AI will read the vitals.\n\nWhich patient should '
                 'the readings go to?',
-                style: GoogleFonts.dmSans(
+                style: appText(
                     color: AppColors.textSecondary, fontSize: 12.5, height: 1.5),
               ),
               const SizedBox(height: 12),
@@ -212,14 +212,14 @@ class _FolioMedEdgeScreenState extends State<FolioMedEdgeScreen> {
                         leading: Icon(Icons.person_outline,
                             color: AppColors.primary, size: 20),
                         title: Text(p.name,
-                            style: GoogleFonts.dmSans(
+                            style: appText(
                                 fontSize: 13.5,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.textPrimary)),
                         subtitle: p.bed.isEmpty
                             ? null
                             : Text(p.bed,
-                                style: GoogleFonts.dmSans(
+                                style: appText(
                                     fontSize: 11,
                                     color: AppColors.textSecondary)),
                         onTap: () => Navigator.pop(ctx, p),
@@ -286,7 +286,7 @@ class _FolioMedEdgeScreenState extends State<FolioMedEdgeScreen> {
             ),
             const SizedBox(height: 20),
             Text('No cameras configured',
-                style: GoogleFonts.dmSans(
+                style: appText(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
                     color: AppColors.textPrimary)),
@@ -295,7 +295,7 @@ class _FolioMedEdgeScreenState extends State<FolioMedEdgeScreen> {
               'Connect an IP CCTV camera to automatically read '
               'vitals from your bedside monitors.',
               textAlign: TextAlign.center,
-              style: GoogleFonts.dmSans(
+              style: appText(
                   color: AppColors.textSecondary, fontSize: 13, height: 1.5),
             ),
             const SizedBox(height: 28),
@@ -305,7 +305,7 @@ class _FolioMedEdgeScreenState extends State<FolioMedEdgeScreen> {
                 onPressed: () => _openSetup(context),
                 icon: const Icon(Icons.add_a_photo_outlined, size: 20),
                 label: Text('Set Up First Camera',
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                         fontWeight: FontWeight.w700, fontSize: 15)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
@@ -401,7 +401,7 @@ class _EdgeDashboard extends StatelessWidget {
               Expanded(
                 child: Text('FolioMed Edge · $wardName',
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                         color: AppColors.textPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
@@ -419,7 +419,7 @@ class _EdgeDashboard extends StatelessWidget {
                   child: Text(
                     'No monitored patients yet.\nAdd patients in the Monitor tab of the FolioMed app.',
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                         color: AppColors.textSecondary, fontSize: 13, height: 1.6),
                   ),
                 )
@@ -495,7 +495,7 @@ class _AiEngineChip extends StatelessWidget {
                     const SizedBox(width: 5),
                   ],
                   Text(label,
-                      style: GoogleFonts.dmSans(
+                      style: appText(
                           fontSize: 9,
                           fontWeight: FontWeight.w800,
                           letterSpacing: 1,
@@ -535,7 +535,7 @@ class _LiveCamerasChip extends StatelessWidget {
             live
                 ? '$activeCount CAMERA${activeCount == 1 ? '' : 'S'} LIVE'
                 : 'NO CAMERAS',
-            style: GoogleFonts.dmSans(
+            style: appText(
                 fontSize: 9,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 1,
@@ -634,7 +634,7 @@ class _BedTile extends StatelessWidget {
               children: [
                 if (patient.bed.isNotEmpty) ...[
                   Text(patient.bed,
-                      style: GoogleFonts.dmSans(
+                      style: appText(
                           color: AppColors.textPrimary,
                           fontSize: 12,
                           fontWeight: FontWeight.w800)),
@@ -643,7 +643,7 @@ class _BedTile extends StatelessWidget {
                 Expanded(
                   child: Text(patient.name,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.dmSans(
+                      style: appText(
                           color: AppColors.textSecondary, fontSize: 11)),
                 ),
                 if (hasCamera)
@@ -670,7 +670,7 @@ class _BedTile extends StatelessWidget {
             if (isCrit) ...[
               const SizedBox(height: 8),
               Text('⚠ ${_critLabel()}',
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                       color: AppColors.danger,
                       fontSize: 9,
                       fontWeight: FontWeight.w800,
@@ -738,7 +738,7 @@ class _BedTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(4),
       ),
       child: Text(label,
-          style: GoogleFonts.dmSans(
+          style: appText(
               fontSize: 8,
               fontWeight: FontWeight.w800,
               letterSpacing: 0.5,
@@ -752,12 +752,12 @@ class _BedTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label,
-              style: GoogleFonts.dmSans(
+              style: appText(
                   color: AppColors.textSecondary,
                   fontSize: 8.5,
                   fontWeight: FontWeight.w600)),
           Text(value == null ? '--' : '${value.round()}',
-              style: GoogleFonts.dmSans(
+              style: appText(
                   color: color, fontSize: 15, fontWeight: FontWeight.w800)),
         ],
       ),
@@ -782,12 +782,12 @@ class _BedTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('BP',
-              style: GoogleFonts.dmSans(
+              style: appText(
                   color: AppColors.textSecondary,
                   fontSize: 8.5,
                   fontWeight: FontWeight.w600)),
           Text(text,
-              style: GoogleFonts.dmSans(
+              style: appText(
                   color: worst, fontSize: 15, fontWeight: FontWeight.w800)),
         ],
       ),
@@ -821,7 +821,7 @@ class _AddCameraTile extends StatelessWidget {
               Icon(Icons.add, size: 16, color: AppColors.textSecondary),
               const SizedBox(width: 6),
               Text('Add camera',
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                       color: AppColors.textSecondary,
                       fontSize: 12,
                       fontWeight: FontWeight.w600)),
@@ -868,12 +868,12 @@ class _StatsHeader extends StatelessWidget {
       child: Column(
         children: [
           Text(num,
-              style: GoogleFonts.dmSans(
+              style: appText(
                   color: Colors.white,
                   fontSize: 20,
                   fontWeight: FontWeight.w800)),
           Text(label,
-              style: GoogleFonts.dmSans(
+              style: appText(
                   color: Colors.white70, fontSize: 10)),
         ],
       ),
@@ -896,7 +896,6 @@ class _CameraCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider),
         boxShadow: AppColors.cardShadow,
       ),
       child: Column(
@@ -930,7 +929,7 @@ class _CameraCard extends StatelessWidget {
                           Expanded(
                             child: Text(
                               camera.label.isEmpty ? 'Unnamed Camera' : camera.label,
-                              style: GoogleFonts.dmSans(
+                              style: appText(
                                   fontWeight: FontWeight.w700,
                                   color: AppColors.textPrimary,
                                   fontSize: 14),
@@ -942,7 +941,7 @@ class _CameraCard extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         '${camera.brand} · ${camera.ip}:${camera.port}',
-                        style: GoogleFonts.dmSans(
+                        style: appText(
                             color: AppColors.textSecondary, fontSize: 11),
                       ),
                       if (camera.patientName.isNotEmpty) ...[
@@ -953,13 +952,13 @@ class _CameraCard extends StatelessWidget {
                                 size: 12, color: AppColors.primary),
                             const SizedBox(width: 4),
                             Text(camera.patientName,
-                                style: GoogleFonts.dmSans(
+                                style: appText(
                                     color: AppColors.primary,
                                     fontSize: 11,
                                     fontWeight: FontWeight.w600)),
                             if (camera.bedLabel.isNotEmpty) ...[
                               Text(' · ${camera.bedLabel}',
-                                  style: GoogleFonts.dmSans(
+                                  style: appText(
                                       color: AppColors.textSecondary,
                                       fontSize: 11)),
                             ],
@@ -985,7 +984,7 @@ class _CameraCard extends StatelessWidget {
                                   m.patientName.isEmpty
                                       ? m.name
                                       : '${m.name} → ${m.patientName}',
-                                  style: GoogleFonts.dmSans(
+                                  style: appText(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w600,
                                     color: AppColors.primary,
@@ -1092,7 +1091,7 @@ class _CameraCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   'No vital zones defined — tap to draw zones for auto-reading',
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                       color: AppColors.warningColor,
                       fontSize: 11,
                       fontWeight: FontWeight.w600),
@@ -1126,7 +1125,7 @@ class _CameraCard extends StatelessWidget {
           Icon(Icons.crop_free, size: 13, color: AppColors.stable),
           const SizedBox(width: 6),
           Text('Zones: ',
-              style: GoogleFonts.dmSans(
+              style: appText(
                   color: AppColors.textSecondary, fontSize: 11)),
           Expanded(
             child: Wrap(
@@ -1146,7 +1145,7 @@ class _CameraCard extends StatelessWidget {
                   ),
                   child: Text(
                     vitalLabels[vt]!,
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                         fontSize: 10,
                         color: defined ? color : AppColors.textSecondary,
                         fontWeight:
@@ -1182,7 +1181,7 @@ class _CameraCard extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             enabled ? 'Active' : 'Paused',
-            style: GoogleFonts.dmSans(
+            style: appText(
               fontSize: 10,
               fontWeight: FontWeight.w700,
               color: enabled ? AppColors.stable : AppColors.textSecondary,
@@ -1208,7 +1207,7 @@ class _CameraCard extends StatelessWidget {
               Icon(icon, size: 18, color: color),
               const SizedBox(height: 3),
               Text(label,
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
                       color: color)),
@@ -1233,7 +1232,7 @@ class _CameraCard extends StatelessWidget {
       context: context,
       builder: (_) => AlertDialog(
         title: Text('Remote Stream URL',
-            style: GoogleFonts.dmSans(fontWeight: FontWeight.w700)),
+            style: appText(fontWeight: FontWeight.w700)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1241,16 +1240,16 @@ class _CameraCard extends StatelessWidget {
             Text(
               'Paste the HLS URL from your Cloudflare tunnel + MediaMTX.\n\n'
               'Format: https://your-tunnel.trycloudflare.com/stream/index.m3u8',
-              style: GoogleFonts.dmSans(color: AppColors.textSecondary, fontSize: 12, height: 1.5),
+              style: appText(color: AppColors.textSecondary, fontSize: 12, height: 1.5),
             ),
             const SizedBox(height: 14),
             TextField(
               controller: ctrl,
               autofocus: true,
-              style: GoogleFonts.dmSans(fontSize: 13),
+              style: appText(fontSize: 13),
               decoration: InputDecoration(
                 hintText: 'https://…/stream/index.m3u8',
-                hintStyle: GoogleFonts.dmSans(color: AppColors.textSecondary),
+                hintStyle: appText(color: AppColors.textSecondary),
                 border: const OutlineInputBorder(),
               ),
             ),
@@ -1327,11 +1326,11 @@ class _CameraCard extends StatelessWidget {
       context: context,
       builder: (_) => AlertDialog(
         title: Text('Delete camera?',
-            style: GoogleFonts.dmSans(fontWeight: FontWeight.w700)),
+            style: appText(fontWeight: FontWeight.w700)),
         content: Text(
             'This will remove "${cam.label.isEmpty ? "Unnamed Camera" : cam.label}" '
             'and all its zone definitions.',
-            style: GoogleFonts.dmSans()),
+            style: appText()),
         actions: [
           TextButton(
               onPressed: () => Navigator.pop(context, false),
@@ -1393,12 +1392,12 @@ class _EditCameraSheetState extends State<_EditCameraSheet> {
       appBar: AppBar(
         backgroundColor: AppColors.appBarBg,
         title: Text('Edit Camera',
-            style: GoogleFonts.dmSans(fontWeight: FontWeight.w700)),
+            style: appText(fontWeight: FontWeight.w700)),
         actions: [
           TextButton(
             onPressed: _save,
             child: Text('Save',
-                style: GoogleFonts.dmSans(
+                style: appText(
                     color: AppColors.primary, fontWeight: FontWeight.w700)),
           ),
         ],
@@ -1439,7 +1438,7 @@ class _EditCameraSheetState extends State<_EditCameraSheet> {
                   borderRadius: BorderRadius.circular(12),
                   borderSide: const BorderSide(color: AppColors.primary, width: 2),
                 ),
-                labelStyle: GoogleFonts.dmSans(color: AppColors.textSecondary),
+                labelStyle: appText(color: AppColors.textSecondary),
               ),
             ),
             const SizedBox(height: 12),
@@ -1469,7 +1468,7 @@ class _EditCameraSheetState extends State<_EditCameraSheet> {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
-        labelStyle: GoogleFonts.dmSans(color: AppColors.textSecondary),
+        labelStyle: appText(color: AppColors.textSecondary),
       ),
     );
   }
@@ -1512,7 +1511,6 @@ class _HowItWorksCardState extends State<_HowItWorksCard> {
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.divider),
       ),
       child: Column(
         children: [
@@ -1528,7 +1526,7 @@ class _HowItWorksCardState extends State<_HowItWorksCard> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text('How FolioMed Edge works',
-                        style: GoogleFonts.dmSans(
+                        style: appText(
                             fontWeight: FontWeight.w700,
                             color: AppColors.textPrimary,
                             fontSize: 13)),
@@ -1584,12 +1582,12 @@ class _HowItWorksCardState extends State<_HowItWorksCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title,
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                         fontWeight: FontWeight.w700,
                         color: AppColors.textPrimary,
                         fontSize: 12)),
                 Text(body,
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                         color: AppColors.textSecondary,
                         fontSize: 11,
                         height: 1.4)),

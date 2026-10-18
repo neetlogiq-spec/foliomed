@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 
 import '../../models/monitor_vitals.dart';
 import '../../models/monitored_patient.dart';
@@ -80,7 +80,7 @@ class _ThresholdPanelState extends State<ThresholdPanel> {
                     ),
                     child: Text(
                       t['label'] as String,
-                      style: GoogleFonts.dmSans(
+                      style: appText(
                         color: active ? Colors.white : AppColors.textSecondary,
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -114,7 +114,7 @@ class _ThresholdPanelState extends State<ThresholdPanel> {
             onPressed: () => widget.onSave(widget.patient.id, _local),
             icon: const Icon(Icons.check_circle_outline, size: 20),
             label: Text('Save Thresholds',
-                style: GoogleFonts.dmSans(
+                style: appText(
                     fontSize: 15, fontWeight: FontWeight.w700)),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
@@ -131,7 +131,7 @@ class _ThresholdPanelState extends State<ThresholdPanel> {
 
         Center(
           child: Text('Changes are not applied until you tap Save.',
-              style: GoogleFonts.dmSans(
+              style: appText(
                   color: AppColors.textSecondary, fontSize: 11)),
         ),
       ],
@@ -149,7 +149,6 @@ class _ThresholdPanelState extends State<ThresholdPanel> {
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.divider),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -159,13 +158,13 @@ class _ThresholdPanelState extends State<ThresholdPanel> {
             children: [
               if (subtitle != null)
                 Text(subtitle,
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                         color: AppColors.textPrimary,
                         fontSize: 13,
                         fontWeight: FontWeight.w700)),
               const Spacer(),
               Text('Now: ${current.round()} ${meta.unit}',
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                       color: AppColors.primary,
                       fontSize: 12,
                       fontWeight: FontWeight.w600)),
@@ -226,12 +225,12 @@ class _ThresholdPanelState extends State<ThresholdPanel> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(label,
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                         color: AppColors.critical,
                         fontSize: 13,
                         fontWeight: FontWeight.w700)),
                 Text(sublabel,
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                         color: AppColors.textSecondary, fontSize: 10)),
               ],
             ),
@@ -243,7 +242,7 @@ class _ThresholdPanelState extends State<ThresholdPanel> {
               ),
               child: Text(
                 value != null ? '${value.round()} $unit' : 'Off',
-                style: GoogleFonts.dmSans(
+                style: appText(
                     color: AppColors.critical,
                     fontSize: 15,
                     fontWeight: FontWeight.w800),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
@@ -168,7 +168,7 @@ class _AddNoteBottomSheetState extends State<AddNoteBottomSheet> {
                   children: [
                     Text(
                       'New Note',
-                      style: GoogleFonts.dmSans(
+                      style: appText(
                         color: AppColors.textPrimary,
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -248,8 +248,8 @@ class _AddNoteBottomSheetState extends State<AddNoteBottomSheet> {
                               ? const SizedBox(
                                   height: 20,
                                   width: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
+                                  child: CircularProgressIndicator.adaptive(
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                                     strokeWidth: 2,
                                   ),
                                 )
@@ -275,7 +275,7 @@ class _AddNoteBottomSheetState extends State<AddNoteBottomSheet> {
   Widget _sectionLabel(String text) {
     return Text(
       text,
-      style: GoogleFonts.dmSans(
+      style: appText(
         color: AppColors.textSecondary,
         fontSize: 13,
         fontWeight: FontWeight.w600,
@@ -289,7 +289,7 @@ class _AddNoteBottomSheetState extends State<AddNoteBottomSheet> {
     if (myWardIds.isEmpty) {
       return Text(
         'Join a ward first from the Wards tab.',
-        style: GoogleFonts.dmSans(color: AppColors.textSecondary),
+        style: appText(color: AppColors.textSecondary),
       );
     }
     final ids = myWardIds;
@@ -300,7 +300,7 @@ class _AddNoteBottomSheetState extends State<AddNoteBottomSheet> {
         if (snap.hasError) {
           return Text(
             "Couldn't load wards. Pull down to retry.",
-            style: GoogleFonts.dmSans(color: AppColors.danger),
+            style: appText(color: AppColors.danger),
           );
         }
         if (!snap.hasData) {
@@ -308,7 +308,7 @@ class _AddNoteBottomSheetState extends State<AddNoteBottomSheet> {
             height: 40,
             child: Text(
               'Loading wards...',
-              style: GoogleFonts.dmSans(color: AppColors.textSecondary),
+              style: appText(color: AppColors.textSecondary),
             ),
           );
         }
@@ -316,7 +316,7 @@ class _AddNoteBottomSheetState extends State<AddNoteBottomSheet> {
         if (wards.isEmpty) {
           return Text(
             'No wards yet. Create or join one from the Wards tab.',
-            style: GoogleFonts.dmSans(color: AppColors.textSecondary),
+            style: appText(color: AppColors.textSecondary),
           );
         }
         return SingleChildScrollView(
@@ -357,7 +357,7 @@ class _AddNoteBottomSheetState extends State<AddNoteBottomSheet> {
         ),
         child: Text(
           w.name,
-          style: GoogleFonts.dmSans(
+          style: appText(
             color: selected ? Colors.white : AppColors.textPrimary,
             fontSize: 13,
             fontWeight: FontWeight.w600,
@@ -378,7 +378,7 @@ class _AddNoteBottomSheetState extends State<AddNoteBottomSheet> {
         ),
         child: Text(
           'Pick a ward first',
-          style: GoogleFonts.dmSans(color: AppColors.textSecondary),
+          style: appText(color: AppColors.textSecondary),
         ),
       );
     }
@@ -427,7 +427,7 @@ class _AddNoteBottomSheetState extends State<AddNoteBottomSheet> {
                           children: [
                             Text(
                               'Select Patient',
-                              style: GoogleFonts.dmSans(
+                              style: appText(
                                 fontSize: 17,
                                 fontWeight: FontWeight.w700,
                                 color: AppColors.textPrimary,
@@ -437,7 +437,7 @@ class _AddNoteBottomSheetState extends State<AddNoteBottomSheet> {
                             Text(
                               '${patients.length} '
                               '${patients.length == 1 ? 'patient' : 'patients'}',
-                              style: GoogleFonts.dmSans(
+                              style: appText(
                                 fontSize: 13,
                                 color: AppColors.textSecondary,
                               ),
@@ -556,7 +556,7 @@ class _AddNoteBottomSheetState extends State<AddNoteBottomSheet> {
                 _selectedPatient == null
                     ? 'Select Patient'
                     : '${_selectedPatient!.name} · Bed ${_selectedPatient!.bedNumber}',
-                style: GoogleFonts.dmSans(
+                style: appText(
                   color: _selectedPatient == null
                       ? AppColors.textSecondary
                       : AppColors.textPrimary,
@@ -590,7 +590,7 @@ class _AddNoteBottomSheetState extends State<AddNoteBottomSheet> {
         ),
         child: Text(
           label,
-          style: GoogleFonts.dmSans(
+          style: appText(
             color: selected ? Colors.white : AppColors.textSecondary,
             fontSize: 13,
             fontWeight: FontWeight.w500,
@@ -619,7 +619,7 @@ class _AddNoteBottomSheetState extends State<AddNoteBottomSheet> {
         child: Center(
           child: Text(
             label,
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: selected ? color : AppColors.textSecondary,
               fontSize: 13,
               fontWeight: FontWeight.w600,

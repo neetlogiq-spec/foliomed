@@ -1,6 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -60,7 +60,7 @@ class _VitalTrendsScreenState extends State<VitalTrendsScreen> {
             icon: const Icon(Icons.arrow_back),
             onPressed: () => Navigator.pop(context)),
         title: Text('Vital Trends',
-            style: GoogleFonts.dmSans(
+            style: appText(
                 fontWeight: FontWeight.w800, color: AppColors.primary)),
       ),
       body: Column(
@@ -74,7 +74,7 @@ class _VitalTrendsScreenState extends State<VitalTrendsScreen> {
               children: [
                 Expanded(
                   child: Text(widget.patientName,
-                      style: GoogleFonts.dmSans(
+                      style: appText(
                           color: AppColors.textPrimary,
                           fontSize: 15,
                           fontWeight: FontWeight.w700)),
@@ -89,7 +89,7 @@ class _VitalTrendsScreenState extends State<VitalTrendsScreen> {
             child: data.isEmpty
                 ? Center(
                     child: Text('No data yet',
-                        style: GoogleFonts.dmSans(
+                        style: appText(
                             color: AppColors.textSecondary, fontSize: 14)))
                 : ListView(
                     padding: const EdgeInsets.only(bottom: 24),
@@ -133,7 +133,7 @@ class _VitalTrendsScreenState extends State<VitalTrendsScreen> {
               ),
             ),
             child: Text(r,
-                style: GoogleFonts.dmSans(
+                style: appText(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: sel ? Colors.white : AppColors.textSecondary)),
@@ -190,7 +190,6 @@ class _VitalChart extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.divider),
         boxShadow: AppColors.cardShadow,
       ),
       child: Column(
@@ -203,19 +202,19 @@ class _VitalChart extends StatelessWidget {
                   style: TextStyle(color: color, fontSize: 14)),
               const SizedBox(width: 6),
               Text(meta.label,
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                       color: AppColors.textPrimary,
                       fontSize: 13,
                       fontWeight: FontWeight.w700)),
               const Spacer(),
               Text('${latest.round()}',
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                       color: color,
                       fontSize: 22,
                       fontWeight: FontWeight.w800)),
               const SizedBox(width: 4),
               Text(meta.unit,
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                       color: AppColors.textSecondary, fontSize: 11)),
             ],
           ),
@@ -246,7 +245,7 @@ class _VitalChart extends StatelessWidget {
                       interval: (chartMax - chartMin) / 3,
                       getTitlesWidget: (v, _) => Text(
                         v.round().toString(),
-                        style: GoogleFonts.dmSans(
+                        style: appText(
                             color: AppColors.textSecondary, fontSize: 8),
                       ),
                     ),
@@ -264,7 +263,7 @@ class _VitalChart extends StatelessWidget {
                         }
                         return Text(
                           DateFormat('HH:mm').format(data[i].time),
-                          style: GoogleFonts.dmSans(
+                          style: appText(
                               color: AppColors.textSecondary, fontSize: 8),
                         );
                       },
@@ -291,7 +290,7 @@ class _VitalChart extends StatelessWidget {
                     getTooltipItems: (spots) => spots
                         .map((s) => LineTooltipItem(
                               '${s.y.round()} ${meta.unit}',
-                              GoogleFonts.dmSans(
+                              appText(
                                   color: Colors.white,
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700),
@@ -344,12 +343,12 @@ class _VitalChart extends StatelessWidget {
       child: Column(
         children: [
           Text(label,
-              style: GoogleFonts.dmSans(
+              style: appText(
                   color: AppColors.textSecondary,
                   fontSize: 9,
                   fontWeight: FontWeight.w600)),
           Text('$val $unit',
-              style: GoogleFonts.dmSans(
+              style: appText(
                   color: AppColors.textPrimary,
                   fontSize: 11,
                   fontWeight: FontWeight.w700)),
@@ -409,7 +408,6 @@ class _BPChart extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.divider),
         boxShadow: AppColors.cardShadow,
       ),
       child: Column(
@@ -421,26 +419,26 @@ class _BPChart extends StatelessWidget {
                   style: TextStyle(color: AppColors.primary, fontSize: 14)),
               const SizedBox(width: 6),
               Text('Blood Pressure',
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                       color: AppColors.textPrimary,
                       fontSize: 13,
                       fontWeight: FontWeight.w700)),
               const Spacer(),
               Text('${latestSbp.round()}/${latestDbp.round()}',
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                       color: AppColors.primary,
                       fontSize: 22,
                       fontWeight: FontWeight.w800)),
               const SizedBox(width: 4),
               Text('mmHg',
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                       color: AppColors.textSecondary, fontSize: 11)),
             ],
           ),
           Padding(
             padding: const EdgeInsets.only(top: 2),
             child: Text('MAP: $latestMap mmHg',
-                style: GoogleFonts.dmSans(
+                style: appText(
                     color: AppColors.textSecondary, fontSize: 10)),
           ),
           const SizedBox(height: 10),
@@ -451,7 +449,7 @@ class _BPChart extends StatelessWidget {
               _dot(AppColors.primary),
               const SizedBox(width: 4),
               Text('SBP',
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                       color: AppColors.textSecondary,
                       fontSize: 10,
                       fontWeight: FontWeight.w600)),
@@ -459,7 +457,7 @@ class _BPChart extends StatelessWidget {
               _dot(AppColors.accent),
               const SizedBox(width: 4),
               Text('DBP',
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                       color: AppColors.textSecondary,
                       fontSize: 10,
                       fontWeight: FontWeight.w600)),
@@ -491,7 +489,7 @@ class _BPChart extends StatelessWidget {
                       interval: (chartMax - chartMin) / 3,
                       getTitlesWidget: (v, _) => Text(
                         v.round().toString(),
-                        style: GoogleFonts.dmSans(
+                        style: appText(
                             color: AppColors.textSecondary, fontSize: 8),
                       ),
                     ),
@@ -510,7 +508,7 @@ class _BPChart extends StatelessWidget {
                         }
                         return Text(
                           DateFormat('HH:mm').format(sbpData[i].time),
-                          style: GoogleFonts.dmSans(
+                          style: appText(
                               color: AppColors.textSecondary, fontSize: 8),
                         );
                       },
@@ -535,7 +533,7 @@ class _BPChart extends StatelessWidget {
                     getTooltipItems: (spots) => spots
                         .map((s) => LineTooltipItem(
                               '${s.y.round()} mmHg',
-                              GoogleFonts.dmSans(
+                              appText(
                                   color: Colors.white,
                                   fontSize: 11,
                                   fontWeight: FontWeight.w700),

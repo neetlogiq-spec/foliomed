@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../utils/app_theme.dart';
@@ -218,7 +218,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
         children: [
           Text(
             'Tutorial',
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.textPrimary,
               fontSize: 17,
               fontWeight: FontWeight.bold,
@@ -332,7 +332,7 @@ class _SlideView extends StatelessWidget {
           const SizedBox(height: 24),
           Text(
             slide.title,
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.textPrimary,
               fontSize: 26,
               fontWeight: FontWeight.bold,
@@ -342,7 +342,7 @@ class _SlideView extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             slide.body,
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.textSecondary,
               fontSize: 14.5,
               height: 1.55,
@@ -361,7 +361,6 @@ class _SlideView extends StatelessWidget {
                       height: 32,
                       decoration: BoxDecoration(
                         color: AppColors.card,
-                        border: Border.all(color: AppColors.divider),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Icon(
@@ -377,7 +376,7 @@ class _SlideView extends StatelessWidget {
                         children: [
                           Text(
                             p.$1,
-                            style: GoogleFonts.dmSans(
+                            style: appText(
                               color: AppColors.textPrimary,
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
@@ -386,7 +385,7 @@ class _SlideView extends StatelessWidget {
                           const SizedBox(height: 2),
                           Text(
                             p.$2,
-                            style: GoogleFonts.dmSans(
+                            style: appText(
                               color: AppColors.textSecondary,
                               fontSize: 13,
                               height: 1.45,

@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../utils/haptics.dart';
+
 import '../models/patient.dart';
 import '../services/patient_service.dart';
 
@@ -75,8 +77,10 @@ class PatientProvider extends ChangeNotifier {
   Future<bool> addPatient(Patient patient) async {
     try {
       await _patientService.addPatient(patient);
+      Haptics.success();
       return true;
     } catch (e) {
+      Haptics.error();
       _error = e.toString();
       notifyListeners();
       return false;
@@ -86,8 +90,10 @@ class PatientProvider extends ChangeNotifier {
   Future<bool> updatePatient(Patient patient) async {
     try {
       await _patientService.updatePatient(patient);
+      Haptics.commit();
       return true;
     } catch (e) {
+      Haptics.error();
       _error = e.toString();
       notifyListeners();
       return false;
@@ -97,8 +103,10 @@ class PatientProvider extends ChangeNotifier {
   Future<bool> deletePatient(String patientId) async {
     try {
       await _patientService.deletePatient(patientId);
+      Haptics.destructive();
       return true;
     } catch (e) {
+      Haptics.error();
       _error = e.toString();
       notifyListeners();
       return false;

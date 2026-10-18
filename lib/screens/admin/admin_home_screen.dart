@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 import 'package:provider/provider.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
@@ -196,7 +196,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           padding: const EdgeInsets.only(bottom: 8),
           child: Text(
             'Analytics',
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.textPrimary,
               fontSize: 17,
               fontWeight: FontWeight.w600,
@@ -281,12 +281,12 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 const SizedBox(
                   width: 12,
                   height: 12,
-                  child: CircularProgressIndicator(strokeWidth: 1.5),
+                  child: CircularProgressIndicator.adaptive(strokeWidth: 1.5),
                 ),
                 const SizedBox(width: 8),
                 Text(
                   'Refreshing analytics…',
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                     color: AppColors.textSecondary,
                     fontSize: 12,
                   ),
@@ -304,7 +304,6 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -325,7 +324,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           const Spacer(),
           Text(
             value,
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.textPrimary,
               fontSize: 28,
               fontWeight: FontWeight.bold,
@@ -333,7 +332,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           ),
           Text(
             label,
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.textSecondary,
               fontSize: 12,
             ),
@@ -354,7 +353,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 Expanded(
                   child: Text(
                     'Wards Overview',
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                       color: AppColors.textPrimary,
                       fontSize: 17,
                       fontWeight: FontWeight.w600,
@@ -381,12 +380,11 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.card,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.divider),
                 ),
                 child: Text(
                   'No wards yet',
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.dmSans(color: AppColors.textSecondary),
+                  style: appText(color: AppColors.textSecondary),
                 ),
               )
             else
@@ -407,7 +405,6 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -417,7 +414,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               Expanded(
                 child: Text(
                   w.name,
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                     color: AppColors.textPrimary,
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
@@ -434,7 +431,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 ),
                 child: Text(
                   w.floor,
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                     color: AppColors.textSecondary,
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
@@ -454,7 +451,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               const SizedBox(width: 4),
               Text(
                 w.headDoctorName,
-                style: GoogleFonts.dmSans(
+                style: appText(
                   color: AppColors.textSecondary,
                   fontSize: 12,
                 ),
@@ -466,7 +463,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             children: [
               Text(
                 'Capacity: ${w.capacity}',
-                style: GoogleFonts.dmSans(
+                style: appText(
                   color: AppColors.textPrimary,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
@@ -501,7 +498,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       children: [
         Text(
           'Recent Staff Activity',
-          style: GoogleFonts.dmSans(
+          style: appText(
             color: AppColors.textPrimary,
             fontSize: 17,
             fontWeight: FontWeight.w600,
@@ -512,7 +509,6 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           decoration: BoxDecoration(
             color: AppColors.card,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.divider),
           ),
           child: Column(
             children: [
@@ -521,7 +517,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   padding: const EdgeInsets.all(20),
                   child: Text(
                     'No recent activity',
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                       color: AppColors.textSecondary,
                     ),
                   ),
@@ -542,21 +538,21 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     ),
                     title: Text(
                       _recent[i].authorName,
-                      style: GoogleFonts.dmSans(
+                      style: appText(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
                       ),
                     ),
                     subtitle: Text(
                       'added a note to ${_recent[i].patientName}',
-                      style: GoogleFonts.dmSans(
+                      style: appText(
                         color: AppColors.textSecondary,
                         fontSize: 12,
                       ),
                     ),
                     trailing: Text(
                       timeago.format(_recent[i].createdAt, locale: 'en_short'),
-                      style: GoogleFonts.dmSans(
+                      style: appText(
                         color: AppColors.textSecondary,
                         fontSize: 11,
                       ),

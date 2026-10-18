@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -102,7 +102,7 @@ class WardsScreen extends StatelessWidget {
                     children: [
                       Text(
                         '${w.name} · Members',
-                        style: GoogleFonts.dmSans(
+                        style: appText(
                           color: AppColors.textPrimary,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -125,7 +125,7 @@ class WardsScreen extends StatelessWidget {
                     builder: (context, snap) {
                       if (!snap.hasData) {
                         return const Center(
-                          child: CircularProgressIndicator(),
+                          child: CircularProgressIndicator.adaptive(),
                         );
                       }
                       final users = snap.data!;
@@ -134,7 +134,7 @@ class WardsScreen extends StatelessWidget {
                           child: Text(
                             'No other members yet.\nShare this ward ID to invite others.',
                             textAlign: TextAlign.center,
-                            style: GoogleFonts.dmSans(
+                            style: appText(
                               color: AppColors.textSecondary,
                             ),
                           ),
@@ -188,7 +188,7 @@ class WardsScreen extends StatelessWidget {
                                     ),
                                     child: Text(
                                       'OWNER',
-                                      style: GoogleFonts.dmSans(
+                                      style: appText(
                                         color: AppColors.accent,
                                         fontSize: 9,
                                         fontWeight: FontWeight.w800,
@@ -329,7 +329,7 @@ class WardsScreen extends StatelessWidget {
                 const SizedBox(height: 12),
                 Text(
                   'You are not in any ward yet',
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                     color: AppColors.textPrimary,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -339,7 +339,7 @@ class WardsScreen extends StatelessWidget {
                 Text(
                   'Use Create New Ward to start one,\nor Join Ward if you have a 5-digit code.',
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                     color: AppColors.textSecondary,
                   ),
                 ),
@@ -363,7 +363,7 @@ class WardsScreen extends StatelessWidget {
             );
           }
           if (!snap.hasData) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator.adaptive());
           }
           final wards = snap.data!;
           if (wards.isEmpty) {
@@ -379,7 +379,7 @@ class WardsScreen extends StatelessWidget {
                   const SizedBox(height: 12),
                   Text(
                     'No wards yet',
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                       color: AppColors.textPrimary,
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -388,7 +388,7 @@ class WardsScreen extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     'Tap the + button to create one',
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                       color: AppColors.textSecondary,
                     ),
                   ),
@@ -484,7 +484,6 @@ class WardsScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -515,7 +514,7 @@ class WardsScreen extends StatelessWidget {
                         Flexible(
                           child: Text(
                             w.name,
-                            style: GoogleFonts.dmSans(
+                            style: appText(
                               color: AppColors.textPrimary,
                               fontSize: 19,
                               fontWeight: FontWeight.bold,
@@ -536,7 +535,7 @@ class WardsScreen extends StatelessWidget {
                             ),
                             child: Text(
                               'OWNED BY YOU',
-                              style: GoogleFonts.dmSans(
+                              style: appText(
                                 color: AppColors.accent,
                                 fontSize: 10,
                                 fontWeight: FontWeight.w800,
@@ -552,7 +551,7 @@ class WardsScreen extends StatelessWidget {
                         padding: const EdgeInsets.only(top: 2),
                         child: Text(
                           w.floor,
-                          style: GoogleFonts.dmSans(
+                          style: appText(
                             color: AppColors.textSecondary,
                             fontSize: 13,
                           ),
@@ -564,7 +563,7 @@ class WardsScreen extends StatelessWidget {
                         isCreator
                             ? 'Owned by you · $ownerName'
                             : 'Owned by $ownerName',
-                        style: GoogleFonts.dmSans(
+                        style: appText(
                           color: AppColors.textPrimary,
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -576,7 +575,7 @@ class WardsScreen extends StatelessWidget {
                         padding: const EdgeInsets.only(top: 1),
                         child: Text(
                           ownerEmail,
-                          style: GoogleFonts.dmSans(
+                          style: appText(
                             color: AppColors.textSecondary,
                             fontSize: 13,
                           ),
@@ -615,7 +614,7 @@ class WardsScreen extends StatelessWidget {
                   Expanded(
                     child: SelectableText(
                       w.id,
-                      style: GoogleFonts.dmSans(
+                      style: appText(
                         color: AppColors.textPrimary,
                         fontSize: 14,
                         fontWeight: FontWeight.w600,

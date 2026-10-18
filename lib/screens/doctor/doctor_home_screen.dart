@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/patient.dart';
@@ -166,7 +166,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
             elevation: 2,
             icon: const Icon(Icons.person_add_outlined),
             label: Text('Add Patient',
-                style: GoogleFonts.dmSans(fontWeight: FontWeight.w600)),
+                style: appText(fontWeight: FontWeight.w600)),
             onPressed: () {
               final wardIds =
                   context.read<AuthProvider>().currentUser?.wardIds ?? [];
@@ -365,7 +365,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
             const SizedBox(height: 10),
             Text(
               value,
-              style: GoogleFonts.dmSans(
+              style: appText(
                 color: AppColors.textPrimary,
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -373,7 +373,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
             ),
             Text(
               label,
-              style: GoogleFonts.dmSans(
+              style: appText(
                 color: AppColors.textSecondary,
                 fontSize: 12,
               ),
@@ -396,7 +396,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
         Expanded(
           child: Text(
             title,
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.textPrimary,
               fontSize: 17,
               fontWeight: FontWeight.w600,
@@ -420,12 +420,11 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
             decoration: BoxDecoration(
               color: AppColors.card,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.divider),
             ),
             alignment: Alignment.center,
             child: Text(
               'No patients yet',
-              style: GoogleFonts.dmSans(color: AppColors.textSecondary),
+              style: appText(color: AppColors.textSecondary),
             ),
           );
         }
@@ -459,7 +458,6 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
           color: AppColors.card,
           borderRadius: BorderRadius.circular(16),
           boxShadow: AppColors.cardShadow,
-          border: Border.all(color: AppColors.divider),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -480,7 +478,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
               p.name,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.dmSans(
+              style: appText(
                 color: AppColors.textPrimary,
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -488,7 +486,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
             ),
             Text(
               'Bed ${p.bedNumber}',
-              style: GoogleFonts.dmSans(
+              style: appText(
                 color: AppColors.textSecondary,
                 fontSize: 12,
               ),
@@ -498,7 +496,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
               p.diagnosis,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.dmSans(
+              style: appText(
                 color: AppColors.textPrimary,
                 fontSize: 12,
               ),
@@ -520,7 +518,6 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
             decoration: BoxDecoration(
               color: AppColors.card,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.divider),
             ),
             child: Column(
               children: [
@@ -532,7 +529,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                 const SizedBox(height: 8),
                 Text(
                   'No notes yet',
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                     color: AppColors.textSecondary,
                   ),
                 ),

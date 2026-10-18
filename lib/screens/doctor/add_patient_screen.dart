@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
@@ -202,8 +202,8 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                     ? const SizedBox(
                         height: 20,
                         width: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
+                        child: CircularProgressIndicator.adaptive(
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                           strokeWidth: 2,
                         ),
                       )
@@ -222,7 +222,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
   Widget _label(String text) {
     return Text(
       text,
-      style: GoogleFonts.dmSans(
+      style: appText(
         color: AppColors.textSecondary,
         fontSize: 13,
         fontWeight: FontWeight.w600,
@@ -236,7 +236,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
     if (myWardIds.isEmpty) {
       return Text(
         'Join a ward first from the Wards tab.',
-        style: GoogleFonts.dmSans(color: AppColors.textSecondary),
+        style: appText(color: AppColors.textSecondary),
       );
     }
     final ids = myWardIds;
@@ -247,20 +247,20 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
         if (snap.hasError) {
           return Text(
             "Couldn't load wards. Pull down and try again.",
-            style: GoogleFonts.dmSans(color: AppColors.danger),
+            style: appText(color: AppColors.danger),
           );
         }
         if (!snap.hasData) {
           return Text(
             'Loading wards...',
-            style: GoogleFonts.dmSans(color: AppColors.textSecondary),
+            style: appText(color: AppColors.textSecondary),
           );
         }
         final wards = snap.data!;
         if (wards.isEmpty) {
           return Text(
             'No wards yet. Create or join one from the Wards tab.',
-            style: GoogleFonts.dmSans(color: AppColors.textSecondary),
+            style: appText(color: AppColors.textSecondary),
           );
         }
         return SingleChildScrollView(
@@ -298,7 +298,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
         ),
         child: Text(
           label,
-          style: GoogleFonts.dmSans(
+          style: appText(
             color: selected ? Colors.white : AppColors.textPrimary,
             fontWeight: FontWeight.w600,
             fontSize: 13,

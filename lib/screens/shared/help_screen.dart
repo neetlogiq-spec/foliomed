@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 
 import '../../utils/app_theme.dart';
 import '../../providers/theme_provider.dart';
@@ -155,7 +155,7 @@ class HelpScreen extends StatelessWidget {
                     children: [
                       Text(
                         'Stuck or curious?',
-                        style: GoogleFonts.dmSans(
+                        style: appText(
                           color: AppColors.textPrimary,
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
@@ -166,7 +166,7 @@ class HelpScreen extends StatelessWidget {
                         'These cover the most common questions. If you '
                         'still need help, use Profile → Feedback & support '
                         '→ Give feedback and we\'ll get back to you.',
-                        style: GoogleFonts.dmSans(
+                        style: appText(
                           color: AppColors.textSecondary,
                           fontSize: 13,
                           height: 1.45,
@@ -205,7 +205,6 @@ class _FaqTile extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.divider),
       ),
       clipBehavior: Clip.antiAlias,
       child: ExpansionTile(
@@ -222,7 +221,7 @@ class _FaqTile extends StatelessWidget {
         ),
         title: Text(
           item.q,
-          style: GoogleFonts.dmSans(
+          style: appText(
             color: AppColors.textPrimary,
             fontSize: 14.5,
             fontWeight: FontWeight.w600,
@@ -232,7 +231,7 @@ class _FaqTile extends StatelessWidget {
         children: [
           Text(
             item.a,
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.textSecondary,
               fontSize: 13.5,
               height: 1.55,

@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -73,7 +73,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
         title: Text(patient?.name ?? 'Patient'),
       ),
       body: patient == null
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator.adaptive())
           : Column(
               children: [
                 Padding(
@@ -99,7 +99,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
                   labelColor: AppColors.primary,
                   unselectedLabelColor: AppColors.textSecondary,
                   indicatorColor: AppColors.primary,
-                  labelStyle: GoogleFonts.dmSans(
+                  labelStyle: appText(
                     fontWeight: FontWeight.w600,
                   ),
                   tabs: const [
@@ -137,7 +137,6 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -163,7 +162,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
                   children: [
                     Text(
                       p.name,
-                      style: GoogleFonts.dmSans(
+                      style: appText(
                         color: AppColors.textPrimary,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -171,7 +170,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
                     ),
                     Text(
                       p.diagnosis,
-                      style: GoogleFonts.dmSans(
+                      style: appText(
                         color: AppColors.textSecondary,
                         fontSize: 14,
                       ),
@@ -203,7 +202,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
               const SizedBox(width: 6),
               Text(
                 'Admitted ${DateFormat.yMMMd().format(p.admittedAt)}',
-                style: GoogleFonts.dmSans(
+                style: appText(
                   color: AppColors.textSecondary,
                   fontSize: 12,
                 ),
@@ -222,7 +221,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
         children: [
           Text(
             label,
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.textSecondary,
               fontSize: 11,
             ),
@@ -230,7 +229,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
           const SizedBox(height: 2),
           Text(
             value,
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.textPrimary,
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -249,7 +248,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
           return Center(
             child: Text(
               'No notes yet',
-              style: GoogleFonts.dmSans(color: AppColors.textSecondary),
+              style: appText(color: AppColors.textSecondary),
             ),
           );
         }
@@ -281,22 +280,22 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
       context: context,
       builder: (_) => AlertDialog(
         title: Text('Set Live Stream URL',
-            style: GoogleFonts.dmSans(fontWeight: FontWeight.w700)),
+            style: appText(fontWeight: FontWeight.w700)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Paste the HLS URL from your Cloudflare tunnel.',
-                style: GoogleFonts.dmSans(
+                style: appText(
                     color: AppColors.textSecondary, fontSize: 12)),
             const SizedBox(height: 12),
             TextField(
               controller: ctrl,
               autofocus: true,
-              style: GoogleFonts.dmSans(fontSize: 13),
+              style: appText(fontSize: 13),
               decoration: InputDecoration(
                 hintText: 'https://…/nicu/index.m3u8',
-                hintStyle: GoogleFonts.dmSans(color: AppColors.textSecondary),
+                hintStyle: appText(color: AppColors.textSecondary),
                 border: const OutlineInputBorder(),
               ),
             ),
@@ -351,7 +350,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
           return Center(
             child: Text(
               'No history yet',
-              style: GoogleFonts.dmSans(color: AppColors.textSecondary),
+              style: appText(color: AppColors.textSecondary),
             ),
           );
         }
@@ -368,7 +367,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Text(
                   entry.key,
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                     color: AppColors.textSecondary,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -402,7 +401,6 @@ class _SetStreamUrlCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.divider),
         ),
         child: Row(
           children: [
@@ -421,12 +419,12 @@ class _SetStreamUrlCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Set Live Stream URL',
-                      style: GoogleFonts.dmSans(
+                      style: appText(
                           fontWeight: FontWeight.w700,
                           color: AppColors.textPrimary,
                           fontSize: 14)),
                   Text('Tap to connect a remote camera feed',
-                      style: GoogleFonts.dmSans(
+                      style: appText(
                           color: AppColors.textSecondary, fontSize: 12)),
                 ],
               ),

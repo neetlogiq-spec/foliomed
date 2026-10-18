@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/monitor_alert.dart';
@@ -36,7 +36,7 @@ class MonitorDashboardScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.surface,
       appBar: AppBar(
-        title: Text('Monitor', style: GoogleFonts.dmSans(fontWeight: FontWeight.w800)),
+        title: Text('Monitor', style: appText(fontWeight: FontWeight.w800)),
         actions: const [SupportAppBarAction()],
       ),
       body: Center(
@@ -56,7 +56,7 @@ class MonitorDashboardScreen extends StatelessWidget {
               const SizedBox(height: 24),
               Text(
                 'Live Patient Monitoring',
-                style: GoogleFonts.dmSans(
+                style: appText(
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
                   color: AppColors.textPrimary,
@@ -66,7 +66,7 @@ class MonitorDashboardScreen extends StatelessWidget {
               Text(
                 'Watch your patients\' vitals in real time.\nGet alerted when thresholds are breached.',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.dmSans(
+                style: appText(
                   fontSize: 13,
                   color: AppColors.textSecondary,
                   height: 1.5,
@@ -84,7 +84,7 @@ class MonitorDashboardScreen extends StatelessWidget {
                   icon: const Icon(Icons.star, size: 20),
                   label: const Text('Upgrade to FolioMed Pro'),
                   style: ElevatedButton.styleFrom(
-                    textStyle: GoogleFonts.dmSans(fontSize: 15, fontWeight: FontWeight.w700),
+                    textStyle: appText(fontSize: 15, fontWeight: FontWeight.w700),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   ),
                 ),
@@ -130,7 +130,7 @@ class MonitorDashboardScreen extends StatelessWidget {
             backgroundColor: AppColors.appBarBg,
             title: Row(
               children: [
-                Text('Monitor', style: GoogleFonts.dmSans(fontWeight: FontWeight.w800, fontSize: 20, color: AppColors.primary)),
+                Text('Monitor', style: appText(fontWeight: FontWeight.w800, fontSize: 20, color: AppColors.primary)),
                 const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -138,7 +138,7 @@ class MonitorDashboardScreen extends StatelessWidget {
                     color: AppColors.accent.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: Text('PRO', style: GoogleFonts.dmSans(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.accent)),
+                  child: Text('PRO', style: appText(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.accent)),
                 ),
               ],
             ),
@@ -209,7 +209,7 @@ class MonitorDashboardScreen extends StatelessWidget {
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Text('Monitored Patients', style: GoogleFonts.dmSans(
+              child: Text('Monitored Patients', style: appText(
                 color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.w700)),
             ),
           ),
@@ -234,13 +234,13 @@ class MonitorDashboardScreen extends StatelessWidget {
                   children: [
                     Icon(Icons.space_dashboard_outlined, size: 18, color: AppColors.primary),
                     const SizedBox(width: 8),
-                    Text('Ward Activity', style: GoogleFonts.dmSans(
+                    Text('Ward Activity', style: appText(
                       color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.w700)),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text('alerts · orders · notes, per patient',
                         overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.dmSans(
+                        style: appText(
                           color: AppColors.textSecondary, fontSize: 11)),
                     ),
                   ],
@@ -276,8 +276,8 @@ class MonitorDashboardScreen extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Text(num, style: GoogleFonts.dmSans(color: color == Colors.white ? Colors.white : color, fontSize: 20, fontWeight: FontWeight.w800)),
-            Text(label, style: GoogleFonts.dmSans(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w500)),
+            Text(num, style: appText(color: color == Colors.white ? Colors.white : color, fontSize: 20, fontWeight: FontWeight.w800)),
+            Text(label, style: appText(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w500)),
           ],
         ),
       ),
@@ -313,8 +313,8 @@ class MonitorDashboardScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(p.name, style: GoogleFonts.dmSans(color: AppColors.textPrimary, fontSize: 15, fontWeight: FontWeight.w700)),
-                      Text('${p.gender} · ${p.age} · ${p.ward}', style: GoogleFonts.dmSans(color: AppColors.textSecondary, fontSize: 11)),
+                      Text(p.name, style: appText(color: AppColors.textPrimary, fontSize: 15, fontWeight: FontWeight.w700)),
+                      Text('${p.gender} · ${p.age} · ${p.ward}', style: appText(color: AppColors.textSecondary, fontSize: 11)),
                     ],
                   ),
                 ),
@@ -325,27 +325,27 @@ class MonitorDashboardScreen extends StatelessWidget {
                     waiting
                         ? 'Waiting'
                         : sev == 'critical' ? 'Critical' : sev == 'warning' ? 'Watch' : 'Stable',
-                    style: GoogleFonts.dmSans(color: sevColor, fontSize: 11, fontWeight: FontWeight.w700),
+                    style: appText(color: sevColor, fontSize: 11, fontWeight: FontWeight.w700),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 4),
-            Text('${p.diagnosis} · ${p.support} · ${p.bed}', style: GoogleFonts.dmSans(color: AppColors.textSecondary, fontSize: 11)),
+            Text('${p.diagnosis} · ${p.support} · ${p.bed}', style: appText(color: AppColors.textSecondary, fontSize: 11)),
             const SizedBox(height: 10),
             if (waiting)
               Row(
                 children: [
                   SizedBox(
                     width: 12, height: 12,
-                    child: CircularProgressIndicator(
+                    child: CircularProgressIndicator.adaptive(
                         strokeWidth: 1.5,
-                        color: AppColors.textSecondary.withValues(alpha: 0.6)),
+                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.textSecondary.withValues(alpha: 0.6))),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text('Waiting for monitor readings from the camera…',
-                        style: GoogleFonts.dmSans(
+                        style: appText(
                             color: AppColors.textSecondary,
                             fontSize: 11.5,
                             fontStyle: FontStyle.italic)),
@@ -367,12 +367,12 @@ class MonitorDashboardScreen extends StatelessWidget {
                 children: [
                   Icon(Icons.warning_amber, size: 12, color: lastAlert.severity == 'critical' ? AppColors.danger : AppColors.warning),
                   const SizedBox(width: 4),
-                  Expanded(child: Text(lastAlert.message, style: GoogleFonts.dmSans(color: lastAlert.severity == 'critical' ? AppColors.danger : AppColors.warning, fontSize: 11), overflow: TextOverflow.ellipsis)),
+                  Expanded(child: Text(lastAlert.message, style: appText(color: lastAlert.severity == 'critical' ? AppColors.danger : AppColors.warning, fontSize: 11), overflow: TextOverflow.ellipsis)),
                 ],
               ),
             ],
             const SizedBox(height: 6),
-            Text('Tap to monitor →', style: GoogleFonts.dmSans(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.w600)),
+            Text('Tap to monitor →', style: appText(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.w600)),
           ],
         ),
       ),
@@ -384,9 +384,9 @@ class MonitorDashboardScreen extends StatelessWidget {
     return Expanded(
       child: Column(
         children: [
-          Text(label, style: GoogleFonts.dmSans(color: AppColors.textSecondary, fontSize: 10, fontWeight: FontWeight.w600)),
+          Text(label, style: appText(color: AppColors.textSecondary, fontSize: 10, fontWeight: FontWeight.w600)),
           const SizedBox(height: 2),
-          Text(value, style: GoogleFonts.dmSans(color: color, fontSize: 15, fontWeight: FontWeight.w800)),
+          Text(value, style: appText(color: color, fontSize: 15, fontWeight: FontWeight.w800)),
         ],
       ),
     );
@@ -405,16 +405,16 @@ class MonitorDashboardScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Set up bedside camera', style: GoogleFonts.dmSans(
+            Text('Set up bedside camera', style: appText(
               color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.w700)),
             const SizedBox(height: 4),
             Text('Select a patient to start streaming vitals from their bedside monitor.',
-              style: GoogleFonts.dmSans(color: AppColors.textSecondary, fontSize: 13)),
+              style: appText(color: AppColors.textSecondary, fontSize: 13)),
             const SizedBox(height: 16),
             ...patients.map((p) => ListTile(
               leading: Icon(Icons.person, color: AppColors.primary),
-              title: Text(p.name, style: GoogleFonts.dmSans(fontWeight: FontWeight.w600)),
-              subtitle: Text('${p.ward} · ${p.bed}', style: GoogleFonts.dmSans(fontSize: 12)),
+              title: Text(p.name, style: appText(fontWeight: FontWeight.w600)),
+              subtitle: Text('${p.ward} · ${p.bed}', style: appText(fontSize: 12)),
               trailing: const Icon(Icons.videocam, color: AppColors.accent),
               onTap: () {
                 Navigator.pop(ctx);
@@ -448,10 +448,10 @@ class MonitorDashboardScreen extends StatelessWidget {
     return Expanded(
       child: Column(
         children: [
-          Text('BP', style: GoogleFonts.dmSans(color: AppColors.textSecondary, fontSize: 10, fontWeight: FontWeight.w600)),
+          Text('BP', style: appText(color: AppColors.textSecondary, fontSize: 10, fontWeight: FontWeight.w600)),
           const SizedBox(height: 2),
-          Text('$sbp/$dbp', style: GoogleFonts.dmSans(color: color, fontSize: 15, fontWeight: FontWeight.w800)),
-          Text('MAP $map', style: GoogleFonts.dmSans(color: AppColors.textSecondary, fontSize: 9)),
+          Text('$sbp/$dbp', style: appText(color: color, fontSize: 15, fontWeight: FontWeight.w800)),
+          Text('MAP $map', style: appText(color: AppColors.textSecondary, fontSize: 9)),
         ],
       ),
     );
@@ -504,7 +504,7 @@ class _EdgeSection extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('FolioMed Edge',
-                      style: GoogleFonts.dmSans(
+                      style: appText(
                           fontWeight: FontWeight.w800,
                           fontSize: 13,
                           color: AppColors.textPrimary)),
@@ -513,7 +513,7 @@ class _EdgeSection extends StatelessWidget {
                         ? '${cameras.cameras.length} camera${cameras.cameras.length > 1 ? 's' : ''} · '
                           '${cameras.activeCount} active · ${cameras.withRoiCount} with zones'
                         : 'No cameras yet — tap to connect your first CCTV camera',
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                         color: AppColors.textSecondary, fontSize: 11, height: 1.4),
                   ),
                 ],
@@ -531,7 +531,7 @@ class _EdgeSection extends StatelessWidget {
               ),
               child: Text(
                 hasAny ? 'Manage' : 'Setup',
-                style: GoogleFonts.dmSans(
+                style: appText(
                     color: hasAny ? AppColors.primary : Colors.white,
                     fontSize: 12,
                     fontWeight: FontWeight.w700),
@@ -571,13 +571,13 @@ class _MonitorDevBannerState extends State<_MonitorDevBanner> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('DEMO / DEVELOPMENT MODE',
-                      style: GoogleFonts.dmSans(
+                      style: appText(
                           color: Colors.white, fontSize: 12,
                           fontWeight: FontWeight.w800, letterSpacing: 0.4)),
                   const SizedBox(height: 2),
                   Text(
                     'Vitals shown are simulated. Do NOT use for real clinical decisions.',
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                         color: Colors.white.withOpacity(0.9),
                         fontSize: 11, height: 1.4),
                   ),
@@ -720,7 +720,7 @@ class _PatientActivityCard extends StatelessWidget {
                   Flexible(
                     child: Text(p.name,
                         overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.dmSans(
+                        style: appText(
                             color: AppColors.textPrimary,
                             fontSize: 14,
                             fontWeight: FontWeight.w700)),
@@ -728,7 +728,7 @@ class _PatientActivityCard extends StatelessWidget {
                   if (p.bed.isNotEmpty) ...[
                     const SizedBox(width: 6),
                     Text('· ${p.bed}',
-                        style: GoogleFonts.dmSans(
+                        style: appText(
                             color: AppColors.textSecondary, fontSize: 12)),
                   ],
                   const Spacer(),
@@ -745,7 +745,7 @@ class _PatientActivityCard extends StatelessWidget {
                           : sev == 'warning'
                               ? 'WATCH'
                               : 'STABLE',
-                      style: GoogleFonts.dmSans(
+                      style: appText(
                           color: sevColor,
                           fontSize: 9,
                           fontWeight: FontWeight.w800,
@@ -781,7 +781,7 @@ class _PatientActivityCard extends StatelessWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(alert.message,
-                            style: GoogleFonts.dmSans(
+                            style: appText(
                                 color: alert.severity == 'critical'
                                     ? AppColors.danger
                                     : AppColors.warning,
@@ -800,7 +800,7 @@ class _PatientActivityCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text('×$count',
-                              style: GoogleFonts.dmSans(
+                              style: appText(
                                   color: alert.severity == 'critical'
                                       ? AppColors.danger
                                       : AppColors.warning,
@@ -810,7 +810,7 @@ class _PatientActivityCard extends StatelessWidget {
                         const SizedBox(width: 6),
                       ],
                       Text(_ago(alert.time),
-                          style: GoogleFonts.dmSans(
+                          style: appText(
                               color: AppColors.textSecondary, fontSize: 10)),
                     ],
                   ),
@@ -834,7 +834,7 @@ class _PatientActivityCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(5),
                       ),
                       child: Text(c.type == 'order' ? 'Order' : 'Note',
-                          style: GoogleFonts.dmSans(
+                          style: appText(
                               color: c.type == 'order'
                                   ? AppColors.primary
                                   : AppColors.accent,
@@ -849,13 +849,13 @@ class _PatientActivityCard extends StatelessWidget {
                           Text(c.text,
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.dmSans(
+                              style: appText(
                                   color: AppColors.textPrimary,
                                   fontSize: 12.5,
                                   height: 1.35)),
                           const SizedBox(height: 2),
                           Text('${c.author} · ${_ago(c.time)}',
-                              style: GoogleFonts.dmSans(
+                              style: appText(
                                   color: AppColors.textSecondary,
                                   fontSize: 10.5)),
                         ],

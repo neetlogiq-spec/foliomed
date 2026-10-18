@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
@@ -95,13 +95,13 @@ class _EdgeSetupScreenState extends State<EdgeSetupScreen> {
             ? IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context))
             : IconButton(icon: const Icon(Icons.arrow_back), onPressed: _back),
         title: Text('FolioMed Edge Setup',
-            style: GoogleFonts.dmSans(fontWeight: FontWeight.w800, color: AppColors.primary)),
+            style: appText(fontWeight: FontWeight.w800, color: AppColors.primary)),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16),
             child: Center(
               child: Text('Step ${_step + 1} of $_totalSteps',
-                  style: GoogleFonts.dmSans(color: AppColors.textSecondary, fontSize: 13)),
+                  style: appText(color: AppColors.textSecondary, fontSize: 13)),
             ),
           ),
         ],
@@ -244,7 +244,7 @@ class _Sidebar extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
             child: Text('SETUP STEPS',
-                style: GoogleFonts.dmSans(
+                style: appText(
                     color: AppColors.textSecondary,
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
@@ -286,7 +286,7 @@ class _Sidebar extends StatelessWidget {
           Expanded(
             child: Text(
               label,
-              style: GoogleFonts.dmSans(
+              style: appText(
                 fontSize: 13,
                 fontWeight: active ? FontWeight.w700 : FontWeight.w500,
                 color: active ? AppColors.primary : done ? AppColors.textSecondary : AppColors.textSecondary,
@@ -357,7 +357,7 @@ class _NavRow extends StatelessWidget {
                 backgroundColor: AppColors.stable,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 13),
-                textStyle: GoogleFonts.dmSans(fontWeight: FontWeight.w700),
+                textStyle: appText(fontWeight: FontWeight.w700),
               ),
             )
           else if (onNext != null && step != 0)
@@ -369,7 +369,7 @@ class _NavRow extends StatelessWidget {
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 13),
-                textStyle: GoogleFonts.dmSans(fontWeight: FontWeight.w700),
+                textStyle: appText(fontWeight: FontWeight.w700),
               ),
             ),
         ],
@@ -409,7 +409,7 @@ class _StepWelcome extends StatelessWidget {
         Center(
           child: Text('Welcome to FolioMed Edge',
               textAlign: TextAlign.center,
-              style: GoogleFonts.dmSans(
+              style: appText(
                   fontSize: 26, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
         ),
         const SizedBox(height: 10),
@@ -418,7 +418,7 @@ class _StepWelcome extends StatelessWidget {
             'Connect your CCTV camera to automatically read\n'
             'vitals from bedside monitors — no manual entry needed.',
             textAlign: TextAlign.center,
-            style: GoogleFonts.dmSans(
+            style: appText(
                 color: AppColors.textSecondary, fontSize: 14, height: 1.6),
           ),
         ),
@@ -451,7 +451,7 @@ class _StepWelcome extends StatelessWidget {
             onPressed: onStart,
             icon: const Icon(Icons.arrow_forward, size: 18),
             label: Text('Start Setup',
-                style: GoogleFonts.dmSans(fontSize: 16, fontWeight: FontWeight.w700)),
+                style: appText(fontSize: 16, fontWeight: FontWeight.w700)),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
@@ -569,7 +569,7 @@ class _StepHardware extends StatelessWidget {
                         Row(
                           children: [
                             Text(cam.brand,
-                                style: GoogleFonts.dmSans(
+                                style: appText(
                                     fontWeight: FontWeight.w700,
                                     fontSize: 15,
                                     color: AppColors.textPrimary)),
@@ -581,17 +581,17 @@ class _StepHardware extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(cam.badge,
-                                  style: GoogleFonts.dmSans(
+                                  style: appText(
                                       fontSize: 10, fontWeight: FontWeight.w700, color: cam.color)),
                             ),
                           ],
                         ),
                         Text(cam.models,
-                            style: GoogleFonts.dmSans(
+                            style: appText(
                                 color: AppColors.textSecondary, fontSize: 12)),
                         const SizedBox(height: 4),
                         Text(cam.notes,
-                            style: GoogleFonts.dmSans(
+                            style: appText(
                                 color: AppColors.textSecondary, fontSize: 11, height: 1.45)),
                       ],
                     ),
@@ -943,7 +943,7 @@ class _StepTestConnectionState extends State<_StepTestConnection> {
               Expanded(
                 child: SelectableText(
                   url,
-                  style: GoogleFonts.robotoMono(
+                  style: appMonoText(
                       color: const Color(0xFF7CFC00), fontSize: 12),
                 ),
               ),
@@ -1002,7 +1002,7 @@ class _StepTestConnectionState extends State<_StepTestConnection> {
                 child: Text(
                   'Once you can see the live video in VLC, your camera is working correctly. '
                   'Tap Continue to assign it to a patient.',
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                       color: AppColors.stable, fontSize: 13, height: 1.4),
                 ),
               ),
@@ -1064,21 +1064,20 @@ class _StepMapPatient extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.card,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.divider),
             ),
             child: Column(
               children: [
                 Icon(Icons.people_outline, color: AppColors.textSecondary, size: 32),
                 const SizedBox(height: 8),
                 Text('No patients in Monitor yet.',
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                         color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 4),
                 Text(
                   'Add patients in the Patients tab first, or skip this step '
                   'and assign later from the Monitor dashboard.',
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.dmSans(color: AppColors.textSecondary, fontSize: 12),
+                  style: appText(color: AppColors.textSecondary, fontSize: 12),
                 ),
               ],
             ),
@@ -1110,10 +1109,10 @@ class _StepMapPatient extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(p.name,
-                              style: GoogleFonts.dmSans(
+                              style: appText(
                                   fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
                           Text('${p.ward} · ${p.bed}',
-                              style: GoogleFonts.dmSans(
+                              style: appText(
                                   color: AppColors.textSecondary, fontSize: 12)),
                         ],
                       ),
@@ -1198,7 +1197,6 @@ class _StepRoiPrompt extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.card,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: AppColors.divider),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1215,7 +1213,7 @@ class _StepRoiPrompt extends StatelessWidget {
                     roiCount > 0
                         ? '$roiCount vital zone${roiCount > 1 ? 's' : ''} defined'
                         : 'No zones defined yet',
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                       fontWeight: FontWeight.w700,
                       color: roiCount > 0 ? AppColors.stable : AppColors.textSecondary,
                     ),
@@ -1240,7 +1238,7 @@ class _StepRoiPrompt extends StatelessWidget {
                       ),
                       child: Text(
                         _vitalLabels[vt]!,
-                        style: GoogleFonts.dmSans(
+                        style: appText(
                           fontSize: 11,
                           color: defined ? color : AppColors.textSecondary,
                           fontWeight: defined ? FontWeight.w700 : FontWeight.w400,
@@ -1262,7 +1260,7 @@ class _StepRoiPrompt extends StatelessWidget {
             icon: const Icon(Icons.crop_free, size: 20),
             label: Text(
               roiCount > 0 ? 'Edit Vital Zones' : 'Draw Vital Zones',
-              style: GoogleFonts.dmSans(fontSize: 15, fontWeight: FontWeight.w700),
+              style: appText(fontSize: 15, fontWeight: FontWeight.w700),
             ),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
@@ -1307,13 +1305,13 @@ class _StepDone extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         Text('Camera Ready!',
-            style: GoogleFonts.dmSans(
+            style: appText(
                 fontSize: 26, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
         const SizedBox(height: 8),
         Text(
           'FolioMed Edge is configured.\nVital readings will begin appearing in the Monitor tab.',
           textAlign: TextAlign.center,
-          style: GoogleFonts.dmSans(
+          style: appText(
               color: AppColors.textSecondary, fontSize: 14, height: 1.6),
         ),
         const SizedBox(height: 28),
@@ -1325,13 +1323,12 @@ class _StepDone extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.card,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.divider),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Configuration Summary',
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                       fontWeight: FontWeight.w800,
                       fontSize: 14,
                       color: AppColors.textPrimary)),
@@ -1349,7 +1346,7 @@ class _StepDone extends StatelessWidget {
                   Expanded(
                     child: SelectableText(
                       draft.rtspUrl,
-                      style: GoogleFonts.robotoMono(
+                      style: appMonoText(
                           fontSize: 11, color: AppColors.textSecondary),
                     ),
                   ),
@@ -1423,11 +1420,11 @@ class _StepHeader extends StatelessWidget {
         ),
         const SizedBox(height: 14),
         Text(title,
-            style: GoogleFonts.dmSans(
+            style: appText(
                 fontSize: 20, fontWeight: FontWeight.w800, color: AppColors.textPrimary)),
         const SizedBox(height: 6),
         Text(subtitle,
-            style: GoogleFonts.dmSans(
+            style: appText(
                 color: AppColors.textSecondary, fontSize: 13, height: 1.5)),
       ],
     );
@@ -1447,7 +1444,6 @@ class _InfoCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.divider),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1459,13 +1455,13 @@ class _InfoCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title,
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                         fontWeight: FontWeight.w700,
                         color: AppColors.textPrimary,
                         fontSize: 13)),
                 const SizedBox(height: 4),
                 Text(body,
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                         color: AppColors.textSecondary, fontSize: 12, height: 1.5)),
               ],
             ),
@@ -1498,7 +1494,7 @@ class _TipBox extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(text,
-                style: GoogleFonts.dmSans(
+                style: appText(
                     fontSize: 12,
                     color: AppColors.textSecondary,
                     height: 1.5)),
@@ -1516,7 +1512,7 @@ class _SectionTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(text,
-        style: GoogleFonts.dmSans(
+        style: appText(
             color: AppColors.textPrimary,
             fontSize: 13,
             fontWeight: FontWeight.w800,
@@ -1545,7 +1541,7 @@ class _NumberedStep extends StatelessWidget {
             ),
             child: Center(
               child: Text('$number',
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                       color: AppColors.primary,
                       fontSize: 12,
                       fontWeight: FontWeight.w800)),
@@ -1557,13 +1553,13 @@ class _NumberedStep extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title,
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                         fontWeight: FontWeight.w700,
                         fontSize: 13,
                         color: AppColors.textPrimary)),
                 const SizedBox(height: 2),
                 Text(body,
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                         color: AppColors.textSecondary, fontSize: 12, height: 1.5)),
               ],
             ),
@@ -1588,7 +1584,6 @@ class _FindIPMethod extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.divider),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1600,13 +1595,13 @@ class _FindIPMethod extends StatelessWidget {
                 decoration: BoxDecoration(color: color.withOpacity(0.12), shape: BoxShape.circle),
                 child: Center(
                   child: Text(letter,
-                      style: GoogleFonts.dmSans(
+                      style: appText(
                           color: color, fontWeight: FontWeight.w800, fontSize: 14)),
                 ),
               ),
               const SizedBox(width: 10),
               Text(title,
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                       fontWeight: FontWeight.w700,
                       fontSize: 13,
                       color: AppColors.textPrimary)),
@@ -1620,11 +1615,11 @@ class _FindIPMethod extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('${i + 1}. ',
-                      style: GoogleFonts.dmSans(
+                      style: appText(
                           color: color, fontSize: 12, fontWeight: FontWeight.w700)),
                   Expanded(
                     child: Text(steps[i],
-                        style: GoogleFonts.dmSans(
+                        style: appText(
                             color: AppColors.textSecondary, fontSize: 12, height: 1.4)),
                   ),
                 ],
@@ -1657,7 +1652,7 @@ class _FieldCard extends StatelessWidget {
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
-      style: GoogleFonts.dmSans(color: AppColors.textPrimary, fontSize: 14),
+      style: appText(color: AppColors.textPrimary, fontSize: 14),
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
@@ -1678,9 +1673,9 @@ class _FieldCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: AppColors.primary, width: 2),
         ),
-        labelStyle: GoogleFonts.dmSans(color: AppColors.textSecondary),
-        hintStyle: GoogleFonts.dmSans(color: AppColors.textSecondary.withOpacity(0.5)),
-        helperStyle: GoogleFonts.dmSans(color: AppColors.textSecondary, fontSize: 11),
+        labelStyle: appText(color: AppColors.textSecondary),
+        hintStyle: appText(color: AppColors.textSecondary.withOpacity(0.5)),
+        helperStyle: appText(color: AppColors.textSecondary, fontSize: 11),
       ),
     );
   }
@@ -1697,7 +1692,7 @@ class _PasswordField extends StatelessWidget {
     return TextField(
       controller: controller,
       obscureText: !visible,
-      style: GoogleFonts.dmSans(color: AppColors.textPrimary, fontSize: 14),
+      style: appText(color: AppColors.textPrimary, fontSize: 14),
       decoration: InputDecoration(
         labelText: 'Camera Password',
         hintText: 'Your camera login password',
@@ -1723,8 +1718,8 @@ class _PasswordField extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: AppColors.primary, width: 2),
         ),
-        labelStyle: GoogleFonts.dmSans(color: AppColors.textSecondary),
-        helperStyle: GoogleFonts.dmSans(color: AppColors.textSecondary, fontSize: 11),
+        labelStyle: appText(color: AppColors.textSecondary),
+        helperStyle: appText(color: AppColors.textSecondary, fontSize: 11),
       ),
     );
   }
@@ -1762,7 +1757,7 @@ class _RTSPPreviewState extends State<_RTSPPreview> {
           Expanded(
             child: SelectableText(
               widget.url,
-              style: GoogleFonts.robotoMono(
+              style: appMonoText(
                   color: const Color(0xFF7CFC00), fontSize: 12),
             ),
           ),
@@ -1799,7 +1794,7 @@ class _BrandRTSPNote extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(top: 6),
       child: Text(note,
-          style: GoogleFonts.dmSans(
+          style: appText(
               color: AppColors.textSecondary, fontSize: 11, height: 1.5)),
     );
   }
@@ -1832,7 +1827,7 @@ class _ModeButton extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(label,
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                       fontSize: 12,
                       fontWeight: active ? FontWeight.w700 : FontWeight.w500,
                       color: active ? AppColors.primary : AppColors.textSecondary)),
@@ -1859,12 +1854,12 @@ class _SummaryRow extends StatelessWidget {
           SizedBox(
             width: 100,
             child: Text(label,
-                style: GoogleFonts.dmSans(
+                style: appText(
                     color: AppColors.textSecondary, fontSize: 12)),
           ),
           Expanded(
             child: Text(value,
-                style: GoogleFonts.dmSans(
+                style: appText(
                     color: AppColors.textPrimary,
                     fontSize: 12,
                     fontWeight: FontWeight.w600)),
@@ -1901,11 +1896,11 @@ class _NextStepCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title,
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                         color: color, fontWeight: FontWeight.w700, fontSize: 13)),
                 const SizedBox(height: 3),
                 Text(body,
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                         color: AppColors.textSecondary, fontSize: 12, height: 1.4)),
               ],
             ),

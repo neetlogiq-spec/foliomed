@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -87,6 +87,8 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Reduce Motion: show the settled state, no fades or looping dots.
+    final reduced = AppMotion.reduced(context);
     context.watch<ThemeProvider>(); // rebuild on theme change
 
     return Scaffold(
@@ -100,7 +102,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 children: [
                   Text(
                     'F',
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                       color: Colors.white,
                       fontSize: 180,
                       fontWeight: FontWeight.w900,
@@ -108,28 +110,28 @@ class _SplashScreenState extends State<SplashScreen> {
                       letterSpacing: -8,
                     ),
                   )
-                      .animate()
+                      .animate(autoPlay: !reduced, value: reduced ? 1 : 0)
                       .fadeIn(duration: 600.ms)
                       .scale(begin: const Offset(0.85, 0.85)),
                   const SizedBox(height: 8),
                   Text(
                     'FOLIOMED',
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                       color: Colors.white,
                       fontSize: 34,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 8,
                     ),
-                  ).animate().fadeIn(delay: 200.ms, duration: 600.ms),
+                  ).animate(autoPlay: !reduced, value: reduced ? 1 : 0).fadeIn(delay: 200.ms, duration: 600.ms),
                   const SizedBox(height: 10),
                   Text(
                     'Ward, connected',
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                       color: Colors.white.withOpacity(0.75),
                       fontSize: 14,
                       letterSpacing: 1.2,
                     ),
-                  ).animate().fadeIn(delay: 400.ms, duration: 600.ms),
+                  ).animate(autoPlay: !reduced, value: reduced ? 1 : 0).fadeIn(delay: 400.ms, duration: 600.ms),
                 ],
               ),
             ),
@@ -152,6 +154,8 @@ class _SplashScreenState extends State<SplashScreen> {
                         ),
                       )
                           .animate(
+                            autoPlay: !reduced,
+                            value: reduced ? 1 : 0,
                             onPlay: (c) => c.repeat(reverse: true),
                           )
                           .fadeIn(

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 
@@ -115,7 +115,7 @@ class _RemoteVideoViewerState extends State<RemoteVideoViewer> {
                     Container(width: 8, height: 8,
                         decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle)),
                     const SizedBox(width: 6),
-                    Text('LIVE', style: GoogleFonts.dmSans(
+                    Text('LIVE', style: appText(
                         color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800)),
                   ]),
                 ),
@@ -123,7 +123,7 @@ class _RemoteVideoViewerState extends State<RemoteVideoViewer> {
               Positioned(
                 bottom: 12, left: 12,
                 child: Text(widget.patientName,
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                         color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
               ),
             ],
@@ -148,22 +148,22 @@ class _RemoteVideoViewerState extends State<RemoteVideoViewer> {
           if (loading)
             const SizedBox(
               width: 24, height: 24,
-              child: CircularProgressIndicator(color: Colors.white30, strokeWidth: 2),
+              child: CircularProgressIndicator.adaptive(valueColor: AlwaysStoppedAnimation<Color>(Colors.white30), strokeWidth: 2),
             )
           else
             Icon(icon, color: iconColor, size: 36),
           const SizedBox(height: 10),
-          Text(title, style: GoogleFonts.dmSans(
+          Text(title, style: appText(
               color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w700)),
           const SizedBox(height: 6),
           Text(detail, textAlign: TextAlign.center,
-              style: GoogleFonts.dmSans(color: Colors.white38, fontSize: 11, height: 1.5)),
+              style: appText(color: Colors.white38, fontSize: 11, height: 1.5)),
           if (showRetry) ...[
             const SizedBox(height: 14),
             TextButton.icon(
               onPressed: _retry,
               icon: const Icon(Icons.refresh, size: 16, color: Colors.white54),
-              label: Text('Retry', style: GoogleFonts.dmSans(color: Colors.white54, fontSize: 12)),
+              label: Text('Retry', style: appText(color: Colors.white54, fontSize: 12)),
             ),
           ],
         ]),

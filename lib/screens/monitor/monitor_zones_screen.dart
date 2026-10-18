@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/camera_config.dart';
@@ -86,7 +86,7 @@ class _MonitorZonesScreenState extends State<MonitorZonesScreen> {
         backgroundColor: AppColors.appBarBg,
         iconTheme: IconThemeData(color: AppColors.textPrimary),
         title: Text('Monitors in View — ${widget.camera.label}',
-            style: GoogleFonts.dmSans(
+            style: appText(
                 fontWeight: FontWeight.w700,
                 fontSize: 15,
                 color: AppColors.textPrimary)),
@@ -94,7 +94,7 @@ class _MonitorZonesScreenState extends State<MonitorZonesScreen> {
           TextButton(
             onPressed: _save,
             child: Text('Save',
-                style: GoogleFonts.dmSans(
+                style: appText(
                     color: AppColors.primary, fontWeight: FontWeight.w700)),
           ),
         ],
@@ -125,7 +125,7 @@ class _MonitorZonesScreenState extends State<MonitorZonesScreen> {
               'Drag a box around each bedside monitor this camera can see '
               '(up to $kMaxMonitorZones). Then name it and pick which patient '
               'it belongs to — the AI reads each monitor separately.',
-              style: GoogleFonts.dmSans(
+              style: appText(
                   color: AppColors.textSecondary, fontSize: 11, height: 1.4),
             ),
           ),
@@ -148,7 +148,7 @@ class _MonitorZonesScreenState extends State<MonitorZonesScreen> {
                 onPressed: _addZone,
                 icon: const Icon(Icons.add, size: 16),
                 label: Text('Add',
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                         fontSize: 12, fontWeight: FontWeight.w700)),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.primary,
@@ -192,7 +192,7 @@ class _MonitorZonesScreenState extends State<MonitorZonesScreen> {
                 z.name.isEmpty ? 'Monitor ${i + 1}' : z.name,
                 textAlign: TextAlign.center,
                 overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.dmSans(
+                style: appText(
                   fontSize: 10,
                   fontWeight: active ? FontWeight.w700 : FontWeight.w500,
                   color: active ? color : AppColors.textSecondary,
@@ -202,7 +202,7 @@ class _MonitorZonesScreenState extends State<MonitorZonesScreen> {
                 Text(
                   z.patientName,
                   overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                       fontSize: 9, color: AppColors.textSecondary),
                 ),
             ],
@@ -262,11 +262,11 @@ class _MonitorZonesScreenState extends State<MonitorZonesScreen> {
                   key: ValueKey('name_${z.id}'),
                   initialValue: z.name,
                   onChanged: (v) => _zones[_active] = z.copyWith(name: v),
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                       fontSize: 13, color: AppColors.textPrimary),
                   decoration: InputDecoration(
                     labelText: 'Monitor name',
-                    labelStyle: GoogleFonts.dmSans(
+                    labelStyle: appText(
                         color: AppColors.textSecondary, fontSize: 12),
                     prefixIcon:
                         Icon(Icons.monitor_outlined, size: 18, color: color),
@@ -288,12 +288,12 @@ class _MonitorZonesScreenState extends State<MonitorZonesScreen> {
                   key: ValueKey('patient_${z.id}'),
                   initialValue: z.patientId.isEmpty ? null : z.patientId,
                   isExpanded: true,
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                       fontSize: 13, color: AppColors.textPrimary),
                   dropdownColor: AppColors.card,
                   decoration: InputDecoration(
                     labelText: 'Patient',
-                    labelStyle: GoogleFonts.dmSans(
+                    labelStyle: appText(
                         color: AppColors.textSecondary, fontSize: 12),
                     prefixIcon: Icon(Icons.person_outline,
                         size: 18, color: AppColors.primary),
@@ -311,7 +311,7 @@ class _MonitorZonesScreenState extends State<MonitorZonesScreen> {
                     DropdownMenuItem(
                       value: '',
                       child: Text('— none —',
-                          style: GoogleFonts.dmSans(
+                          style: appText(
                               fontSize: 13, color: AppColors.textSecondary)),
                     ),
                     for (final p in monitor.patients)
@@ -320,7 +320,7 @@ class _MonitorZonesScreenState extends State<MonitorZonesScreen> {
                         child: Text(
                           '${p.name}${p.bed.isNotEmpty ? ' · ${p.bed}' : ''}',
                           overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.dmSans(fontSize: 13),
+                          style: appText(fontSize: 13),
                         ),
                       ),
                   ],
@@ -345,7 +345,7 @@ class _MonitorZonesScreenState extends State<MonitorZonesScreen> {
               Expanded(
                 child: Text(
                   'Drag on the frame to redraw ${z.name.isEmpty ? "this zone" : z.name}, or drag the box to move it.',
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                       color: AppColors.textSecondary, fontSize: 11),
                 ),
               ),

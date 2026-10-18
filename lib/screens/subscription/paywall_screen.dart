@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/auth_provider.dart';
@@ -36,7 +36,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
     return Scaffold(
       backgroundColor: AppColors.surface,
       appBar: AppBar(
-        title: Text('FolioMed Pro', style: GoogleFonts.dmSans(fontWeight: FontWeight.w800)),
+        title: Text('FolioMed Pro', style: appText(fontWeight: FontWeight.w800)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -59,7 +59,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
             const SizedBox(height: 24),
             Text(
               'Upgrade to FolioMed Pro',
-              style: GoogleFonts.dmSans(
+              style: appText(
                 fontSize: 24,
                 fontWeight: FontWeight.w800,
                 color: AppColors.textPrimary,
@@ -69,7 +69,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
             Text(
               'Real-time patient monitoring, right from your phone.',
               textAlign: TextAlign.center,
-              style: GoogleFonts.dmSans(
+              style: appText(
                 fontSize: 14,
                 color: AppColors.textSecondary,
               ),
@@ -107,21 +107,21 @@ class _PaywallScreenState extends State<PaywallScreen> {
               child: Column(
                 children: [
                   Text('FolioMed Pro',
-                    style: GoogleFonts.dmSans(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w600)),
+                    style: appText(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('₹', style: GoogleFonts.dmSans(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600)),
-                      Text('2,999', style: GoogleFonts.dmSans(color: Colors.white, fontSize: 44, fontWeight: FontWeight.w800)),
+                      Text('₹', style: appText(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600)),
+                      Text('2,999', style: appText(color: Colors.white, fontSize: 44, fontWeight: FontWeight.w800)),
                     ],
                   ),
                   Text('per month',
-                    style: GoogleFonts.dmSans(color: Colors.white60, fontSize: 13)),
+                    style: appText(color: Colors.white60, fontSize: 13)),
                   const SizedBox(height: 4),
                   Text('per ward · unlimited team members',
-                    style: GoogleFonts.dmSans(color: Colors.white54, fontSize: 11)),
+                    style: appText(color: Colors.white54, fontSize: 11)),
                   const SizedBox(height: 20),
                   SizedBox(
                     width: double.infinity,
@@ -132,10 +132,10 @@ class _PaywallScreenState extends State<PaywallScreen> {
                         backgroundColor: Colors.white,
                         foregroundColor: const Color(0xFF0A5C8A),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        textStyle: GoogleFonts.dmSans(fontSize: 16, fontWeight: FontWeight.w700),
+                        textStyle: appText(fontSize: 16, fontWeight: FontWeight.w700),
                       ),
                       child: sub.isLoading
-                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator.adaptive(strokeWidth: 2))
                           : const Text('Subscribe Now'),
                     ),
                   ),
@@ -149,7 +149,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                         side: const BorderSide(color: Colors.white30),
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                        textStyle: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w600),
+                        textStyle: appText(fontSize: 14, fontWeight: FontWeight.w600),
                       ),
                       child: const Text('Start 7-day free trial'),
                     ),
@@ -161,7 +161,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
             const SizedBox(height: 16),
             Text(
               'Cancel anytime. No hidden fees.',
-              style: GoogleFonts.dmSans(color: AppColors.textSecondary, fontSize: 11),
+              style: appText(color: AppColors.textSecondary, fontSize: 11),
             ),
             const SizedBox(height: 40),
           ],
@@ -189,9 +189,9 @@ class _PaywallScreenState extends State<PaywallScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: GoogleFonts.dmSans(
+                Text(title, style: appText(
                   color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.w700)),
-                Text(desc, style: GoogleFonts.dmSans(
+                Text(desc, style: appText(
                   color: AppColors.textSecondary, fontSize: 12)),
               ],
             ),
@@ -217,7 +217,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('FolioMed Pro activated! Thank you.',
-                style: GoogleFonts.dmSans()),
+                style: appText()),
               backgroundColor: AppColors.accent,
             ),
           );
@@ -228,7 +228,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Payment failed. Please try again.',
-                style: GoogleFonts.dmSans()),
+                style: appText()),
               backgroundColor: AppColors.danger,
             ),
           );
@@ -244,7 +244,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('FolioMed Pro activated! 7-day free trial started.',
-            style: GoogleFonts.dmSans()),
+            style: appText()),
           backgroundColor: AppColors.accent,
         ),
       );

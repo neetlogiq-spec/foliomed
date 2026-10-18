@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 
 import '../../models/camera_config.dart';
 import '../../models/monitor_vitals.dart';
@@ -113,12 +113,12 @@ class _RoiEditorScreenState extends State<RoiEditorScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.appBarBg,
         title: Text('Define Vital Zones — ${widget.camera.label}',
-            style: GoogleFonts.dmSans(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary)),
+            style: appText(fontWeight: FontWeight.w700, fontSize: 15, color: AppColors.textPrimary)),
         actions: [
           TextButton(
             onPressed: _save,
             child: Text('Save Zones',
-                style: GoogleFonts.dmSans(
+                style: appText(
                     color: AppColors.primary, fontWeight: FontWeight.w700)),
           ),
         ],
@@ -148,7 +148,7 @@ class _RoiEditorScreenState extends State<RoiEditorScreen> {
             child: Text(
               'Select a vital type below, then drag on the camera frame to draw where that '
               'vital number appears on the monitor screen.',
-              style: GoogleFonts.dmSans(
+              style: appText(
                   color: AppColors.textSecondary, fontSize: 11, height: 1.4),
             ),
           ),
@@ -209,7 +209,7 @@ class _RoiEditorScreenState extends State<RoiEditorScreen> {
                     Text(
                       _vitalLabels[vt]!,
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.dmSans(
+                      style: appText(
                         fontSize: 10,
                         fontWeight: active ? FontWeight.w700 : FontWeight.w500,
                         color: active ? color : AppColors.textSecondary,
@@ -341,7 +341,7 @@ class _RoiEditorScreenState extends State<RoiEditorScreen> {
                 Flexible(
                   child: Text(
                     _vitalLabels[vt]!,
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                       fontSize: 9,
                       color: hasZone ? AppColors.textPrimary : AppColors.textSecondary,
                       fontWeight: hasZone ? FontWeight.w700 : FontWeight.w400,
@@ -373,7 +373,7 @@ class _RoiEditorScreenState extends State<RoiEditorScreen> {
               children: [
                 Text(
                   'Editing: ${_vitalLabels[_activeVital]}',
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                       fontWeight: FontWeight.w700,
                       color: color,
                       fontSize: 13),
@@ -382,7 +382,7 @@ class _RoiEditorScreenState extends State<RoiEditorScreen> {
                   hasZone
                       ? 'Zone defined. Drag to move it, or drag a new area to redraw.'
                       : 'No zone set. Drag on the camera frame to draw a zone.',
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                       color: AppColors.textSecondary, fontSize: 11),
                 ),
               ],

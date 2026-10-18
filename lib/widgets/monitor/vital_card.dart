@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 
 import '../../models/monitor_vitals.dart';
 import '../../utils/app_theme.dart';
@@ -64,7 +64,7 @@ class VitalCard extends StatelessWidget {
               const SizedBox(width: 6),
               Text(
                 meta.label,
-                style: GoogleFonts.dmSans(
+                style: appText(
                   color: AppColors.textSecondary,
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
@@ -75,7 +75,7 @@ class VitalCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             '${value.round()}',
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: sev != 'stable' ? sevColor : AppColors.textPrimary,
               fontSize: 38,
               fontWeight: FontWeight.w700,
@@ -83,7 +83,7 @@ class VitalCard extends StatelessWidget {
           ),
           Text(
             meta.unit,
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.textSecondary,
               fontSize: 12,
             ),
@@ -97,7 +97,7 @@ class VitalCard extends StatelessWidget {
             ),
             child: Text(
               statusText,
-              style: GoogleFonts.dmSans(
+              style: appText(
                 color: sevColor,
                 fontSize: 11,
                 fontWeight: FontWeight.w600,

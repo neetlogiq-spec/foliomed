@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:media_kit_video/media_kit_video.dart';
 import 'package:provider/provider.dart';
@@ -314,7 +314,7 @@ class _EdgeCameraViewerState extends State<EdgeCameraViewer> {
                   ),
                   const SizedBox(width: 6),
                   Text(_camera!.isWebcam ? 'WEBCAM TEST' : 'LIVE',
-                      style: GoogleFonts.dmSans(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800)),
+                      style: appText(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800)),
                 ]),
               ),
             ),
@@ -332,7 +332,7 @@ class _EdgeCameraViewerState extends State<EdgeCameraViewer> {
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
                     const Icon(Icons.auto_awesome, color: Colors.white, size: 11),
                     const SizedBox(width: 4),
-                    Text('AI', style: GoogleFonts.dmSans(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800)),
+                    Text('AI', style: appText(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800)),
                   ]),
                 ),
               ),
@@ -381,7 +381,7 @@ class _EdgeCameraViewerState extends State<EdgeCameraViewer> {
                             : _vlm.isBusy
                                 ? 'Stop AI read'
                                 : 'Pause AI',
-                        style: GoogleFonts.dmSans(
+                        style: appText(
                             color: Colors.white,
                             fontSize: 11,
                             fontWeight: FontWeight.w700),
@@ -398,11 +398,11 @@ class _EdgeCameraViewerState extends State<EdgeCameraViewer> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(widget.patientName, style: GoogleFonts.dmSans(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
-                  Text('${_camera!.brand} · ${_camera!.ip}', style: GoogleFonts.dmSans(color: Colors.white38, fontSize: 10)),
+                  Text(widget.patientName, style: appText(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
+                  Text('${_camera!.brand} · ${_camera!.ip}', style: appText(color: Colors.white38, fontSize: 10)),
                   if (_ocrStatus != null) ...[
                     const SizedBox(height: 2),
-                    Text(_ocrStatus!, style: GoogleFonts.dmSans(color: Colors.tealAccent.withValues(alpha: 0.7), fontSize: 9)),
+                    Text(_ocrStatus!, style: appText(color: Colors.tealAccent.withValues(alpha: 0.7), fontSize: 9)),
                   ],
                 ],
               ),
@@ -432,12 +432,12 @@ class _EdgeCameraViewerState extends State<EdgeCameraViewer> {
                   children: [
                     const SizedBox(
                       width: 24, height: 24,
-                      child: CircularProgressIndicator(color: Colors.white30, strokeWidth: 2),
+                      child: CircularProgressIndicator.adaptive(valueColor: AlwaysStoppedAnimation<Color>(Colors.white30), strokeWidth: 2),
                     ),
                     const SizedBox(height: 10),
-                    Text('Connecting to ${_camera!.brand}…', style: GoogleFonts.dmSans(color: Colors.white54, fontSize: 12)),
+                    Text('Connecting to ${_camera!.brand}…', style: appText(color: Colors.white54, fontSize: 12)),
                     const SizedBox(height: 4),
-                    Text(_camera!.ip, style: GoogleFonts.dmSans(color: Colors.white24, fontSize: 11)),
+                    Text(_camera!.ip, style: appText(color: Colors.white24, fontSize: 11)),
                   ],
                 ),
               ),
@@ -463,14 +463,14 @@ class _EdgeCameraViewerState extends State<EdgeCameraViewer> {
                   if (err == null) ...[
                     const SizedBox(
                       width: 24, height: 24,
-                      child: CircularProgressIndicator(color: Colors.white30, strokeWidth: 2),
+                      child: CircularProgressIndicator.adaptive(valueColor: AlwaysStoppedAnimation<Color>(Colors.white30), strokeWidth: 2),
                     ),
                     const SizedBox(height: 10),
                     Text('Starting webcam…',
-                        style: GoogleFonts.dmSans(color: Colors.white54, fontSize: 12)),
+                        style: appText(color: Colors.white54, fontSize: 12)),
                     const SizedBox(height: 4),
                     Text('macOS may ask for camera permission',
-                        style: GoogleFonts.dmSans(color: Colors.white24, fontSize: 11)),
+                        style: appText(color: Colors.white24, fontSize: 11)),
                   ] else ...[
                     Icon(Icons.no_photography_outlined,
                         color: Colors.orange.shade300, size: 32),
@@ -480,12 +480,12 @@ class _EdgeCameraViewerState extends State<EdgeCameraViewer> {
                       child: Text(
                         err.length > 140 ? '${err.substring(0, 140)}…' : err,
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.dmSans(color: Colors.white38, fontSize: 11),
+                        style: appText(color: Colors.white38, fontSize: 11),
                       ),
                     ),
                     const SizedBox(height: 6),
                     Text('Check System Settings → Privacy → Camera → foliomed',
-                        style: GoogleFonts.dmSans(color: Colors.white24, fontSize: 10)),
+                        style: appText(color: Colors.white24, fontSize: 10)),
                   ],
                 ],
               ),
@@ -517,14 +517,14 @@ class _EdgeCameraViewerState extends State<EdgeCameraViewer> {
             children: [
               Icon(icon, color: Colors.orange.shade300, size: 36),
               const SizedBox(height: 10),
-              Text(title, style: GoogleFonts.dmSans(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w700)),
+              Text(title, style: appText(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w700)),
               const SizedBox(height: 6),
-              Text(detail, textAlign: TextAlign.center, style: GoogleFonts.dmSans(color: Colors.white38, fontSize: 11)),
+              Text(detail, textAlign: TextAlign.center, style: appText(color: Colors.white38, fontSize: 11)),
               const SizedBox(height: 14),
               TextButton.icon(
                 onPressed: _retry,
                 icon: const Icon(Icons.refresh, size: 16, color: Colors.white54),
-                label: Text('Retry', style: GoogleFonts.dmSans(color: Colors.white54, fontSize: 12)),
+                label: Text('Retry', style: appText(color: Colors.white54, fontSize: 12)),
               ),
             ],
           ),
@@ -542,7 +542,7 @@ class _EdgeCameraViewerState extends State<EdgeCameraViewer> {
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
           const Icon(Icons.videocam_off, color: Colors.white30, size: 32),
           const SizedBox(height: 8),
-          Text(message, style: GoogleFonts.dmSans(color: Colors.white38, fontSize: 12)),
+          Text(message, style: appText(color: Colors.white38, fontSize: 12)),
         ]),
       ),
     );

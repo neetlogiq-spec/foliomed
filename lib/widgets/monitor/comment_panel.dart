@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 import 'package:intl/intl.dart';
 
 import '../../models/monitor_comment.dart';
@@ -39,7 +39,6 @@ class _MonitorCommentPanelState extends State<MonitorCommentPanel> {
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -47,8 +46,8 @@ class _MonitorCommentPanelState extends State<MonitorCommentPanel> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Orders & Notes', style: GoogleFonts.dmSans(color: AppColors.textPrimary, fontSize: 15, fontWeight: FontWeight.w600)),
-              Text('shown on bedside display', style: GoogleFonts.dmSans(color: AppColors.textSecondary, fontSize: 10)),
+              Text('Orders & Notes', style: appText(color: AppColors.textPrimary, fontSize: 15, fontWeight: FontWeight.w600)),
+              Text('shown on bedside display', style: appText(color: AppColors.textSecondary, fontSize: 10)),
             ],
           ),
           const SizedBox(height: 10),
@@ -65,7 +64,7 @@ class _MonitorCommentPanelState extends State<MonitorCommentPanel> {
               Expanded(
                 child: TextField(
                   controller: _ctrl,
-                  style: GoogleFonts.dmSans(fontSize: 13, color: AppColors.textPrimary),
+                  style: appText(fontSize: 13, color: AppColors.textPrimary),
                   decoration: InputDecoration(
                     hintText: _type == 'order' ? 'Write an order...' : 'Write a note...',
                     isDense: true,
@@ -102,7 +101,7 @@ class _MonitorCommentPanelState extends State<MonitorCommentPanel> {
         ),
         child: Text(
           '${type == 'order' ? '📋' : '📝'} $label',
-          style: GoogleFonts.dmSans(
+          style: appText(
             color: active ? AppColors.primary : AppColors.textSecondary,
             fontSize: 12,
             fontWeight: FontWeight.w600,
@@ -135,7 +134,7 @@ class _MonitorCommentPanelState extends State<MonitorCommentPanel> {
             children: [
               Text(
                 '${isOrder ? "📋" : "📝"} ${isOrder ? "Order" : "Note"}',
-                style: GoogleFonts.dmSans(
+                style: appText(
                   color: isOrder ? AppColors.primary : AppColors.accent,
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
@@ -143,16 +142,16 @@ class _MonitorCommentPanelState extends State<MonitorCommentPanel> {
               ),
               Text(
                 DateFormat('d MMM · hh:mm a').format(c.time),
-                style: GoogleFonts.dmSans(color: AppColors.textSecondary, fontSize: 10),
+                style: appText(color: AppColors.textSecondary, fontSize: 10),
               ),
             ],
           ),
           const SizedBox(height: 4),
-          Text(c.text, style: GoogleFonts.dmSans(color: AppColors.textPrimary, fontSize: 13, height: 1.5)),
+          Text(c.text, style: appText(color: AppColors.textPrimary, fontSize: 13, height: 1.5)),
           const SizedBox(height: 4),
           Text(
             '${c.author} · ${_timeAgo(c.time)}',
-            style: GoogleFonts.dmSans(color: AppColors.textSecondary, fontSize: 11),
+            style: appText(color: AppColors.textSecondary, fontSize: 11),
           ),
         ],
       ),

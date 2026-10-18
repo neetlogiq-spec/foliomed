@@ -1,6 +1,6 @@
 import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 
 import '../../models/app_user.dart';
 import '../../services/supabase_service.dart';
@@ -92,7 +92,7 @@ class _AdminStaffScreenState extends State<AdminStaffScreen> {
                   .then((rows) => rows.map(AppUser.fromRow).toList()),
               builder: (context, snap) {
                 if (!snap.hasData) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator.adaptive());
                 }
                 final all = snap.data!;
                 final staff = all.where((u) {
@@ -105,7 +105,7 @@ class _AdminStaffScreenState extends State<AdminStaffScreen> {
                   return Center(
                     child: Text(
                       'No staff found',
-                      style: GoogleFonts.dmSans(
+                      style: appText(
                         color: AppColors.textSecondary,
                       ),
                     ),
@@ -161,7 +161,7 @@ class _AdminStaffScreenState extends State<AdminStaffScreen> {
               ),
               child: Text(
                 f,
-                style: GoogleFonts.dmSans(
+                style: appText(
                   color: selected ? Colors.white : AppColors.textPrimary,
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
@@ -183,7 +183,6 @@ class _AdminStaffScreenState extends State<AdminStaffScreen> {
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.divider),
         ),
         child: Row(
           children: [
@@ -204,7 +203,7 @@ class _AdminStaffScreenState extends State<AdminStaffScreen> {
                 children: [
                   Text(
                     user.name,
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                       color: AppColors.textPrimary,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -212,7 +211,7 @@ class _AdminStaffScreenState extends State<AdminStaffScreen> {
                   ),
                   Text(
                     user.email,
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                       color: AppColors.textSecondary,
                       fontSize: 12,
                     ),
@@ -230,7 +229,7 @@ class _AdminStaffScreenState extends State<AdminStaffScreen> {
                     ),
                     child: Text(
                       'Ward ${user.wardId}',
-                      style: GoogleFonts.dmSans(
+                      style: appText(
                         color: AppColors.textSecondary,
                         fontSize: 10,
                         fontWeight: FontWeight.w600,
@@ -291,7 +290,7 @@ class _AdminStaffScreenState extends State<AdminStaffScreen> {
             const SizedBox(height: 12),
             Text(
               user.name,
-              style: GoogleFonts.dmSans(
+              style: appText(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -301,13 +300,13 @@ class _AdminStaffScreenState extends State<AdminStaffScreen> {
             const SizedBox(height: 12),
             Text(
               user.email,
-              style: GoogleFonts.dmSans(
+              style: appText(
                 color: AppColors.textSecondary,
               ),
             ),
             Text(
               'Ward ${user.wardId}',
-              style: GoogleFonts.dmSans(
+              style: appText(
                 color: AppColors.textSecondary,
               ),
             ),

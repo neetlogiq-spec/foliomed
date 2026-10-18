@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/haptics.dart';
+import '../../utils/app_typography.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:showcaseview/showcaseview.dart';
@@ -162,12 +163,12 @@ class _MainScaffoldState extends State<MainScaffold>
       key: key,
       title: title,
       description: description,
-      titleTextStyle: GoogleFonts.dmSans(
+      titleTextStyle: appText(
         color: AppColors.textPrimary,
         fontSize: 15,
         fontWeight: FontWeight.w800,
       ),
-      descTextStyle: GoogleFonts.dmSans(
+      descTextStyle: appText(
         color: AppColors.textSecondary,
         fontSize: 13,
         height: 1.45,
@@ -395,27 +396,39 @@ class _MainScaffoldState extends State<MainScaffold>
         index: _index,
         children: _screensForRole,
       ),
-      bottomNavigationBar: Container(
+      // iOS-style tab bar: chrome material with a hairline top edge,
+      // 10pt labels, tint on the selected item and a selection haptic.
+      bottomNavigationBar: DecoratedBox(
         decoration: BoxDecoration(
-          color: AppColors.appBarBg,
+          color: AppColors.isDark ? AppColors.darkCard : const Color(0xFFF9F9F9),
           border: Border(
-            top: BorderSide(color: AppColors.divider),
+            top: BorderSide(color: AppColors.divider, width: 0.5),
           ),
         ),
         child: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
-          backgroundColor: AppColors.appBarBg,
+          backgroundColor: Colors.transparent,
           elevation: 0,
-          selectedItemColor: AppColors.primary,
+          iconSize: 26,
+          selectedItemColor:
+              AppColors.isDark ? AppColors.darkPrimary : AppColors.primary,
           unselectedItemColor: AppColors.textSecondary,
-          selectedLabelStyle: GoogleFonts.dmSans(
-            fontSize: 11,
+          selectedFontSize: 10,
+          unselectedFontSize: 10,
+          selectedLabelStyle: appText(
+            fontSize: 10,
             fontWeight: FontWeight.w600,
           ),
-          unselectedLabelStyle: GoogleFonts.dmSans(fontSize: 11),
+          unselectedLabelStyle: appText(
+            fontSize: 10,
+            fontWeight: FontWeight.w500,
+          ),
           currentIndex: _index,
           items: _itemsForRole,
-          onTap: (i) => setState(() => _index = i),
+          onTap: (i) {
+            if (i != _index) Haptics.selection();
+            setState(() => _index = i);
+          },
         ),
       ),
     );
@@ -440,7 +453,7 @@ class _DoctorNotesList extends StatelessWidget {
             return Center(
               child: Text(
                 'No notes yet',
-                style: GoogleFonts.dmSans(color: AppColors.textSecondary),
+                style: appText(color: AppColors.textSecondary),
               ),
             );
           }
@@ -456,7 +469,7 @@ class _DoctorNotesList extends StatelessWidget {
                   child: Center(
                     child: Text(
                       'Showing the last 150 notes',
-                      style: GoogleFonts.dmSans(
+                      style: appText(
                         color: AppColors.textSecondary,
                         fontSize: 12,
                       ),

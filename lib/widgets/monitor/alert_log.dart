@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 import '../../models/monitor_alert.dart';
@@ -17,7 +17,6 @@ class AlertLog extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -25,8 +24,8 @@ class AlertLog extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Alert log', style: GoogleFonts.dmSans(color: AppColors.textPrimary, fontSize: 15, fontWeight: FontWeight.w600)),
-              Text('${alerts.length} total', style: GoogleFonts.dmSans(color: AppColors.textSecondary, fontSize: 12)),
+              Text('Alert log', style: appText(color: AppColors.textPrimary, fontSize: 15, fontWeight: FontWeight.w600)),
+              Text('${alerts.length} total', style: appText(color: AppColors.textSecondary, fontSize: 12)),
             ],
           ),
           const SizedBox(height: 10),
@@ -34,7 +33,7 @@ class AlertLog extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Center(
-                child: Text('No alerts yet', style: GoogleFonts.dmSans(color: AppColors.textSecondary, fontSize: 13)),
+                child: Text('No alerts yet', style: appText(color: AppColors.textSecondary, fontSize: 13)),
               ),
             )
           else
@@ -52,12 +51,12 @@ class AlertLog extends StatelessWidget {
                     ),
                   ),
                   Expanded(
-                    child: Text(a.message, style: GoogleFonts.dmSans(color: AppColors.textPrimary, fontSize: 13)),
+                    child: Text(a.message, style: appText(color: AppColors.textPrimary, fontSize: 13)),
                   ),
                   const SizedBox(width: 8),
                   Text(
                     timeago.format(a.time, allowFromNow: true),
-                    style: GoogleFonts.dmSans(color: AppColors.textSecondary, fontSize: 11),
+                    style: appText(color: AppColors.textSecondary, fontSize: 11),
                   ),
                 ],
               ),

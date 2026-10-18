@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -47,7 +47,7 @@ class _NursePatientDetailScreenState extends State<NursePatientDetailScreen> {
       backgroundColor: AppColors.surface,
       appBar: AppBar(title: Text(patient?.name ?? 'Patient')),
       body: patient == null
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator.adaptive())
           : Column(
               children: [
                 Padding(
@@ -66,7 +66,6 @@ class _NursePatientDetailScreenState extends State<NursePatientDetailScreen> {
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -91,7 +90,7 @@ class _NursePatientDetailScreenState extends State<NursePatientDetailScreen> {
                   children: [
                     Text(
                       p.name,
-                      style: GoogleFonts.dmSans(
+                      style: appText(
                         color: AppColors.textPrimary,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -99,7 +98,7 @@ class _NursePatientDetailScreenState extends State<NursePatientDetailScreen> {
                     ),
                     Text(
                       p.diagnosis,
-                      style: GoogleFonts.dmSans(
+                      style: appText(
                         color: AppColors.textSecondary,
                         fontSize: 14,
                       ),
@@ -129,7 +128,7 @@ class _NursePatientDetailScreenState extends State<NursePatientDetailScreen> {
               const SizedBox(width: 6),
               Text(
                 'Admitted ${DateFormat.yMMMd().format(p.admittedAt)}',
-                style: GoogleFonts.dmSans(
+                style: appText(
                   color: AppColors.textSecondary,
                   fontSize: 12,
                 ),
@@ -148,14 +147,14 @@ class _NursePatientDetailScreenState extends State<NursePatientDetailScreen> {
         children: [
           Text(
             label,
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.textSecondary,
               fontSize: 11,
             ),
           ),
           Text(
             value,
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.textPrimary,
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -174,7 +173,7 @@ class _NursePatientDetailScreenState extends State<NursePatientDetailScreen> {
           return Center(
             child: Text(
               'No notes for this patient yet',
-              style: GoogleFonts.dmSans(color: AppColors.textSecondary),
+              style: appText(color: AppColors.textSecondary),
             ),
           );
         }

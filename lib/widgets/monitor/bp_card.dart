@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 
 import '../../models/monitor_vitals.dart';
 import '../../utils/app_theme.dart';
@@ -66,7 +66,7 @@ class BPCard extends StatelessWidget {
               const SizedBox(width: 6),
               Text(
                 'Blood Pressure',
-                style: GoogleFonts.dmSans(
+                style: appText(
                   color: AppColors.textSecondary,
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
@@ -81,7 +81,7 @@ class BPCard extends StatelessWidget {
             children: [
               Text(
                 '${sbp.round()}',
-                style: GoogleFonts.dmSans(
+                style: appText(
                   color: sev != 'stable' ? sevColor : AppColors.textPrimary,
                   fontSize: 38,
                   fontWeight: FontWeight.w700,
@@ -89,7 +89,7 @@ class BPCard extends StatelessWidget {
               ),
               Text(
                 '/',
-                style: GoogleFonts.dmSans(
+                style: appText(
                   color: AppColors.textSecondary,
                   fontSize: 28,
                   fontWeight: FontWeight.w300,
@@ -97,7 +97,7 @@ class BPCard extends StatelessWidget {
               ),
               Text(
                 '${dbp.round()}',
-                style: GoogleFonts.dmSans(
+                style: appText(
                   color: sev != 'stable' ? sevColor : AppColors.textPrimary,
                   fontSize: 38,
                   fontWeight: FontWeight.w700,
@@ -107,11 +107,11 @@ class BPCard extends StatelessWidget {
           ),
           Row(
             children: [
-              Text('MAP', style: GoogleFonts.dmSans(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w600)),
+              Text('MAP', style: appText(color: AppColors.textSecondary, fontSize: 11, fontWeight: FontWeight.w600)),
               const SizedBox(width: 6),
-              Text('${map.round()}', style: GoogleFonts.dmSans(color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.w700)),
+              Text('${map.round()}', style: appText(color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.w700)),
               const SizedBox(width: 4),
-              Text('mmHg', style: GoogleFonts.dmSans(color: AppColors.textSecondary, fontSize: 11)),
+              Text('mmHg', style: appText(color: AppColors.textSecondary, fontSize: 11)),
             ],
           ),
           const SizedBox(height: 8),
@@ -123,7 +123,7 @@ class BPCard extends StatelessWidget {
             ),
             child: Text(
               sev == 'stable' ? msg : '↓ $msg',
-              style: GoogleFonts.dmSans(
+              style: appText(
                 color: sevColor,
                 fontSize: 11,
                 fontWeight: FontWeight.w600,

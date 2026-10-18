@@ -2,7 +2,7 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -192,7 +192,7 @@ class _LoginScreenState extends State<LoginScreen> {
           children: [
             Text(
               'Please use your real name — it makes tracking who posted or acknowledged a note much easier for your ward team.',
-              style: GoogleFonts.dmSans(
+              style: appText(
                 color: AppColors.textSecondary,
                 fontSize: 13,
               ),
@@ -359,7 +359,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: Center(
                               child: Text(
                                 'F',
-                                style: GoogleFonts.dmSans(
+                                style: appText(
                                   color: Colors.white,
                                   fontSize: 46,
                                   fontWeight: FontWeight.w900,
@@ -374,7 +374,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 12),
                       Text(
                         'Ward, connected',
-                        style: GoogleFonts.dmSans(
+                        style: appText(
                           color: Colors.white.withOpacity(0.85),
                           fontSize: 14,
                           letterSpacing: 1.4,
@@ -486,7 +486,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             }),
                             child: Text(
                               'Remember this device',
-                              style: GoogleFonts.dmSans(
+                              style: appText(
                                 color: AppColors.textSecondary,
                                 fontSize: 13,
                               ),
@@ -522,7 +522,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   const EdgeInsets.symmetric(horizontal: 12),
                               child: Text(
                                 'OR',
-                                style: GoogleFonts.dmSans(
+                                style: appText(
                                   color: AppColors.textSecondary,
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
@@ -595,7 +595,7 @@ class _LoginScreenState extends State<LoginScreen> {
             Container(
               color: Colors.black.withOpacity(0.2),
               child: const Center(
-                child: CircularProgressIndicator(color: Colors.white),
+                child: CircularProgressIndicator.adaptive(valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
               ),
             ),
         ],
@@ -634,7 +634,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Text(
             label,
             textAlign: TextAlign.center,
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: selected ? Colors.white : AppColors.textSecondary,
               fontSize: 14,
               fontWeight: FontWeight.w700,

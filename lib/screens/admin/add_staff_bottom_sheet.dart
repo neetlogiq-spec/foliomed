@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 
 import '../../models/app_user.dart';
 import '../../services/auth_service.dart';
@@ -131,7 +131,7 @@ class _AddStaffBottomSheetState extends State<AddStaffBottomSheet> {
                       children: [
                         Text(
                           'Add Staff to Ward',
-                          style: GoogleFonts.dmSans(
+                          style: appText(
                             color: AppColors.textPrimary,
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -140,7 +140,7 @@ class _AddStaffBottomSheetState extends State<AddStaffBottomSheet> {
                         const SizedBox(height: 4),
                         Text(
                           'Enter staff details to create their account',
-                          style: GoogleFonts.dmSans(
+                          style: appText(
                             color: AppColors.textSecondary,
                             fontSize: 13,
                           ),
@@ -195,7 +195,7 @@ class _AddStaffBottomSheetState extends State<AddStaffBottomSheet> {
                         const SizedBox(height: 16),
                         Text(
                           'Role',
-                          style: GoogleFonts.dmSans(
+                          style: appText(
                             color: AppColors.textSecondary,
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -228,8 +228,8 @@ class _AddStaffBottomSheetState extends State<AddStaffBottomSheet> {
                               ? const SizedBox(
                                   height: 20,
                                   width: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
+                                  child: CircularProgressIndicator.adaptive(
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                                     strokeWidth: 2,
                                   ),
                                 )
@@ -273,7 +273,7 @@ class _AddStaffBottomSheetState extends State<AddStaffBottomSheet> {
           child: Center(
             child: Text(
               label,
-              style: GoogleFonts.dmSans(
+              style: appText(
                 color: selected ? color : AppColors.textPrimary,
                 fontWeight: FontWeight.w600,
               ),

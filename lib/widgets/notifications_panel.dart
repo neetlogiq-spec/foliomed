@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../utils/app_typography.dart';
 import 'package:provider/provider.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
@@ -56,7 +56,7 @@ class NotificationsPanel extends StatelessWidget {
                       const SizedBox(width: 8),
                       Text(
                         'Notifications',
-                        style: GoogleFonts.dmSans(
+                        style: appText(
                           color: AppColors.textPrimary,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -105,7 +105,7 @@ class NotificationsPanel extends StatelessWidget {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          textStyle: GoogleFonts.dmSans(
+                          textStyle: appText(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
                           ),
@@ -149,7 +149,7 @@ class NotificationsPanel extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             'No notifications yet',
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.textPrimary,
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -158,7 +158,7 @@ class NotificationsPanel extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             'Notifications from your ward will appear here.',
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.textSecondary,
               fontSize: 13,
             ),
@@ -197,7 +197,7 @@ class NotificationsPanel extends StatelessWidget {
                 if (n.title.isNotEmpty)
                   Text(
                     n.title,
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                       color: AppColors.textPrimary,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -207,7 +207,7 @@ class NotificationsPanel extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     n.body,
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                       color: AppColors.textSecondary,
                       fontSize: 13,
                     ),
@@ -219,7 +219,7 @@ class NotificationsPanel extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             timeago.format(n.receivedAt, locale: 'en_short'),
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.textSecondary,
               fontSize: 11,
             ),

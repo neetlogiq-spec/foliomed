@@ -3,7 +3,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../utils/app_typography.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -100,7 +100,7 @@ class _SupportSheet extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               'Support FolioMed ☕',
-              style: GoogleFonts.dmSans(
+              style: appText(
                 color: AppColors.textPrimary,
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
@@ -110,7 +110,7 @@ class _SupportSheet extends StatelessWidget {
             Text(
               "I've poured a lot of late nights into building FolioMed and keeping it free for everyone. Servers, database, and hosting all cost real money.\n\nIf FolioMed helps your ward team, please consider buying me a chai. Even a small contribution keeps the lights on and lets me keep adding features.",
               textAlign: TextAlign.center,
-              style: GoogleFonts.dmSans(
+              style: appText(
                 color: AppColors.textSecondary,
                 fontSize: 14,
                 height: 1.55,
@@ -144,7 +144,7 @@ class _SupportSheet extends StatelessWidget {
                       const SizedBox(width: 8),
                       Text(
                         'Send Feedback',
-                        style: GoogleFonts.dmSans(
+                        style: appText(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
                         ),
@@ -158,7 +158,7 @@ class _SupportSheet extends StatelessWidget {
                 onPressed: () => Navigator.pop(context),
                 child: Text(
                   'Close',
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                     color: AppColors.textSecondary,
                     fontWeight: FontWeight.w600,
                   ),
@@ -187,7 +187,7 @@ class _SupportSheet extends StatelessWidget {
                       const SizedBox(width: 8),
                       Text(
                         'Buy me a chai',
-                        style: GoogleFonts.dmSans(
+                        style: appText(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
                         ),
@@ -201,7 +201,7 @@ class _SupportSheet extends StatelessWidget {
                 onPressed: () => Navigator.pop(context),
                 child: Text(
                   'Maybe later',
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                     color: AppColors.textSecondary,
                     fontWeight: FontWeight.w600,
                   ),
@@ -211,7 +211,7 @@ class _SupportSheet extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               '— Kashyap A.',
-              style: GoogleFonts.dmSans(
+              style: appText(
                 color: AppColors.textSecondary,
                 fontSize: 12,
               ),

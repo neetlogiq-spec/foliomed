@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -59,7 +59,7 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
         body: Center(
           child: Text(
             'Join a ward to see patients.',
-            style: GoogleFonts.dmSans(color: AppColors.textSecondary),
+            style: appText(color: AppColors.textSecondary),
           ),
         ),
       );
@@ -72,7 +72,7 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
         if (!snap.hasData) {
           return Scaffold(
             appBar: AppBar(title: const Text('Patients'), actions: const [SupportAppBarAction()]),
-            body: const Center(child: CircularProgressIndicator()),
+            body: const Center(child: CircularProgressIndicator.adaptive()),
           );
         }
         final wards = snap.data!;
@@ -83,7 +83,7 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
             body: Center(
               child: Text(
                 'No wards yet. Create one in the Wards tab.',
-                style: GoogleFonts.dmSans(color: AppColors.textSecondary),
+                style: appText(color: AppColors.textSecondary),
               ),
             ),
           );
@@ -108,7 +108,7 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
                     unselectedLabelColor: AppColors.textSecondary,
                     indicatorColor: AppColors.primary,
                     labelStyle:
-                        GoogleFonts.dmSans(fontWeight: FontWeight.w600),
+                        appText(fontWeight: FontWeight.w600),
                     tabs: wards.map((w) => Tab(text: w.name)).toList(),
                   ),
                 ),
@@ -167,7 +167,6 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.divider),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.03),
@@ -191,13 +190,13 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
               child: TextField(
                 controller: _searchController,
                 textInputAction: TextInputAction.search,
-                style: GoogleFonts.dmSans(
+                style: appText(
                   color: AppColors.textPrimary,
                   fontSize: 15,
                 ),
                 decoration: InputDecoration(
                   hintText: 'Search patients across all your wards…',
-                  hintStyle: GoogleFonts.dmSans(
+                  hintStyle: appText(
                     color: AppColors.textSecondary,
                     fontSize: 14,
                   ),
@@ -244,7 +243,7 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
           );
         }
         if (!snap.hasData) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator.adaptive());
         }
         final patients = snap.data!;
         if (patients.isEmpty) {
@@ -260,7 +259,7 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
                 const SizedBox(height: 8),
                 Text(
                   'No patients in ${ward.name}',
-                  style: GoogleFonts.dmSans(color: AppColors.textSecondary),
+                  style: appText(color: AppColors.textSecondary),
                 ),
               ],
             ),
@@ -298,7 +297,7 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
           );
         }
         if (!snap.hasData) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator.adaptive());
         }
         // Filter on the client — the list is already capped and live.
         final all = snap.data!;
@@ -329,14 +328,14 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
                   const SizedBox(height: 8),
                   Text(
                     'No patient matches "$_query"',
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                       color: AppColors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     'Searched across ${wards.length} ward${wards.length == 1 ? '' : 's'}',
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                       color: AppColors.textSecondary,
                       fontSize: 12,
                     ),
@@ -355,7 +354,7 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
                 children: [
                   Text(
                     '${results.length} match${results.length == 1 ? '' : 'es'}',
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                       color: AppColors.textSecondary,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -364,7 +363,7 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
                   const SizedBox(width: 6),
                   Text(
                     '· across ${wards.length} ward${wards.length == 1 ? '' : 's'}',
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                       color: AppColors.textSecondary,
                       fontSize: 12,
                     ),
@@ -438,7 +437,7 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
                       Expanded(
                         child: _highlightText(
                           p.name,
-                          baseStyle: GoogleFonts.dmSans(
+                          baseStyle: appText(
                             color: AppColors.textPrimary,
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
@@ -458,7 +457,7 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
                           ),
                           child: _highlightText(
                             'Bed ${p.bedNumber}',
-                            baseStyle: GoogleFonts.dmSans(
+                            baseStyle: appText(
                               color: AppColors.textSecondary,
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
@@ -485,7 +484,7 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
                                 const SizedBox(width: 3),
                                 Text(
                                   'EDGE',
-                                  style: GoogleFonts.dmSans(
+                                  style: appText(
                                     color: Colors.teal.shade600,
                                     fontSize: 10,
                                     fontWeight: FontWeight.w700,
@@ -502,7 +501,7 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
                     const SizedBox(height: 2),
                     _highlightText(
                       p.diagnosis,
-                      baseStyle: GoogleFonts.dmSans(
+                      baseStyle: appText(
                         color: AppColors.textSecondary,
                         fontSize: 13,
                       ),
@@ -515,7 +514,7 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
                     children: [
                       Text(
                         DateFormat.yMMMd().format(p.admittedAt),
-                        style: GoogleFonts.dmSans(
+                        style: appText(
                           color: AppColors.textSecondary,
                           fontSize: 11,
                         ),
@@ -544,7 +543,7 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
                               const SizedBox(width: 4),
                               Text(
                                 wardName,
-                                style: GoogleFonts.dmSans(
+                                style: appText(
                                   color: AppColors.primary,
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
@@ -678,7 +677,7 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
       ),
       child: Text(
         active ? 'Active' : 'Discharged',
-        style: GoogleFonts.dmSans(
+        style: appText(
           color: color,
           fontSize: 11,
           fontWeight: FontWeight.w600,

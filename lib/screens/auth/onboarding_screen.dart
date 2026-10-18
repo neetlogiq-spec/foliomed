@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../utils/app_theme.dart';
@@ -124,7 +124,7 @@ class _SlideProblem extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             'Ward updates get lost in the chaos.',
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.lightTextPrimary,
               fontSize: 26,
               fontWeight: FontWeight.bold,
@@ -134,7 +134,7 @@ class _SlideProblem extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             'Every shift, critical patient information slips through the cracks. Notes get scribbled on paper, plans get verbal-only, and the next team comes in blind.',
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.lightTextSecondary,
               fontSize: 14.5,
               height: 1.55,
@@ -206,7 +206,7 @@ class _PainPoint extends StatelessWidget {
               padding: const EdgeInsets.only(top: 8),
               child: Text(
                 text,
-                style: GoogleFonts.dmSans(
+                style: appText(
                   color: AppColors.lightTextPrimary,
                   fontSize: 14,
                   height: 1.45,
@@ -246,7 +246,7 @@ class _SlideSolution extends StatelessWidget {
                 child: Center(
                   child: Text(
                     'F',
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                       color: Colors.white,
                       fontSize: 32,
                       fontWeight: FontWeight.w900,
@@ -263,7 +263,7 @@ class _SlideSolution extends StatelessWidget {
                   children: [
                     Text(
                       'FOLIOMED',
-                      style: GoogleFonts.dmSans(
+                      style: appText(
                         color: AppColors.lightTextPrimary,
                         fontSize: 22,
                         fontWeight: FontWeight.w900,
@@ -272,7 +272,7 @@ class _SlideSolution extends StatelessWidget {
                     ),
                     Text(
                       'Ward, connected.',
-                      style: GoogleFonts.dmSans(
+                      style: appText(
                         color: AppColors.lightTextSecondary,
                         fontSize: 13,
                       ),
@@ -291,7 +291,7 @@ class _SlideSolution extends StatelessWidget {
           const SizedBox(height: 14),
           Text(
             'One live feed for the whole ward team.',
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.lightTextPrimary,
               fontSize: 26,
               fontWeight: FontWeight.bold,
@@ -301,7 +301,7 @@ class _SlideSolution extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             'FolioMed puts every patient note, plan and alert in one shared timeline. Anyone on your ward — senior or junior, doctor or nurse — sees the same updates the moment they happen.',
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.lightTextSecondary,
               fontSize: 14.5,
               height: 1.55,
@@ -373,7 +373,7 @@ class _BenefitTile extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                     color: AppColors.lightTextPrimary,
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
@@ -382,7 +382,7 @@ class _BenefitTile extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   body,
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                     color: AppColors.lightTextSecondary,
                     fontSize: 13,
                     height: 1.45,
@@ -418,7 +418,7 @@ class _SlideHowItWorks extends StatelessWidget {
           const SizedBox(height: 14),
           Text(
             'Four taps from chaos\nto coordinated.',
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.lightTextPrimary,
               fontSize: 26,
               fontWeight: FontWeight.bold,
@@ -497,7 +497,7 @@ class _SlideHowItWorks extends StatelessWidget {
               children: [
                 Text(
                   'ICU Ward A',
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                     color: AppColors.lightTextPrimary,
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
@@ -505,7 +505,7 @@ class _SlideHowItWorks extends StatelessWidget {
                 ),
                 Text(
                   'Code: 47291 · tap to copy',
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                     color: AppColors.lightTextSecondary,
                     fontSize: 12,
                   ),
@@ -553,7 +553,7 @@ class _SlideHowItWorks extends StatelessWidget {
             ),
             child: Text(
               bed,
-              style: GoogleFonts.dmSans(
+              style: appText(
                 color: AppColors.primary,
                 fontSize: 10,
                 fontWeight: FontWeight.w700,
@@ -563,7 +563,7 @@ class _SlideHowItWorks extends StatelessWidget {
           const SizedBox(width: 8),
           Text(
             name,
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.lightTextPrimary,
               fontSize: 12,
               fontWeight: FontWeight.w600,
@@ -610,7 +610,7 @@ class _SlideHowItWorks extends StatelessWidget {
                     const SizedBox(width: 4),
                     Text(
                       'Urgent',
-                      style: GoogleFonts.dmSans(
+                      style: appText(
                         color: AppColors.danger,
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
@@ -622,7 +622,7 @@ class _SlideHowItWorks extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 'Bed 12 · Mr. R. Kumar',
-                style: GoogleFonts.dmSans(
+                style: appText(
                   color: AppColors.lightTextSecondary,
                   fontSize: 11,
                 ),
@@ -632,7 +632,7 @@ class _SlideHowItWorks extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             'BP dropping — please review. Started fluids, awaiting cardiology callback.',
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.lightTextPrimary,
               fontSize: 13,
               height: 1.4,
@@ -641,7 +641,7 @@ class _SlideHowItWorks extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             'Dr. Pew Pew · 2 min ago',
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.lightTextSecondary,
               fontSize: 11,
             ),
@@ -670,7 +670,7 @@ class _SlideHowItWorks extends StatelessWidget {
                   backgroundColor: AppColors.primary.withOpacity(0.12),
                   child: Text(
                     'SM',
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                       color: AppColors.primary,
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
@@ -680,7 +680,7 @@ class _SlideHowItWorks extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   'Kashyap Anand',
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                     color: AppColors.lightTextPrimary,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -698,7 +698,7 @@ class _SlideHowItWorks extends StatelessWidget {
                   ),
                   child: Text(
                     'Doctor',
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                       color: AppColors.primary,
                       fontSize: 9,
                       fontWeight: FontWeight.w600,
@@ -708,7 +708,7 @@ class _SlideHowItWorks extends StatelessWidget {
                 const Spacer(),
                 Text(
                   'now',
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                     color: AppColors.lightTextSecondary,
                     fontSize: 11,
                   ),
@@ -728,7 +728,7 @@ class _SlideHowItWorks extends StatelessWidget {
                 const SizedBox(width: 4),
                 Text(
                   'Acknowledged by Kashyap Anand',
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                     color: AppColors.accent,
                     fontSize: 11,
                     fontWeight: FontWeight.w700,
@@ -741,7 +741,7 @@ class _SlideHowItWorks extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(14, 6, 14, 14),
             child: Text(
               "On it — calling cardiology now.",
-              style: GoogleFonts.dmSans(
+              style: appText(
                 color: AppColors.lightTextPrimary,
                 fontSize: 13,
                 height: 1.4,
@@ -788,7 +788,7 @@ class _NumberedStep extends StatelessWidget {
                 child: Center(
                   child: Text(
                     '$number',
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                       color: Colors.white,
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -814,7 +814,7 @@ class _NumberedStep extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                       color: AppColors.lightTextPrimary,
                       fontSize: 15,
                       fontWeight: FontWeight.w700,
@@ -823,7 +823,7 @@ class _NumberedStep extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     body,
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                       color: AppColors.lightTextSecondary,
                       fontSize: 13,
                       height: 1.45,
@@ -862,7 +862,7 @@ class _SlideMonitoring extends StatelessWidget {
           const SizedBox(height: 14),
           Text(
             'Add live patient monitoring. Powered by AI.',
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.lightTextPrimary,
               fontSize: 26,
               fontWeight: FontWeight.bold,
@@ -872,7 +872,7 @@ class _SlideMonitoring extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             'Upgrade your ward to FolioMed Pro and every monitored bed streams live vitals into the Monitor tab — with instant alerts the moment a reading crosses your limits.',
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.lightTextSecondary,
               fontSize: 14.5,
               height: 1.55,
@@ -908,7 +908,7 @@ class _SlideMonitoring extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             'FolioMed core stays as it is — Pro is an optional upgrade per ward.',
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.lightTextSecondary,
               fontSize: 12.5,
               fontStyle: FontStyle.italic,
@@ -934,7 +934,7 @@ class _SlideMonitoring extends StatelessWidget {
             children: [
               Text(
                 'Bed 12 · Mr. R. Kumar',
-                style: GoogleFonts.dmSans(
+                style: appText(
                   color: AppColors.lightTextPrimary,
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
@@ -952,7 +952,7 @@ class _SlideMonitoring extends StatelessWidget {
                 ),
                 child: Text(
                   'ALERT',
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                     color: AppColors.danger,
                     fontSize: 9,
                     fontWeight: FontWeight.w800,
@@ -982,7 +982,7 @@ class _SlideMonitoring extends StatelessWidget {
         children: [
           Text(
             label,
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.lightTextSecondary,
               fontSize: 10,
               fontWeight: FontWeight.w600,
@@ -990,7 +990,7 @@ class _SlideMonitoring extends StatelessWidget {
           ),
           Text(
             value,
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: color,
               fontSize: 18,
               fontWeight: FontWeight.w800,
@@ -1023,7 +1023,7 @@ class _SlideGetStarted extends StatelessWidget {
           const SizedBox(height: 14),
           Text(
             'Your ward, your data,\nyour rules.',
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.lightTextPrimary,
               fontSize: 26,
               fontWeight: FontWeight.bold,
@@ -1033,7 +1033,7 @@ class _SlideGetStarted extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             "FolioMed is private by ward. Only your ward's members see your notes and patients. Owners can delete the ward at any time — when they do, every note, patient and reply inside is permanently erased.",
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.lightTextSecondary,
               fontSize: 14.5,
               height: 1.55,
@@ -1061,7 +1061,7 @@ class _SlideGetStarted extends StatelessWidget {
                 Expanded(
                   child: Text(
                     'Sign in to begin. New here? Tap "Create a new account" on the next screen.',
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                       color: AppColors.lightTextPrimary,
                       fontSize: 13,
                       height: 1.45,
@@ -1110,7 +1110,7 @@ class _SlideGetStarted extends StatelessWidget {
                   Expanded(
                     child: RichText(
                       text: TextSpan(
-                        style: GoogleFonts.dmSans(
+                        style: appText(
                           color: AppColors.lightTextPrimary,
                           fontSize: 13,
                           height: 1.45,
@@ -1170,7 +1170,7 @@ class _SlideEyebrow extends StatelessWidget {
         const SizedBox(width: 10),
         Text(
           label,
-          style: GoogleFonts.dmSans(
+          style: appText(
             color: color,
             fontSize: 11,
             fontWeight: FontWeight.w800,
@@ -1237,7 +1237,7 @@ class _NavBar extends StatelessWidget {
                     onPressed: onSkip,
                     child: Text(
                       'Skip',
-                      style: GoogleFonts.dmSans(
+                      style: appText(
                         color: AppColors.lightTextSecondary,
                         fontWeight: FontWeight.w600,
                       ),
@@ -1305,7 +1305,7 @@ class _NavBar extends StatelessWidget {
                   onPressed: onRegister,
                   child: Text(
                     'Create a new account',
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                       color: AppColors.primary,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,

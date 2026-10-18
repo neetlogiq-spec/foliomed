@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../utils/haptics.dart';
+
 import '../models/note.dart';
 import '../services/note_service.dart';
 
@@ -100,8 +102,10 @@ class NoteProvider extends ChangeNotifier {
   Future<bool> addNote(Note note) async {
     try {
       await _noteService.addNote(note);
+      Haptics.success();
       return true;
     } catch (e) {
+      Haptics.error();
       _error = e.toString();
       notifyListeners();
       return false;
@@ -111,8 +115,10 @@ class NoteProvider extends ChangeNotifier {
   Future<bool> acknowledgeNote(String noteId, String acknowledgedBy) async {
     try {
       await _noteService.acknowledgeNote(noteId, acknowledgedBy);
+      Haptics.commit();
       return true;
     } catch (e) {
+      Haptics.error();
       _error = e.toString();
       notifyListeners();
       return false;
@@ -123,8 +129,10 @@ class NoteProvider extends ChangeNotifier {
       List<String> noteIds, String acknowledgedBy) async {
     try {
       await _noteService.acknowledgeAllNotes(noteIds, acknowledgedBy);
+      Haptics.success();
       return true;
     } catch (e) {
+      Haptics.error();
       _error = e.toString();
       notifyListeners();
       return false;
@@ -134,8 +142,10 @@ class NoteProvider extends ChangeNotifier {
   Future<bool> unacknowledgeNote(String noteId) async {
     try {
       await _noteService.unacknowledgeNote(noteId);
+      Haptics.commit();
       return true;
     } catch (e) {
+      Haptics.error();
       _error = e.toString();
       notifyListeners();
       return false;
@@ -145,8 +155,10 @@ class NoteProvider extends ChangeNotifier {
   Future<bool> deleteNote(String noteId) async {
     try {
       await _noteService.deleteNote(noteId);
+      Haptics.destructive();
       return true;
     } catch (e) {
+      Haptics.error();
       _error = e.toString();
       notifyListeners();
       return false;

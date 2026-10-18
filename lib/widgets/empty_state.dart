@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../utils/app_typography.dart';
 
 import '../utils/app_theme.dart';
 import '../providers/theme_provider.dart';
@@ -44,7 +44,7 @@ class EmptyState extends StatelessWidget {
             Text(
               title,
               textAlign: TextAlign.center,
-              style: GoogleFonts.dmSans(
+              style: appText(
                 color: AppColors.textPrimary,
                 fontSize: 17,
                 fontWeight: FontWeight.bold,
@@ -54,7 +54,7 @@ class EmptyState extends StatelessWidget {
             Text(
               subtitle,
               textAlign: TextAlign.center,
-              style: GoogleFonts.dmSans(
+              style: appText(
                 color: AppColors.textSecondary,
                 fontSize: 13,
               ),

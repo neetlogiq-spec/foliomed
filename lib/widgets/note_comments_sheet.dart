@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../utils/app_typography.dart';
 import 'package:provider/provider.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
@@ -200,7 +200,7 @@ class _NoteCommentsSheetState extends State<NoteCommentsSheet> {
                       Expanded(
                         child: Text(
                           'Thread',
-                          style: GoogleFonts.dmSans(
+                          style: appText(
                             color: AppColors.textPrimary,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -228,7 +228,7 @@ class _NoteCommentsSheetState extends State<NoteCommentsSheet> {
                               const SizedBox(width: 4),
                               Text(
                                 'Ack',
-                                style: GoogleFonts.dmSans(
+                                style: appText(
                                   color: AppColors.accent,
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
@@ -307,7 +307,7 @@ class _NoteCommentsSheetState extends State<NoteCommentsSheet> {
                               ? const SizedBox(
                                   width: 18,
                                   height: 18,
-                                  child: CircularProgressIndicator(
+                                  child: CircularProgressIndicator.adaptive(
                                     strokeWidth: 2,
                                   ),
                                 )
@@ -355,14 +355,14 @@ class _NoteCommentsSheetState extends State<NoteCommentsSheet> {
               const SizedBox(width: 8),
               Text(
                 'Note by ',
-                style: GoogleFonts.dmSans(
+                style: appText(
                   color: AppColors.textSecondary,
                   fontSize: 12,
                 ),
               ),
               Text(
                 n.authorName,
-                style: GoogleFonts.dmSans(
+                style: appText(
                   color: AppColors.textPrimary,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
@@ -380,7 +380,7 @@ class _NoteCommentsSheetState extends State<NoteCommentsSheet> {
                 ),
                 child: Text(
                   n.priority,
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                     color: n.priorityColor,
                     fontSize: 10,
                     fontWeight: FontWeight.w700,
@@ -392,7 +392,7 @@ class _NoteCommentsSheetState extends State<NoteCommentsSheet> {
           const SizedBox(height: 8),
           Text(
             n.content,
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.textPrimary,
               fontSize: 14,
               height: 1.4,
@@ -401,7 +401,7 @@ class _NoteCommentsSheetState extends State<NoteCommentsSheet> {
           const SizedBox(height: 6),
           Text(
             timeago.format(n.createdAt),
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.textSecondary,
               fontSize: 11,
             ),
@@ -418,7 +418,7 @@ class _NoteCommentsSheetState extends State<NoteCommentsSheet> {
         if (!snap.hasData) {
           return const Padding(
             padding: EdgeInsets.symmetric(vertical: 16),
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(child: CircularProgressIndicator.adaptive()),
           );
         }
         final comments = snap.data!;
@@ -428,7 +428,7 @@ class _NoteCommentsSheetState extends State<NoteCommentsSheet> {
             child: Center(
               child: Text(
                 'No replies yet. Be the first.',
-                style: GoogleFonts.dmSans(color: AppColors.textSecondary),
+                style: appText(color: AppColors.textSecondary),
               ),
             ),
           );
@@ -487,7 +487,7 @@ class _NoteCommentsSheetState extends State<NoteCommentsSheet> {
                     children: [
                       Text(
                         c.authorName,
-                        style: GoogleFonts.dmSans(
+                        style: appText(
                           color: AppColors.textPrimary,
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -505,7 +505,7 @@ class _NoteCommentsSheetState extends State<NoteCommentsSheet> {
                         ),
                         child: Text(
                           c.authorRole,
-                          style: GoogleFonts.dmSans(
+                          style: appText(
                             color: rc,
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
@@ -515,7 +515,7 @@ class _NoteCommentsSheetState extends State<NoteCommentsSheet> {
                       const Spacer(),
                       Text(
                         timeago.format(c.createdAt, locale: 'en_short'),
-                        style: GoogleFonts.dmSans(
+                        style: appText(
                           color: AppColors.textSecondary,
                           fontSize: 11,
                         ),
@@ -534,7 +534,7 @@ class _NoteCommentsSheetState extends State<NoteCommentsSheet> {
                         const SizedBox(width: 4),
                         Text(
                           'Acknowledged by ${c.authorName}',
-                          style: GoogleFonts.dmSans(
+                          style: appText(
                             color: AppColors.accent,
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
@@ -546,7 +546,7 @@ class _NoteCommentsSheetState extends State<NoteCommentsSheet> {
                   const SizedBox(height: 4),
                   Text(
                     c.text,
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                       color: AppColors.textPrimary,
                       fontSize: 14,
                       height: 1.4,

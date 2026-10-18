@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/app_user.dart';
@@ -74,7 +74,7 @@ class _WardDetailScreenState extends State<WardDetailScreen>
         ],
       ),
       body: _ward == null
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator.adaptive())
           : Column(
               children: [
                 Padding(
@@ -87,7 +87,7 @@ class _WardDetailScreenState extends State<WardDetailScreen>
                   unselectedLabelColor: AppColors.textSecondary,
                   indicatorColor: AppColors.primary,
                   labelStyle:
-                      GoogleFonts.dmSans(fontWeight: FontWeight.w600),
+                      appText(fontWeight: FontWeight.w600),
                   tabs: const [
                     Tab(text: 'Staff'),
                     Tab(text: 'Patients'),
@@ -148,7 +148,7 @@ class _WardDetailScreenState extends State<WardDetailScreen>
               children: [
                 Text(
                   'Edit Ward',
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                     color: AppColors.textPrimary,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -210,14 +210,13 @@ class _WardDetailScreenState extends State<WardDetailScreen>
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             w.name,
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.textPrimary,
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -242,7 +241,7 @@ class _WardDetailScreenState extends State<WardDetailScreen>
               const SizedBox(width: 4),
               Text(
                 w.headDoctorName,
-                style: GoogleFonts.dmSans(
+                style: appText(
                   color: AppColors.textSecondary,
                   fontSize: 13,
                 ),
@@ -268,7 +267,7 @@ class _WardDetailScreenState extends State<WardDetailScreen>
           const SizedBox(width: 4),
           Text(
             text,
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.textPrimary,
               fontSize: 12,
               fontWeight: FontWeight.w600,
@@ -286,7 +285,7 @@ class _WardDetailScreenState extends State<WardDetailScreen>
           return Center(
             child: Text(
               'No staff assigned yet',
-              style: GoogleFonts.dmSans(color: AppColors.textSecondary),
+              style: appText(color: AppColors.textSecondary),
             ),
           );
         }
@@ -306,7 +305,6 @@ class _WardDetailScreenState extends State<WardDetailScreen>
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider),
       ),
       child: Row(
         children: [
@@ -327,7 +325,7 @@ class _WardDetailScreenState extends State<WardDetailScreen>
               children: [
                 Text(
                   user.name,
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                     color: AppColors.textPrimary,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -335,7 +333,7 @@ class _WardDetailScreenState extends State<WardDetailScreen>
                 ),
                 Text(
                   user.email,
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                     color: AppColors.textSecondary,
                     fontSize: 12,
                   ),
@@ -354,14 +352,14 @@ class _WardDetailScreenState extends State<WardDetailScreen>
       stream: _patientsStream,
       builder: (context, snap) {
         if (!snap.hasData) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator.adaptive());
         }
         final patients = snap.data!;
         if (patients.isEmpty) {
           return Center(
             child: Text(
               'No patients in this ward',
-              style: GoogleFonts.dmSans(color: AppColors.textSecondary),
+              style: appText(color: AppColors.textSecondary),
             ),
           );
         }
@@ -372,7 +370,7 @@ class _WardDetailScreenState extends State<WardDetailScreen>
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(
                 '${patients.length} active patients',
-                style: GoogleFonts.dmSans(
+                style: appText(
                   color: AppColors.textSecondary,
                   fontSize: 13,
                 ),
@@ -394,14 +392,14 @@ class _WardDetailScreenState extends State<WardDetailScreen>
       stream: _notesStream,
       builder: (context, snap) {
         if (!snap.hasData) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator.adaptive());
         }
         final notes = snap.data!.take(50).toList();
         if (notes.isEmpty) {
           return Center(
             child: Text(
               'No notes yet',
-              style: GoogleFonts.dmSans(color: AppColors.textSecondary),
+              style: appText(color: AppColors.textSecondary),
             ),
           );
         }

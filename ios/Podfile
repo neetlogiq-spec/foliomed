@@ -1,7 +1,7 @@
 # Pinned to iOS 13.0 — required by firebase_auth ^5.x and the modern
 # share_plus / firebase_messaging plugins. Anything lower fails pod
 # install with "deployment target X is not supported by pod Y".
-platform :ios, '13.0'
+platform :ios, '15.0'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'

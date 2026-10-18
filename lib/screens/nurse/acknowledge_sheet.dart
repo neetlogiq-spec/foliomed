@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/note.dart';
@@ -87,7 +87,7 @@ class _AcknowledgeSheetState extends State<AcknowledgeSheet> {
           Text(
             'Acknowledge Note',
             textAlign: TextAlign.center,
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.textPrimary,
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -104,7 +104,7 @@ class _AcknowledgeSheetState extends State<AcknowledgeSheet> {
               widget.note.content,
               maxLines: 3,
               overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.dmSans(
+              style: appText(
                 color: AppColors.textPrimary,
                 fontSize: 13,
               ),
@@ -114,7 +114,7 @@ class _AcknowledgeSheetState extends State<AcknowledgeSheet> {
           Text(
             'By acknowledging, you confirm this has been noted and will be acted upon.',
             textAlign: TextAlign.center,
-            style: GoogleFonts.dmSans(
+            style: appText(
               color: AppColors.textSecondary,
               fontSize: 12,
             ),
@@ -141,8 +141,8 @@ class _AcknowledgeSheetState extends State<AcknowledgeSheet> {
                       ? const SizedBox(
                           height: 18,
                           width: 18,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
+                          child: CircularProgressIndicator.adaptive(
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                             strokeWidth: 2,
                           ),
                         )

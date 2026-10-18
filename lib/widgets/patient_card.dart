@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../utils/app_typography.dart';
 import 'package:intl/intl.dart';
 
 import '../models/patient.dart';
 import '../utils/app_theme.dart';
+import 'pressable.dart';
 import '../providers/theme_provider.dart';
 
 class PatientCard extends StatelessWidget {
@@ -28,15 +29,13 @@ class PatientCard extends StatelessWidget {
   Widget build(BuildContext context) {
     context.watch<ThemeProvider>(); // rebuild on theme change
 
-    return InkWell(
-      borderRadius: BorderRadius.circular(16),
+    return Pressable(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: AppColors.card,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.divider),
+          borderRadius: BorderRadius.circular(AppRadii.card),
           boxShadow: AppColors.cardShadow,
         ),
         child: Row(
@@ -64,7 +63,7 @@ class PatientCard extends StatelessWidget {
                           patient.name,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.dmSans(
+                          style: appText(
                             color: AppColors.textPrimary,
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
@@ -83,7 +82,7 @@ class PatientCard extends StatelessWidget {
                         ),
                         child: Text(
                           'Bed ${patient.bedNumber}',
-                          style: GoogleFonts.dmSans(
+                          style: appText(
                             color: AppColors.textSecondary,
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
@@ -97,7 +96,7 @@ class PatientCard extends StatelessWidget {
                     patient.diagnosis,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.dmSans(
+                    style: appText(
                       color: AppColors.textSecondary,
                       fontSize: 12,
                     ),
@@ -113,7 +112,7 @@ class PatientCard extends StatelessWidget {
                       const SizedBox(width: 4),
                       Text(
                         DateFormat('dd MMM yyyy').format(patient.admittedAt),
-                        style: GoogleFonts.dmSans(
+                        style: appText(
                           color: AppColors.textSecondary,
                           fontSize: 11,
                         ),
@@ -141,7 +140,7 @@ class PatientCard extends StatelessWidget {
       ),
       child: Text(
         active ? 'Active' : 'Discharged',
-        style: GoogleFonts.dmSans(
+        style: appText(
           color: color,
           fontSize: 10,
           fontWeight: FontWeight.w600,

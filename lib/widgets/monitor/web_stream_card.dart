@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import '../../utils/app_typography.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../utils/app_theme.dart';
@@ -45,7 +45,7 @@ class WebStreamCard extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text('LIVE STREAM AVAILABLE',
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                       color: AppColors.danger,
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
@@ -56,13 +56,13 @@ class WebStreamCard extends StatelessWidget {
           const Icon(Icons.videocam, color: Colors.white54, size: 40),
           const SizedBox(height: 10),
           Text(patientName,
-              style: GoogleFonts.dmSans(
+              style: appText(
                   color: Colors.white70,
                   fontSize: 14,
                   fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
           Text('Live camera feed from hospital',
-              style: GoogleFonts.dmSans(color: Colors.white38, fontSize: 12)),
+              style: appText(color: Colors.white38, fontSize: 12)),
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
@@ -70,7 +70,7 @@ class WebStreamCard extends StatelessWidget {
               onPressed: _open,
               icon: const Icon(Icons.open_in_new, size: 18),
               label: Text('Watch Live Stream',
-                  style: GoogleFonts.dmSans(
+                  style: appText(
                       fontWeight: FontWeight.w700, fontSize: 14)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.danger,
@@ -83,7 +83,7 @@ class WebStreamCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text('Opens in a new tab · Full screen supported',
-              style: GoogleFonts.dmSans(color: Colors.white24, fontSize: 10)),
+              style: appText(color: Colors.white24, fontSize: 10)),
         ],
       ),
     );
