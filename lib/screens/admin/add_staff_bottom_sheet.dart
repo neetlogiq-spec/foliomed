@@ -6,13 +6,14 @@ import '../../models/app_user.dart';
 import '../../services/auth_service.dart';
 import '../../utils/app_theme.dart';
 import '../../providers/theme_provider.dart';
+import '../../widgets/app_sheet.dart';
 
 Future<void> showAddStaffBottomSheet(
   BuildContext context, {
   String? wardId,
   bool showWardSelector = false,
 }) {
-  return showModalBottomSheet(
+  return showAppSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,

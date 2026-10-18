@@ -13,6 +13,9 @@ import '../../utils/app_theme.dart';
 import '../../utils/friendly_error.dart';
 import '../../widgets/support_action.dart';
 import '../../providers/theme_provider.dart';
+import '../../widgets/app_sheet.dart';
+import '../../utils/layout.dart';
+import '../../widgets/app_alert_dialog.dart';
 
 class WardsScreen extends StatelessWidget {
   const WardsScreen({super.key});
@@ -71,7 +74,7 @@ class WardsScreen extends StatelessWidget {
   }
 
   void _showMembers(BuildContext context, Ward w) {
-    showModalBottomSheet(
+    showAppSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -236,9 +239,9 @@ class WardsScreen extends StatelessWidget {
     final owner = w.headDoctorName.isNotEmpty
         ? w.headDoctorName
         : 'the ward creator';
-    showDialog(
+    showAdaptiveDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (_) => AppAlertDialog(
         title: const Text('Only the owner can delete this ward'),
         content: Text(
           'This ward was created by $owner. Only $owner can delete it. Ask them to do it from their account if it really needs to go.',
@@ -254,9 +257,9 @@ class WardsScreen extends StatelessWidget {
   }
 
   Future<void> _deleteWard(BuildContext context, Ward w) async {
-    final confirm = await showDialog<bool>(
+    final confirm = await showAdaptiveDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (_) => AppAlertDialog(
         title: Text('Delete ward "${w.name}"?'),
         content: const Text(
           'This will permanently delete the ward and every patient, note and reply inside it — fully erased from our database. Members will lose access immediately. There is no backup and no way to recover this data once you tap Delete.',
@@ -397,7 +400,7 @@ class WardsScreen extends StatelessWidget {
             );
           }
           return ListView.separated(
-            padding: const EdgeInsets.all(16),
+            padding: withBottomBarInset(context, const EdgeInsets.all(16)),
             itemCount: wards.length,
             separatorBuilder: (_, __) => const SizedBox(height: 10),
             itemBuilder: (_, i) => _wardCard(
@@ -680,9 +683,9 @@ class WardsScreen extends StatelessWidget {
 
   void _showJoinDialog(BuildContext context) {
     final controller = TextEditingController();
-    showDialog(
+    showAdaptiveDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (_) => AppAlertDialog(
         title: const Text('Join Ward'),
         content: TextField(
           controller: controller,
@@ -748,9 +751,9 @@ class WardsScreen extends StatelessWidget {
     final nameController = TextEditingController();
     final floorController = TextEditingController();
     final auth = context.read<AuthProvider>();
-    showDialog(
+    showAdaptiveDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (_) => AppAlertDialog(
         title: const Text('Create New Ward'),
         content: Column(
           mainAxisSize: MainAxisSize.min,

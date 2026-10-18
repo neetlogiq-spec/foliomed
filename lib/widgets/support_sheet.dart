@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../utils/app_theme.dart';
 import '../providers/theme_provider.dart';
+import 'app_sheet.dart';
 
 // Support tile + daily chai popup both land here. The ?from=foliomed
 // query param lets the support page attribute the visitor source.
@@ -57,7 +58,7 @@ class SupportPrompt {
 }
 
 Future<void> showSupportSheet(BuildContext context) {
-  return showModalBottomSheet(
+  return showAppSheet(
     context: context,
     backgroundColor: Colors.transparent,
     isScrollControlled: true,

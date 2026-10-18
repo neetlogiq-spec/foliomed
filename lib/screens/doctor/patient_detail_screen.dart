@@ -16,6 +16,7 @@ import '../../widgets/monitor/web_stream_card.dart';
 import '../../widgets/note_card.dart';
 import 'add_note_screen.dart';
 import '../../providers/theme_provider.dart';
+import '../../widgets/app_alert_dialog.dart';
 
 class PatientDetailScreen extends StatefulWidget {
   final String patientId;
@@ -276,9 +277,9 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
 
   Future<void> _setStreamUrl(Patient patient) async {
     final ctrl = TextEditingController();
-    final url = await showDialog<String>(
+    final url = await showAdaptiveDialog<String>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (_) => AppAlertDialog(
         title: Text('Set Live Stream URL',
             style: appText(fontWeight: FontWeight.w700)),
         content: Column(

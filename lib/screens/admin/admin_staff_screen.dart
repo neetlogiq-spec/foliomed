@@ -10,6 +10,9 @@ import '../../widgets/role_badge.dart';
 import '../../widgets/support_action.dart';
 import 'add_staff_bottom_sheet.dart';
 import '../../providers/theme_provider.dart';
+import '../../widgets/app_sheet.dart';
+import '../../utils/layout.dart';
+import '../../widgets/app_alert_dialog.dart';
 
 class AdminStaffScreen extends StatefulWidget {
   const AdminStaffScreen({super.key});
@@ -112,7 +115,7 @@ class _AdminStaffScreenState extends State<AdminStaffScreen> {
                   );
                 }
                 return ListView.separated(
-                  padding: const EdgeInsets.all(16),
+                  padding: withBottomBarInset(context, const EdgeInsets.all(16)),
                   itemCount: staff.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 10),
                   itemBuilder: (_, i) => _staffCard(staff[i]),
@@ -264,9 +267,9 @@ class _AdminStaffScreenState extends State<AdminStaffScreen> {
   }
 
   void _showStaffDetail(AppUser user) {
-    showModalBottomSheet(
+    showAppSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.card,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -318,9 +321,9 @@ class _AdminStaffScreenState extends State<AdminStaffScreen> {
 
   Future<void> _changeWard(AppUser user) async {
     final controller = TextEditingController(text: user.wardId);
-    final newWard = await showDialog<String>(
+    final newWard = await showAdaptiveDialog<String>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (_) => AppAlertDialog(
         title: const Text('Change Ward'),
         content: TextField(
           controller: controller,
@@ -351,9 +354,9 @@ class _AdminStaffScreenState extends State<AdminStaffScreen> {
   }
 
   Future<void> _removeStaff(AppUser user) async {
-    final confirm = await showDialog<bool>(
+    final confirm = await showAdaptiveDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (_) => AppAlertDialog(
         title: const Text('Remove staff?'),
         content: Text(
           'This removes ${user.name} from the staff directory.',

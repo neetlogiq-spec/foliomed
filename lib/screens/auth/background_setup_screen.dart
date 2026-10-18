@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/oem_autostart.dart';
 import '../../providers/theme_provider.dart';
+import '../../widgets/app_alert_dialog.dart';
 
 class BackgroundSetupScreen extends StatefulWidget {
   const BackgroundSetupScreen({super.key});
@@ -68,9 +69,9 @@ class _BackgroundSetupScreenState extends State<BackgroundSetupScreen> {
   }
 
   void _nudgeNotificationBlocked() {
-    showDialog(
+    showAdaptiveDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (_) => AppAlertDialog(
         title: const Text('FolioMed needs notifications'),
         content: const Text(
           'Without notifications you will miss urgent alerts. Open settings and turn on notifications for FolioMed.',

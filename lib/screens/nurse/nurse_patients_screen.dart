@@ -9,6 +9,7 @@ import '../../widgets/patient_card.dart';
 import '../../widgets/support_action.dart';
 import 'nurse_patient_detail_screen.dart';
 import '../../providers/theme_provider.dart';
+import '../../utils/layout.dart';
 
 class NursePatientsScreen extends StatefulWidget {
   const NursePatientsScreen({super.key});
@@ -94,7 +95,7 @@ class _NursePatientsScreenState extends State<NursePatientsScreen> {
             );
           }
           return ListView.separated(
-            padding: const EdgeInsets.all(16),
+            padding: withBottomBarInset(context, const EdgeInsets.all(16)),
             itemCount: patients.length,
             separatorBuilder: (_, __) => const SizedBox(height: 10),
             itemBuilder: (_, i) => PatientCard(

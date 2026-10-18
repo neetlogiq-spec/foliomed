@@ -17,6 +17,7 @@ import '../subscription/paywall_screen.dart';
 import 'bedside_sender_screen.dart';
 import 'patient_monitor_screen.dart';
 import 'foliomed_edge_screen.dart';
+import '../../widgets/app_sheet.dart';
 
 class MonitorDashboardScreen extends StatelessWidget {
   const MonitorDashboardScreen({super.key});
@@ -260,6 +261,10 @@ class MonitorDashboardScreen extends StatelessWidget {
           ],
 
           const SliverToBoxAdapter(child: SizedBox(height: 80)),
+          // Lets the last card scroll clear of the translucent tab bar.
+          SliverToBoxAdapter(
+            child: SizedBox(height: MediaQuery.paddingOf(context).bottom),
+          ),
         ],
       ),
     );
@@ -393,7 +398,7 @@ class MonitorDashboardScreen extends StatelessWidget {
   }
 
   void _showBedsideSetup(BuildContext context, List<MonitoredPatient> patients) {
-    showModalBottomSheet(
+    showAppSheet(
       context: context,
       backgroundColor: AppColors.card,
       shape: const RoundedRectangleBorder(

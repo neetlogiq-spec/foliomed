@@ -17,6 +17,8 @@ import '../../widgets/support_sheet.dart';
 import '../../widgets/theme_toggle_button.dart';
 import '../../widgets/foliomed_brand.dart';
 import 'acknowledge_sheet.dart';
+import '../../widgets/app_sheet.dart';
+import '../../utils/layout.dart';
 
 class NurseHomeScreen extends StatefulWidget {
   const NurseHomeScreen({super.key});
@@ -53,7 +55,7 @@ class _NurseHomeScreenState extends State<NurseHomeScreen> {
             _header(user?.name ?? 'Nurse'),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
+                padding: withBottomBarInset(context, const EdgeInsets.all(16)),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -295,9 +297,9 @@ class _NurseHomeScreenState extends State<NurseHomeScreen> {
   }
 
   void _showFilterSheet() {
-    showModalBottomSheet(
+    showAppSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.card,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),

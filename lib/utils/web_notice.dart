@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'app_theme.dart';
+import '../widgets/app_alert_dialog.dart';
 
 class WebNotice {
   static const _prefKey = 'web_notice_shown';
@@ -23,10 +24,10 @@ class WebNotice {
   }
 
   static Future<void> _show(BuildContext context) async {
-    await showDialog(
+    await showAdaptiveDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => AlertDialog(
+      builder: (_) => AppAlertDialog(
         backgroundColor: AppColors.card,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),

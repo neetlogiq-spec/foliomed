@@ -16,6 +16,7 @@ import '../../widgets/patient_card.dart';
 import '../../widgets/role_badge.dart';
 import 'add_staff_bottom_sheet.dart';
 import '../../providers/theme_provider.dart';
+import '../../widgets/app_sheet.dart';
 
 class WardDetailScreen extends StatefulWidget {
   final String wardId;
@@ -127,7 +128,7 @@ class _WardDetailScreenState extends State<WardDetailScreen>
     final capacityController =
         TextEditingController(text: '${ward.capacity}');
     final headController = TextEditingController(text: ward.headDoctorName);
-    showModalBottomSheet(
+    showAppSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,

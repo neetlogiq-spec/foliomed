@@ -16,6 +16,8 @@ import '../../widgets/support_action.dart';
 import 'add_patient_screen.dart';
 import 'patient_detail_screen.dart';
 import '../../providers/theme_provider.dart';
+import '../../utils/layout.dart';
+import '../../widgets/app_alert_dialog.dart';
 
 class PatientsListScreen extends StatefulWidget {
   const PatientsListScreen({super.key});
@@ -266,7 +268,7 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
           );
         }
         return ListView.separated(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 90),
+          padding: withBottomBarInset(context, const EdgeInsets.fromLTRB(16, 12, 16, 90)),
           itemCount: patients.length,
           separatorBuilder: (_, __) => const SizedBox(height: 10),
           itemBuilder: (_, i) =>
@@ -373,7 +375,7 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
             ),
             Expanded(
               child: ListView.separated(
-                padding: const EdgeInsets.fromLTRB(16, 6, 16, 90),
+                padding: withBottomBarInset(context, const EdgeInsets.fromLTRB(16, 6, 16, 90)),
                 itemCount: results.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 10),
                 itemBuilder: (_, i) {
@@ -634,9 +636,9 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
   Future<void> _handleMenu(Patient p, String action) async {
     final provider = context.read<PatientProvider>();
     if (action != 'delete') return;
-    final confirm = await showDialog<bool>(
+    final confirm = await showAdaptiveDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (_) => AppAlertDialog(
         title: Text('Delete ${p.name}?'),
         content: const Text(
           'This will permanently delete the patient and every note tagged to them — fully erased from our database. There is no backup and no way to recover this data once you tap Delete.',

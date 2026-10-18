@@ -77,6 +77,14 @@ Test the schema locally without Docker: `supabase/tests/README.md`.
 - `lib/models/row_parsing.dart` — timestamp / list helpers for rows
 - `landing/`, `status/` — static pages; `landing/supabase-public.js` shared reader
 
+## Design system (Apple HIG)
+- Text: `appText(...)` / `appMonoText(...)` (`lib/utils/app_typography.dart`) — system font + size-specific tracking. Don't add Google Fonts.
+- Sheets: `showAppSheet(...)` (`lib/widgets/app_sheet.dart`), never `showModalBottomSheet` — finger-tracking, velocity-projected dismiss, spring settle.
+- Dialogs: `showAdaptiveDialog` + `AppAlertDialog` (`lib/widgets/app_alert_dialog.dart`) — native Cupertino alerts on iOS/macOS; filled button = default action, danger-coloured = destructive.
+- Tab screens: content scrolls under the frosted tab bar (`extendBody`). Vertical scroll views in a tab screen must use `withBottomBarInset(context, padding)` (`lib/utils/layout.dart`); `CustomScrollView`s need a bottom spacer sliver.
+- Taps on cards: `Pressable`. Haptics: `Haptics.selection/commit/success/destructive/error` only at meaningful moments.
+- Honour `AppMotion.reduced(context)` (Reduce Motion) in any new animation.
+
 ## Known Gotchas
 - Realtime `.stream()` accepts **one** filter — extra filters (e.g. `is_active`) are applied client-side.
 - Create streams once per key (`StreamCache` or `late final`), never inline in `build`, or every rebuild opens a new channel.

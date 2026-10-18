@@ -7,9 +7,10 @@ import '../../providers/auth_provider.dart';
 import '../../providers/note_provider.dart';
 import '../../utils/app_theme.dart';
 import '../../providers/theme_provider.dart';
+import '../../widgets/app_sheet.dart';
 
 Future<void> showAcknowledgeSheet(BuildContext context, Note note) {
-  return showModalBottomSheet(
+  return showAppSheet(
     context: context,
     backgroundColor: Colors.transparent,
     builder: (_) => AcknowledgeSheet(note: note),

@@ -26,6 +26,9 @@ import '../../utils/app_theme.dart';
 import '../../utils/app_utils.dart';
 import '../monitor/edge_setup_screen.dart';
 import '../monitor/foliomed_edge_screen.dart';
+import '../../widgets/app_sheet.dart';
+import '../../utils/layout.dart';
+import '../../widgets/app_alert_dialog.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -42,7 +45,7 @@ class ProfileScreen extends StatelessWidget {
       body: user == null
           ? const Center(child: CircularProgressIndicator.adaptive())
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: withBottomBarInset(context, const EdgeInsets.all(16)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -202,7 +205,7 @@ class ProfileScreen extends StatelessWidget {
   ];
 
   void _showEmojiPicker(BuildContext context, AuthProvider auth) {
-    showModalBottomSheet(
+    showAppSheet(
       context: context,
       backgroundColor: AppColors.card,
       shape: const RoundedRectangleBorder(
@@ -754,9 +757,9 @@ Account: $email
   /// Shown when no mail app is configured. Copies the address to the
   /// clipboard and tells the user about it.
   void _showCopyEmailFallback(BuildContext context, String label) {
-    showDialog(
+    showAdaptiveDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (_) => AppAlertDialog(
         title: Text('Send $label by email'),
         content: const SelectableText(
           'No email app is set up on this device. '
@@ -844,12 +847,12 @@ Account: $email
           'ALL their patients, notes and replies — even for other team members still using them:\n'
           '${ownedWardNames.map((n) => '  • $n').join('\n')}\n';
 
-    final typed = await showDialog<String>(
+    final typed = await showAdaptiveDialog<String>(
       context: context,
       builder: (_) {
         final tc = TextEditingController();
         return StatefulBuilder(
-          builder: (ctx, setState) => AlertDialog(
+          builder: (ctx, setState) => AppAlertDialog(
             title: const Text('Delete your account?'),
             content: SingleChildScrollView(
               child: Column(
@@ -929,9 +932,9 @@ Account: $email
     BuildContext context,
     AuthProvider auth,
   ) async {
-    final confirm = await showDialog<bool>(
+    final confirm = await showAdaptiveDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (_) => AppAlertDialog(
         title: const Text('Sign out?'),
         content: const Text('You will need to sign in again to continue.'),
         actions: [
@@ -965,7 +968,7 @@ Account: $email
         TextEditingController(text: auth.currentUser?.name);
     final specialtyController =
         TextEditingController(text: auth.currentUser?.specialty ?? '');
-    showModalBottomSheet(
+    showAppSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -1032,9 +1035,9 @@ Account: $email
     final currentController = TextEditingController();
     final newController = TextEditingController();
     final confirmController = TextEditingController();
-    showDialog(
+    showAdaptiveDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (_) => AppAlertDialog(
         title: const Text('Change password'),
         content: Column(
           mainAxisSize: MainAxisSize.min,

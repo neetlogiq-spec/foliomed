@@ -18,6 +18,7 @@ import 'edge_setup_screen.dart';
 import 'monitor_zones_screen.dart';
 import 'patient_monitor_screen.dart';
 import 'roi_editor_screen.dart';
+import '../../widgets/app_alert_dialog.dart';
 
 // ─────────────────────────────────────────────
 //  FolioMed Edge Hub
@@ -170,9 +171,9 @@ class _FolioMedEdgeScreenState extends State<FolioMedEdgeScreen> {
       return;
     }
 
-    final selected = await showDialog<MonitoredPatient>(
+    final selected = await showAdaptiveDialog<MonitoredPatient>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => AppAlertDialog(
         backgroundColor: AppColors.card,
         title: Row(
           children: [
@@ -1228,9 +1229,9 @@ class _CameraCard extends StatelessWidget {
       return;
     }
     final ctrl = TextEditingController();
-    final url = await showDialog<String>(
+    final url = await showAdaptiveDialog<String>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (_) => AppAlertDialog(
         title: Text('Remote Stream URL',
             style: appText(fontWeight: FontWeight.w700)),
         content: Column(
@@ -1322,9 +1323,9 @@ class _CameraCard extends StatelessWidget {
 
   Future<void> _confirmDelete(
       BuildContext context, CameraConfig cam, CameraProvider cp) async {
-    final ok = await showDialog<bool>(
+    final ok = await showAdaptiveDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (_) => AppAlertDialog(
         title: Text('Delete camera?',
             style: appText(fontWeight: FontWeight.w700)),
         content: Text(

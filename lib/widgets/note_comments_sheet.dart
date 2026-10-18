@@ -12,9 +12,10 @@ import '../services/note_service.dart';
 import '../utils/app_theme.dart';
 import '../utils/friendly_error.dart';
 import '../providers/theme_provider.dart';
+import 'app_sheet.dart';
 
 Future<void> showNoteCommentsSheet(BuildContext context, Note note) {
-  return showModalBottomSheet(
+  return showAppSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,

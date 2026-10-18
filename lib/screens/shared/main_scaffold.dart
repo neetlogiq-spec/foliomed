@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import '../../utils/haptics.dart';
 import '../../utils/app_typography.dart';
@@ -25,6 +27,8 @@ import 'profile_screen.dart';
 import 'tutorial_screen.dart';
 import 'wards_screen.dart';
 import '../../providers/theme_provider.dart';
+import '../../utils/layout.dart';
+import '../../widgets/app_alert_dialog.dart';
 
 class MainScaffold extends StatefulWidget {
   final UserRole role;
@@ -49,8 +53,7 @@ class _MainScaffoldState extends State<MainScaffold>
   final GlobalKey _monitorKey = GlobalKey();
   final GlobalKey _profileKey = GlobalKey();
 
-  static const String _interactiveTutorialKey =
-      'interactive_tutorial_done_v1';
+  static const String _interactiveTutorialKey = 'interactive_tutorial_done_v1';
 
   @override
   void initState() {
@@ -114,8 +117,8 @@ class _MainScaffoldState extends State<MainScaffold>
       context.read<NoteProvider>().pauseStreams();
       context.read<PatientProvider>().pauseStream();
     } else if (state == AppLifecycleState.resumed) {
-      final wardIds = context.read<AuthProvider>().currentUser?.wardIds ??
-          const <String>[];
+      final wardIds =
+          context.read<AuthProvider>().currentUser?.wardIds ?? const <String>[];
       context.read<NoteProvider>().subscribeForWards(wardIds);
       context.read<PatientProvider>().subscribeForWards(wardIds);
     }
@@ -221,8 +224,7 @@ class _MainScaffoldState extends State<MainScaffold>
                   'The live ward feed. Post a note here and the whole '
                   'team gets a push instantly.',
               child: Consumer<NoteProvider>(
-                builder: (context, np, _) =>
-                    _notesIcon(np.unacknowledgedCount),
+                builder: (context, np, _) => _notesIcon(np.unacknowledgedCount),
               ),
             ),
             activeIcon: Consumer<NoteProvider>(
@@ -351,10 +353,7 @@ class _MainScaffoldState extends State<MainScaffold>
             top: -4,
             child: Container(
               padding: const EdgeInsets.all(3),
-              constraints: const BoxConstraints(
-                minWidth: 16,
-                minHeight: 16,
-              ),
+              constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
               decoration: const BoxDecoration(
                 color: AppColors.danger,
                 shape: BoxShape.circle,
@@ -383,7 +382,9 @@ class _MainScaffoldState extends State<MainScaffold>
     // Coachmarks are themed for the app palette and dismiss themselves
     // on tap or when the user taps outside.
     return ShowCaseWidget(
-      onFinish: () {/* one-shot; nothing to do */},
+      onFinish: () {
+        /* one-shot; nothing to do */
+      },
       enableAutoScroll: false,
       blurValue: 1.5,
       builder: (context) => _scaffold(context),
@@ -391,44 +392,55 @@ class _MainScaffoldState extends State<MainScaffold>
   }
 
   Widget _scaffold(BuildContext context) {
+    final solidChrome = MediaQuery.highContrastOf(context);
     return Scaffold(
-      body: IndexedStack(
-        index: _index,
-        children: _screensForRole,
-      ),
-      // iOS-style tab bar: chrome material with a hairline top edge,
-      // 10pt labels, tint on the selected item and a selection haptic.
-      bottomNavigationBar: DecoratedBox(
-        decoration: BoxDecoration(
-          color: AppColors.isDark ? AppColors.darkCard : const Color(0xFFF9F9F9),
-          border: Border(
-            top: BorderSide(color: AppColors.divider, width: 0.5),
+      // Content scrolls under the translucent tab bar; tab screens add the
+      // bar's height to their own scroll padding (withBottomBarInset).
+      extendBody: true,
+      body: IndexedStack(index: _index, children: _screensForRole),
+      // iOS-style tab bar: a frosted material (blur + saturation) with a
+      // hairline top edge, 10pt labels and a selection haptic. High
+      // contrast mode gets a solid bar instead of translucency.
+      bottomNavigationBar: ClipRect(
+        child: BackdropFilter(
+          enabled: !solidChrome,
+          filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: solidChrome
+                  ? (AppColors.isDark ? AppColors.darkCard : Colors.white)
+                  : AppColors.chrome,
+              border: Border(
+                top: BorderSide(color: AppColors.divider, width: 0.5),
+              ),
+            ),
+            child: BottomNavigationBar(
+              type: BottomNavigationBarType.fixed,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              iconSize: 26,
+              selectedItemColor: AppColors.isDark
+                  ? AppColors.darkPrimary
+                  : AppColors.primary,
+              unselectedItemColor: AppColors.textSecondary,
+              selectedFontSize: 10,
+              unselectedFontSize: 10,
+              selectedLabelStyle: appText(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+              ),
+              unselectedLabelStyle: appText(
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+              ),
+              currentIndex: _index,
+              items: _itemsForRole,
+              onTap: (i) {
+                if (i != _index) Haptics.selection();
+                setState(() => _index = i);
+              },
+            ),
           ),
-        ),
-        child: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          iconSize: 26,
-          selectedItemColor:
-              AppColors.isDark ? AppColors.darkPrimary : AppColors.primary,
-          unselectedItemColor: AppColors.textSecondary,
-          selectedFontSize: 10,
-          unselectedFontSize: 10,
-          selectedLabelStyle: appText(
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-          ),
-          unselectedLabelStyle: appText(
-            fontSize: 10,
-            fontWeight: FontWeight.w500,
-          ),
-          currentIndex: _index,
-          items: _itemsForRole,
-          onTap: (i) {
-            if (i != _index) Haptics.selection();
-            setState(() => _index = i);
-          },
         ),
       ),
     );
@@ -459,7 +471,7 @@ class _DoctorNotesList extends StatelessWidget {
           }
           final showLimitNotice = np.notes.length >= 150;
           return ListView.separated(
-            padding: const EdgeInsets.all(16),
+            padding: withBottomBarInset(context, const EdgeInsets.all(16)),
             itemCount: np.notes.length + (showLimitNotice ? 1 : 0),
             separatorBuilder: (_, __) => const SizedBox(height: 10),
             itemBuilder: (_, i) {
@@ -483,47 +495,41 @@ class _DoctorNotesList extends StatelessWidget {
                 onAcknowledge: note.isAcknowledged
                     ? null
                     : () {
-                        final name = context
-                                .read<AuthProvider>()
-                                .currentUser
-                                ?.name ??
+                        final name =
+                            context.read<AuthProvider>().currentUser?.name ??
                             'Staff';
-                        context
-                            .read<NoteProvider>()
-                            .acknowledgeNote(note.id, name);
+                        context.read<NoteProvider>().acknowledgeNote(
+                          note.id,
+                          name,
+                        );
                       },
-                onUnacknowledge: () => context
-                    .read<NoteProvider>()
-                    .unacknowledgeNote(note.id),
+                onUnacknowledge: () =>
+                    context.read<NoteProvider>().unacknowledgeNote(note.id),
                 onDelete: () async {
-                  final confirm = await showDialog<bool>(
+                  final confirm = await showAdaptiveDialog<bool>(
                     context: context,
-                    builder: (_) => AlertDialog(
+                    builder: (_) => AppAlertDialog(
                       title: const Text('Delete note?'),
                       content: const Text(
                         'This will permanently delete the note and every reply on it — fully erased from our database. There is no backup and no way to recover it once you tap Delete.',
                       ),
                       actions: [
                         TextButton(
-                          onPressed: () =>
-                              Navigator.pop(context, false),
+                          onPressed: () => Navigator.pop(context, false),
                           child: const Text('Cancel'),
                         ),
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.danger,
                           ),
-                          onPressed: () =>
-                              Navigator.pop(context, true),
+                          onPressed: () => Navigator.pop(context, true),
                           child: const Text('Delete'),
                         ),
                       ],
                     ),
                   );
                   if (confirm == true && context.mounted) {
-                    await context
-                        .read<NoteProvider>()
-                        .deleteNote(note.id);
+                    await context.read<NoteProvider>().deleteNote(note.id);
                   }
                 },
               );
@@ -542,5 +548,3 @@ class _DoctorNotesList extends StatelessWidget {
     );
   }
 }
-
-

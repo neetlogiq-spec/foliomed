@@ -17,6 +17,7 @@ import '../../widgets/theme_toggle_button.dart';
 import '../../widgets/foliomed_brand.dart';
 import 'add_ward_screen.dart';
 import 'ward_detail_screen.dart';
+import '../../utils/layout.dart';
 
 class AdminHomeScreen extends StatefulWidget {
   const AdminHomeScreen({super.key});
@@ -123,7 +124,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 onRefresh: _loadCounts,
                 child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.all(16),
+                  padding: withBottomBarInset(context, const EdgeInsets.all(16)),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

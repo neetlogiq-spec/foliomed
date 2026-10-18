@@ -13,12 +13,13 @@ import '../../utils/stream_cache.dart';
 import '../../utils/app_theme.dart';
 import 'add_patient_screen.dart';
 import '../../providers/theme_provider.dart';
+import '../../widgets/app_sheet.dart';
 
 Future<void> showAddNoteBottomSheet(
   BuildContext context, {
   Patient? preselectedPatient,
 }) {
-  return showModalBottomSheet(
+  return showAppSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
@@ -395,7 +396,7 @@ class _AddNoteBottomSheetState extends State<AddNoteBottomSheet> {
             // take 80% of the screen instead of the ~50% default — fixes
             // the issue where the first real patient row got pushed below
             // the fold and was hard to reach with a thumb.
-            final result = await showModalBottomSheet<Patient>(
+            final result = await showAppSheet<Patient>(
               context: context,
               backgroundColor: AppColors.card,
               isScrollControlled: true,

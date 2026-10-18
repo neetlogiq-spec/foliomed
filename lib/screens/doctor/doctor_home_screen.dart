@@ -21,6 +21,8 @@ import 'add_note_screen.dart';
 import 'add_patient_screen.dart';
 import 'patient_detail_screen.dart';
 import 'patients_list_screen.dart';
+import '../../utils/layout.dart';
+import '../../widgets/app_alert_dialog.dart';
 
 class DoctorHomeScreen extends StatefulWidget {
   const DoctorHomeScreen({super.key});
@@ -99,7 +101,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                   },
                   child: SingleChildScrollView(
                   physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.all(16),
+                  padding: withBottomBarInset(context, const EdgeInsets.all(16)),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -565,9 +567,9 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
   }
 
   Future<void> _confirmDelete(BuildContext context, String noteId) async {
-    final confirm = await showDialog<bool>(
+    final confirm = await showAdaptiveDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (_) => AppAlertDialog(
         title: const Text('Delete note?'),
         content: const Text(
           'This will permanently delete the note and every reply on it — fully erased from our database. There is no backup and no way to recover it once you tap Delete.',

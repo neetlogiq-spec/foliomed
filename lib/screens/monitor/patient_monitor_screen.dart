@@ -17,6 +17,7 @@ import '../../widgets/monitor/threshold_panel.dart';
 import '../../widgets/monitor/vital_card.dart';
 import 'bedside_sender_screen.dart';
 import 'vital_trends_screen.dart';
+import '../../widgets/app_sheet.dart';
 
 class PatientMonitorScreen extends StatelessWidget {
   final String patientId;
@@ -302,7 +303,7 @@ class PatientMonitorScreen extends StatelessWidget {
   }
 
   void _openThresholds(BuildContext context, patient, MonitorProvider monitor) {
-    showModalBottomSheet(
+    showAppSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,

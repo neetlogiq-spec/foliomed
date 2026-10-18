@@ -6,9 +6,10 @@ import 'package:timeago/timeago.dart' as timeago;
 import '../providers/notification_provider.dart';
 import '../utils/app_theme.dart';
 import '../providers/theme_provider.dart';
+import 'app_sheet.dart';
 
 Future<void> showNotificationsPanel(BuildContext context) {
-  return showModalBottomSheet(
+  return showAppSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,

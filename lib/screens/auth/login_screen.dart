@@ -13,6 +13,7 @@ import '../../utils/friendly_error.dart';
 import 'background_setup_screen.dart';
 import 'onboarding_screen.dart';
 import '../../providers/theme_provider.dart';
+import '../../widgets/app_alert_dialog.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -181,10 +182,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _promptForName(AuthProvider auth) async {
     final controller = TextEditingController(text: auth.currentUser?.name ?? '');
-    await showDialog(
+    await showAdaptiveDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => AlertDialog(
+      builder: (_) => AppAlertDialog(
         title: const Text('What should we call you?'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -226,9 +227,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _forgotPassword() async {
     final ec = TextEditingController(text: _emailController.text.trim());
-    final result = await showDialog<String>(
+    final result = await showAdaptiveDialog<String>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (_) => AppAlertDialog(
         title: const Text('Reset password'),
         content: TextField(
           controller: ec,
@@ -307,9 +308,9 @@ class _LoginScreenState extends State<LoginScreen> {
     required String title,
     required String body,
   }) {
-    return showDialog(
+    return showAdaptiveDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (_) => AppAlertDialog(
         title: Text(title),
         content: Text(body),
         actions: [
