@@ -12,6 +12,7 @@ import '../utils/friendly_error.dart';
 import 'app_alert_dialog.dart';
 import 'app_sheet.dart';
 import 'large_title_app_bar.dart';
+import '../screens/doctor/add_patient_screen.dart';
 
 /// "•••" in the patient's navigation bar: transfer, discharge or readmit.
 class PatientActionsButton extends StatelessWidget {
@@ -54,6 +55,12 @@ class PatientActionsButton extends StatelessWidget {
                 child: Text(patient.name,
                     style: AppTypography.headline(color: AppColors.textPrimary)),
               ),
+              ListTile(
+                leading: const Icon(Icons.edit_outlined),
+                title: const Text('Edit details'),
+                subtitle: const Text('Name, age, birth time, bed, diagnosis, IDs'),
+                onTap: () => Navigator.pop(sheetContext, _Action.edit),
+              ),
               if (patient.isActive) ...[
                 ListTile(
                   leading: const Icon(Icons.swap_horiz),
@@ -74,6 +81,13 @@ class PatientActionsButton extends StatelessWidget {
                   subtitle: const Text('Back on the ward list, same patient ID'),
                   onTap: () => Navigator.pop(sheetContext, _Action.readmit),
                 ),
+              ListTile(
+                leading: const Icon(Icons.delete_outline, color: AppColors.danger),
+                title: Text('Delete permanently',
+                    style: AppTypography.body(color: AppColors.danger)),
+                subtitle: const Text('Erases the patient and all their notes'),
+                onTap: () => Navigator.pop(sheetContext, _Action.delete),
+              ),
             ],
           ),
         ),
@@ -87,7 +101,45 @@ class PatientActionsButton extends StatelessWidget {
         await _discharge(context);
       case _Action.readmit:
         await _readmit(context);
+      case _Action.edit:
+        await Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => AddPatientScreen(existing: patient),
+        ));
+      case _Action.delete:
+        await _delete(context);
     }
+  }
+
+  Future<void> _delete(BuildContext context) async {
+    final confirmed = await showAdaptiveDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AppAlertDialog(
+        title: Text('Delete ${patient.name}?'),
+        content: const Text(
+          'This permanently deletes the patient, every note and reply about '
+          'them, and their reminders. It cannot be recovered. To keep the '
+          'record, discharge them instead.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    final provider = context.read<PatientProvider>();
+    final navigator = Navigator.of(context);
+    final ok = await provider.deletePatient(patient.id);
+    if (!context.mounted) return;
+    _report(context, ok, '${patient.name} deleted', provider);
+    if (ok && navigator.canPop()) navigator.pop();
   }
 
   Future<void> _discharge(BuildContext context) async {
@@ -187,7 +239,7 @@ class PatientActionsButton extends StatelessWidget {
   }
 }
 
-enum _Action { transfer, discharge, readmit }
+enum _Action { edit, transfer, discharge, readmit, delete }
 
 class _TransferRequest {
   const _TransferRequest(this.ward, this.reason, this.bed);

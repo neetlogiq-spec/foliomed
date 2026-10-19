@@ -20,10 +20,13 @@ import '../../services/reminder_notifications.dart';
 import '../../widgets/birth_time_field.dart';
 import '../../utils/app_utils.dart';
 
+/// Admits a new patient, or edits [existing] when given. Ward changes go
+/// through Transfer (patient ••• menu), so the ward is fixed when editing.
 class AddPatientScreen extends StatefulWidget {
   final String? initialWardId;
+  final Patient? existing;
 
-  const AddPatientScreen({super.key, this.initialWardId});
+  const AddPatientScreen({super.key, this.initialWardId, this.existing});
 
   @override
   State<AddPatientScreen> createState() => _AddPatientScreenState();
@@ -51,11 +54,31 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
   String? _wardId;
   bool _saving = false;
 
+  bool get _editing => widget.existing != null;
+
   @override
   void initState() {
     super.initState();
     _wardId = widget.initialWardId;
+    final p = widget.existing;
+    if (p != null) {
+      _wardId = p.wardId;
+      _nameController.text = p.name;
+      _ageController.text = p.age > 0 ? '${p.age}' : '';
+      _ageUnit = p.ageUnit;
+      _hospitalIdController.text = p.hospitalId ?? '';
+      _bornAt = p.bornAt;
+      _bedController.text = p.bedNumber;
+      _diagnosisController.text = p.diagnosis;
+      _gender = p.gender.isEmpty ? 'Male' : p.gender;
+      _bloodGroup = _bloodGroups.contains(p.bloodGroup) ? p.bloodGroup : null;
+    }
   }
+
+  /// Reminder presets are offered when the birth time is new or changed.
+  bool get _offerReminders =>
+      _bornAt != null &&
+      (widget.existing == null || widget.existing!.bornAt != _bornAt);
 
   static const List<String> _bloodGroups = [
     'A+',
@@ -90,6 +113,10 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
     }
 
     setState(() => _saving = true);
+    if (_editing) {
+      await _saveEdits();
+      return;
+    }
     final patient = Patient(
       id: const Uuid().v4(),
       name: _nameController.text.trim(),
@@ -150,6 +177,63 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
     }
   }
 
+  Future<void> _saveEdits() async {
+    final old = widget.existing!;
+    final updated = Patient(
+      id: old.id,
+      patientCode: old.patientCode,
+      name: _nameController.text.trim(),
+      age: int.tryParse(_ageController.text.trim()) ?? 0,
+      ageUnit: _ageUnit,
+      hospitalId: _hospitalIdController.text.trim(),
+      gender: _gender,
+      wardId: old.wardId,
+      bedNumber: _bedController.text.trim(),
+      diagnosis: _diagnosisController.text.trim(),
+      bloodGroup: _bloodGroup,
+      admittedAt: old.admittedAt,
+      status: old.status,
+      dischargedAt: old.dischargedAt,
+      dischargedBy: old.dischargedBy,
+      dischargeSummary: old.dischargeSummary,
+      bornAt: _bornAt,
+    );
+    final provider = context.read<PatientProvider>();
+    final reminders = context.read<ReminderProvider>();
+    final offer = _offerReminders;
+    final ok = await provider.updatePatient(updated);
+    var remindersOk = true;
+    if (ok && offer) {
+      for (final preset in NewbornReminderPreset.all) {
+        if (!_reminderHours.contains(preset.hours)) continue;
+        remindersOk &= await reminders.add(
+          patientId: old.id,
+          wardId: old.wardId,
+          patientName: updated.name,
+          title: preset.title,
+          dueAt: _bornAt!.add(Duration(hours: preset.hours)),
+        );
+      }
+    }
+    if (!mounted) return;
+    setState(() => _saving = false);
+    final messenger = ScaffoldMessenger.of(context);
+    if (ok) {
+      Navigator.of(context).pop();
+      messenger.showSnackBar(SnackBar(
+        content: Text(remindersOk
+            ? 'Changes saved'
+            : "Changes saved, but the reminders couldn't be added."),
+      ));
+    } else {
+      messenger.showSnackBar(SnackBar(
+        backgroundColor: AppColors.danger,
+        content: Text(
+            'Could not save — ${friendlyError(provider.error ?? 'unknown error')}'),
+      ));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     context.watch<ThemeProvider>(); // rebuild on theme change
@@ -157,7 +241,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
     return Scaffold(
       backgroundColor: AppColors.surface,
       appBar: AppBar(
-        title: const Text('Add Patient'),
+        title: Text(_editing ? 'Edit Patient' : 'Add Patient'),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => Navigator.of(context).pop(),
@@ -170,9 +254,13 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _label('Ward (required)'),
-              const SizedBox(height: 8),
-              _wardPicker(),
+              if (_editing)
+                _label('Ward is changed with Transfer, from the patient’s ••• menu.')
+              else ...[
+                _label('Ward (required)'),
+                const SizedBox(height: 8),
+                _wardPicker(),
+              ],
               const SizedBox(height: 16),
               TextFormField(
                 controller: _nameController,
@@ -197,63 +285,60 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
               ),
               const SizedBox(height: 12),
               // Age in days / months / years — neonates and infants need
-              // finer units than years.
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _ageController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      decoration: const InputDecoration(
-                        labelText: 'Age (optional)',
-                        prefixIcon: Icon(Icons.cake_outlined),
+              // finer units than years. Ignored once a birth time is set.
+              _label('Age'),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: CupertinoSlidingSegmentedControl<AgeUnit>(
+                  groupValue: _ageUnit,
+                  onValueChanged: (u) {
+                    if (u != null && _bornAt == null) setState(() => _ageUnit = u);
+                  },
+                  children: {
+                    for (final u in AgeUnit.values)
+                      u: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text(u.label,
+                            style: AppTypography.footnote(
+                                color: AppColors.textPrimary,
+                                weight: FontWeight.w600)),
                       ),
-                      enabled: _bornAt == null,
-                      validator: (v) {
-                        final n = int.tryParse(v?.trim() ?? '');
-                        if (n == null) return null;
-                        final max = switch (_ageUnit) {
-                          AgeUnit.days => 365,
-                          AgeUnit.months => 60,
-                          AgeUnit.years => 130,
-                        };
-                        return n > max
-                            ? 'At most $max ${_ageUnit.label.toLowerCase()}'
-                            : null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 6),
-                    child: CupertinoSlidingSegmentedControl<AgeUnit>(
-                      groupValue: _ageUnit,
-                      onValueChanged: (u) {
-                        if (u != null) setState(() => _ageUnit = u);
-                      },
-                      children: {
-                        for (final u in AgeUnit.values)
-                          u: Padding(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 10),
-                            child: Text(u.label,
-                                style: AppTypography.footnote(
-                                    color: AppColors.textPrimary,
-                                    weight: FontWeight.w600)),
-                          ),
-                      },
-                    ),
-                  ),
-                ],
+                  },
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _ageController,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                enabled: _bornAt == null,
+                decoration: InputDecoration(
+                  labelText: 'Age in ${_ageUnit.label.toLowerCase()} (optional)',
+                  helperText: _bornAt == null
+                      ? null
+                      : 'Worked out from the birth time below.',
+                  prefixIcon: const Icon(Icons.cake_outlined),
+                ),
+                validator: (v) {
+                  final n = int.tryParse(v?.trim() ?? '');
+                  if (n == null) return null;
+                  final max = switch (_ageUnit) {
+                    AgeUnit.days => 365,
+                    AgeUnit.months => 60,
+                    AgeUnit.years => 130,
+                  };
+                  return n > max
+                      ? 'At most $max ${_ageUnit.label.toLowerCase()}'
+                      : null;
+                },
               ),
               const SizedBox(height: 12),
               BirthTimeField(
                 bornAt: _bornAt,
                 onChanged: (v) => setState(() => _bornAt = v),
               ),
-              if (_bornAt != null) ...[
+              if (_offerReminders) ...[
                 const SizedBox(height: 8),
                 for (final preset in NewbornReminderPreset.all)
                   CheckboxListTile.adaptive(
@@ -324,9 +409,9 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                           strokeWidth: 2,
                         ),
                       )
-                    : const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 4),
-                        child: Text('Add Patient'),
+                    : Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Text(_editing ? 'Save Changes' : 'Add Patient'),
                       ),
               ),
             ],

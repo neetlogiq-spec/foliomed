@@ -7,7 +7,6 @@ import '../../services/supabase_service.dart';
 import '../../utils/friendly_error.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/role_badge.dart';
-import '../../widgets/support_action.dart';
 import 'add_staff_bottom_sheet.dart';
 import '../../providers/theme_provider.dart';
 import '../../widgets/app_sheet.dart';
@@ -77,7 +76,6 @@ class _AdminStaffScreenState extends State<AdminStaffScreen> {
               _searching = !_searching;
             }),
           ),
-          const SupportAppBarAction(),
         ],
       ),
       body: Column(

@@ -4,6 +4,5 @@ export 'note_comments_sheet.dart';
 export 'notifications_panel.dart';
 export 'patient_card.dart';
 export 'role_badge.dart';
-export 'support_sheet.dart';
 export 'theme_toggle_button.dart';
 export 'foliomed_brand.dart';

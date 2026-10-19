@@ -13,21 +13,14 @@ import '../../providers/note_provider.dart';
 import '../../providers/patient_provider.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/rate_prompt.dart';
-import '../../widgets/note_card.dart';
-import '../../widgets/support_action.dart';
 import '../admin/admin_home_screen.dart';
 import '../admin/admin_staff_screen.dart';
-import '../doctor/add_note_screen.dart';
-import '../doctor/doctor_home_screen.dart';
-import '../doctor/patients_list_screen.dart';
-import '../nurse/nurse_home_screen.dart';
-import '../nurse/nurse_patients_screen.dart';
+import 'patients_screen.dart';
 import 'profile_screen.dart';
+import 'today_screen.dart';
 import 'tutorial_screen.dart';
 import 'wards_screen.dart';
 import '../../providers/theme_provider.dart';
-import '../../utils/layout.dart';
-import '../../widgets/app_alert_dialog.dart';
 import '../../services/accessibility_settings.dart';
 import '../../providers/reminder_provider.dart';
 import '../../services/reminder_notifications.dart';
@@ -52,7 +45,6 @@ class _MainScaffoldState extends State<MainScaffold>
   // reused across rebuilds (Showcase is sensitive to that).
   final GlobalKey _wardsKey = GlobalKey();
   final GlobalKey _patientsKey = GlobalKey();
-  final GlobalKey _notesKey = GlobalKey();
   final GlobalKey _profileKey = GlobalKey();
 
   static const String _interactiveTutorialKey = 'interactive_tutorial_done_v1';
@@ -83,12 +75,6 @@ class _MainScaffoldState extends State<MainScaffold>
       // After the slide tutorial, run the interactive coachmark walk —
       // exactly once per install (keyed in SharedPreferences).
       await _maybeStartInteractiveTutorial();
-      // Daily chai popup removed at user's request — Support button
-      // now lives in every main-screen AppBar instead, so users still
-      // have a one-tap way to support the project without an
-      // interruption every day.
-      // Quietly try a weekly Play in-app review nudge. Google rate-
-      // limits the actual dialog server-side; we just ask.
       RatePrompt.maybeShowWeekly();
     });
   }
@@ -100,7 +86,6 @@ class _MainScaffoldState extends State<MainScaffold>
     final keys = <GlobalKey>[
       _wardsKey,
       _patientsKey,
-      if (widget.role == UserRole.doctor) _notesKey,
       _profileKey,
     ];
     // Defer one frame to make sure the bottom nav has laid out and the
@@ -136,22 +121,16 @@ class _MainScaffoldState extends State<MainScaffold>
     }
   }
 
+  /// Doctors and nurses share one IA: Today · Patients · Wards · Profile.
   List<Widget> get _screensForRole {
     switch (widget.role) {
       case UserRole.doctor:
-        return const [
-          DoctorHomeScreen(),
-          WardsScreen(),
-          PatientsListScreen(),
-          _DoctorNotesList(),
-          ProfileScreen(),
-        ];
       case UserRole.nurse:
-        return const [
-          NurseHomeScreen(),
-          WardsScreen(),
-          NursePatientsScreen(),
-          ProfileScreen(),
+        return [
+          TodayScreen(onOpenPatients: () => setState(() => _index = 1)),
+          const PatientsScreen(),
+          const WardsScreen(),
+          const ProfileScreen(),
         ];
       case UserRole.admin:
         return const [
@@ -195,111 +174,57 @@ class _MainScaffoldState extends State<MainScaffold>
   }
 
   List<BottomNavigationBarItem> get _itemsForRole {
+    final profile = BottomNavigationBarItem(
+      icon: _showcase(
+        key: _profileKey,
+        title: 'Profile',
+        description: 'Your details, dark mode, text size, help and feedback.',
+        child: const Icon(Icons.person_outline),
+      ),
+      activeIcon: const Icon(Icons.person),
+      label: 'Profile',
+    );
+    final wards = BottomNavigationBarItem(
+      icon: _showcase(
+        key: _wardsKey,
+        title: 'Wards',
+        description: widget.role == UserRole.admin
+            ? 'Inspect every ward in the system.'
+            : 'Create or join a ward. Each ward has a 5-digit code you '
+                'share with your team.',
+        child: const Icon(Icons.corporate_fare_outlined),
+      ),
+      activeIcon: const Icon(Icons.corporate_fare),
+      label: 'Wards',
+    );
     switch (widget.role) {
       case UserRole.doctor:
+      case UserRole.nurse:
         return [
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
           BottomNavigationBarItem(
-            icon: _showcase(
-              key: _wardsKey,
-              title: 'Wards',
-              description:
-                  'Create or join a ward here. Each ward has a 5-digit '
-                  'code you share with your team.',
-              child: const Icon(Icons.corporate_fare_outlined),
-            ),
-            activeIcon: const Icon(Icons.corporate_fare),
-            label: 'Wards',
-          ),
-          BottomNavigationBarItem(
-            icon: _showcase(
-              key: _patientsKey,
-              title: 'Patients',
-              description:
-                  'Every patient on your wards. Pull-search across wards '
-                  'and add new ones from here.',
-              child: const Icon(Icons.people_outline),
-            ),
-            activeIcon: const Icon(Icons.people),
-            label: 'Patients',
-          ),
-          BottomNavigationBarItem(
-            icon: _showcase(
-              key: _notesKey,
-              title: 'Notes',
-              description:
-                  'The live ward feed. Post a note here and the whole '
-                  'team gets a push instantly.',
-              child: Consumer<NoteProvider>(
-                builder: (context, np, _) => _notesIcon(np.unacknowledgedCount),
-              ),
+            icon: Consumer<NoteProvider>(
+              builder: (context, np, _) =>
+                  _badged(Icons.today_outlined, np.unacknowledgedCount),
             ),
             activeIcon: Consumer<NoteProvider>(
               builder: (context, np, _) =>
-                  _notesIcon(np.unacknowledgedCount, active: true),
+                  _badged(Icons.today, np.unacknowledgedCount),
             ),
-            label: 'Notes',
-          ),
-          BottomNavigationBarItem(
-            icon: _showcase(
-              key: _profileKey,
-              title: 'Profile',
-              description:
-                  'Settings, dark mode, text size, FAQs and a way to '
-                  'send me feedback.',
-              child: const Icon(Icons.person_outline),
-            ),
-            activeIcon: const Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ];
-      case UserRole.nurse:
-        return [
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: _showcase(
-              key: _wardsKey,
-              title: 'Wards',
-              description:
-                  'Create or join a ward here. Each ward has a 5-digit '
-                  'code you share with your team.',
-              child: const Icon(Icons.corporate_fare_outlined),
-            ),
-            activeIcon: const Icon(Icons.corporate_fare),
-            label: 'Wards',
+            label: 'Today',
           ),
           BottomNavigationBarItem(
             icon: _showcase(
               key: _patientsKey,
               title: 'Patients',
-              description:
-                  'Every patient on your wards. Pull-search across wards '
-                  'and tap any one to see their notes.',
+              description: 'Everyone on your wards. Search by name, bed, '
+                  'diagnosis or ID, and tap a patient for their timeline.',
               child: const Icon(Icons.people_outline),
             ),
             activeIcon: const Icon(Icons.people),
             label: 'Patients',
           ),
-          BottomNavigationBarItem(
-            icon: _showcase(
-              key: _profileKey,
-              title: 'Profile',
-              description:
-                  'Settings, dark mode, text size, FAQs and a way to '
-                  'send me feedback.',
-              child: const Icon(Icons.person_outline),
-            ),
-            activeIcon: const Icon(Icons.person),
-            label: 'Profile',
-          ),
+          wards,
+          profile,
         ];
       case UserRole.admin:
         return [
@@ -308,15 +233,7 @@ class _MainScaffoldState extends State<MainScaffold>
             activeIcon: Icon(Icons.dashboard),
             label: 'Dashboard',
           ),
-          BottomNavigationBarItem(
-            icon: _showcase(
-              key: _wardsKey,
-              title: 'Wards',
-              description: 'Inspect every ward in the system.',
-              child: const Icon(Icons.corporate_fare),
-            ),
-            label: 'Wards',
-          ),
+          wards,
           BottomNavigationBarItem(
             icon: _showcase(
               key: _patientsKey,
@@ -327,43 +244,35 @@ class _MainScaffoldState extends State<MainScaffold>
             activeIcon: const Icon(Icons.group),
             label: 'Staff',
           ),
-          BottomNavigationBarItem(
-            icon: _showcase(
-              key: _profileKey,
-              title: 'Profile',
-              description: 'Settings, FAQs, send feedback.',
-              child: const Icon(Icons.person_outline),
-            ),
-            activeIcon: const Icon(Icons.person),
-            label: 'Profile',
-          ),
+          profile,
         ];
     }
   }
 
-  Widget _notesIcon(int count, {bool active = false}) {
+  /// Tab icon with a count badge (pending notes on Today).
+  Widget _badged(IconData icon, int count) {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        Icon(active ? Icons.notes : Icons.notes_outlined),
+        Icon(icon),
         if (count > 0)
           Positioned(
-            right: -6,
+            right: -8,
             top: -4,
             child: Container(
-              padding: const EdgeInsets.all(3),
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
               constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: AppColors.danger,
-                shape: BoxShape.circle,
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
-                '$count',
+                count > 99 ? '99+' : '$count',
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 9,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),
@@ -459,108 +368,6 @@ class _MainScaffoldState extends State<MainScaffold>
             ),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _DoctorNotesList extends StatelessWidget {
-  const _DoctorNotesList();
-
-  @override
-  Widget build(BuildContext context) {
-    context.watch<ThemeProvider>(); // rebuild on theme change
-    return Scaffold(
-      backgroundColor: AppColors.surface,
-      appBar: AppBar(
-        title: const Text('Ward Notes'),
-        actions: const [SupportAppBarAction()],
-      ),
-      body: Consumer<NoteProvider>(
-        builder: (context, np, _) {
-          if (np.notes.isEmpty) {
-            return Center(
-              child: Text(
-                'No notes yet',
-                style: appText(color: AppColors.textSecondary),
-              ),
-            );
-          }
-          final showLimitNotice = np.notes.length >= 150;
-          return ListView.separated(
-            padding: withBottomBarInset(context, const EdgeInsets.all(16)),
-            itemCount: np.notes.length + (showLimitNotice ? 1 : 0),
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
-            itemBuilder: (_, i) {
-              if (showLimitNotice && i == np.notes.length) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Center(
-                    child: Text(
-                      'Showing the last 150 notes',
-                      style: appText(
-                        color: AppColors.textSecondary,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                );
-              }
-              final note = np.notes[i];
-              return NoteCard(
-                note: note,
-                onAcknowledge: note.isAcknowledged
-                    ? null
-                    : () {
-                        final name =
-                            context.read<AuthProvider>().currentUser?.name ??
-                            'Staff';
-                        context.read<NoteProvider>().acknowledgeNote(
-                          note.id,
-                          name,
-                        );
-                      },
-                onUnacknowledge: () =>
-                    context.read<NoteProvider>().unacknowledgeNote(note.id),
-                onDelete: () async {
-                  final confirm = await showAdaptiveDialog<bool>(
-                    context: context,
-                    builder: (_) => AppAlertDialog(
-                      title: const Text('Delete note?'),
-                      content: const Text(
-                        'This will permanently delete the note and every reply on it — fully erased from our database. There is no backup and no way to recover it once you tap Delete.',
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, false),
-                          child: const Text('Cancel'),
-                        ),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.danger,
-                          ),
-                          onPressed: () => Navigator.pop(context, true),
-                          child: const Text('Delete'),
-                        ),
-                      ],
-                    ),
-                  );
-                  if (confirm == true && context.mounted) {
-                    await context.read<NoteProvider>().deleteNote(note.id);
-                  }
-                },
-              );
-            },
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        heroTag: 'notes_list_fab',
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add),
-        label: const Text('New Note'),
-        onPressed: () => showAddNoteBottomSheet(context),
       ),
     );
   }

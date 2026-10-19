@@ -12,8 +12,7 @@ import '../screens/auth/onboarding_screen.dart';
 import '../screens/auth/splash_screen.dart';
 import '../screens/doctor/add_patient_screen.dart';
 import '../screens/doctor/patient_detail_screen.dart';
-import '../screens/doctor/patients_list_screen.dart';
-import '../screens/nurse/nurse_patients_screen.dart';
+import '../screens/shared/patients_screen.dart';
 import '../screens/shared/main_scaffold.dart';
 import '../screens/auth/role_choice_screen.dart';
 
@@ -45,10 +44,10 @@ class AppRoutes {
         backgroundSetup: (_) => const BackgroundSetupScreen(),
         chooseRole: (_) => const RoleChoiceScreen(),
         doctorHome: (_) => const MainScaffold(role: UserRole.doctor),
-        doctorPatients: (_) => const PatientsListScreen(),
+        doctorPatients: (_) => const PatientsScreen(),
         doctorAddPatient: (_) => const AddPatientScreen(),
         nurseHome: (_) => const MainScaffold(role: UserRole.nurse),
-        nursePatients: (_) => const NursePatientsScreen(),
+        nursePatients: (_) => const PatientsScreen(),
         adminHome: (_) => const MainScaffold(role: UserRole.admin),
         adminAddWard: (_) => const AddWardScreen(),
         adminStaff: (_) => const AdminStaffScreen(),

@@ -62,10 +62,11 @@ Firestore → Postgres mapping: `users`→`profiles`, `wards`, `patients`,
 
 Test the schema locally without Docker: `supabase/tests/README.md` (suites 10–40).
 
-## User Roles
-- **Doctor** — home, wards, patients, notes feed, profile
-- **Nurse** — home, wards, patients, profile
+## User Roles & tabs
+- **Doctor / Nurse** — Today (`today_screen.dart`: tiles, reminders, collapsible Pending/All/Urgent note feed), Patients (`patients_screen.dart`, grouped by ward), Wards (`wards_screen.dart` → `ward_page.dart`), Profile. Doctors get the New note FAB; nurses acknowledge through the acknowledge sheet (`WiredNoteCard`).
 - **Admin** — dashboard analytics, wards, staff list, profile
+- Patient edits reuse `AddPatientScreen(existing:)`; the ward is changed only via Transfer.
+- List UI uses `InsetGroup` / `SettingsRow` (`lib/widgets/inset_group.dart`) — iOS inset-grouped rows.
 
 ---
 

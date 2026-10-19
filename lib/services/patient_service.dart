@@ -73,8 +73,17 @@ class PatientService {
     return row['id'] as String;
   }
 
+  /// Throws if nothing was updated (RLS blocks silently with zero rows).
   Future<void> updatePatient(Patient patient) async {
-    await _patients.update(patient.toRow()).eq('id', patient.id);
+    final rows = await _patients
+        .update(patient.toRow())
+        .eq('id', patient.id)
+        .select('id');
+    if (rows.isEmpty) {
+      throw const PostgrestException(
+          message: "You can't edit this patient — you may no longer be in their ward.",
+          code: '42501');
+    }
   }
 
   /// Discharge with an optional summary; logged on the patient's timeline.

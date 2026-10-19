@@ -42,7 +42,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
       iconColor: AppColors.primary,
       title: 'Welcome to FolioMed',
       body:
-          "A 60-second tour of every button so you know what does what. You can re-run this any time from Profile → View tutorial.",
+          "A 60-second tour of every button so you know what does what. You can re-run this any time from Profile → Tutorial.",
       points: [
         ('Real-time notes', 'See updates from your team instantly'),
         ('Multi-ward', 'Be in any number of wards at once'),
@@ -50,74 +50,39 @@ class _TutorialScreenState extends State<TutorialScreen> {
       ],
     ),
     _TutorialSlide(
-      icon: Icons.dashboard_outlined,
+      icon: Icons.today_outlined,
       iconColor: AppColors.primary,
-      title: 'The top bar',
-      body: "Each icon in the top right has a job:",
+      title: 'Today',
+      body: "Your home tab shows what needs doing now:",
       points: [
-        ('🔔 Bell', 'Tap it for the notifications panel — every unacked note grouped by urgency'),
-        ('☀️ / 🌙', 'Toggle light / dark mode'),
-        ('📤 Share', 'Send FolioMed to your teammates'),
-        ('☕ Chai', 'Support the app development'),
-      ],
-    ),
-    _TutorialSlide(
-      icon: Icons.analytics_outlined,
-      iconColor: AppColors.accent,
-      title: 'The stat cards',
-      body: "The 3 cards at the top of Home are tappable shortcuts:",
-      points: [
-        ('Patients', 'Tap → full patient list across your wards'),
-        ('Notes Today', 'Tap → all of today\'s notes, grouped by date'),
-        ('Urgent', 'Glows red when you have urgent notes — tap to filter only urgent'),
-      ],
-    ),
-    _TutorialSlide(
-      icon: Icons.people_outline,
-      iconColor: AppColors.doctorColor,
-      title: 'Active patients',
-      body:
-          "Horizontal carousel of admitted patients in your wards. Tap any patient card to open their detail page with full note history. The Patients tab in the bottom nav shows the same list grouped by ward.",
-      points: [],
-    ),
-    _TutorialSlide(
-      icon: Icons.notes_outlined,
-      iconColor: AppColors.primary,
-      title: 'Recent notes',
-      body:
-          "Latest team activity. Each card shows priority, author, patient, and the note text.",
-      points: [
-        ('Reply', 'Opens the thread — chat-style replies on the note'),
-        ('Acknowledge ✓', 'Confirms you\'ve seen and acted on it'),
-        ('⋮ menu', 'Delete (only the author can fully erase a note)'),
-        ('Tap card', 'Same as Reply — opens the thread'),
+        ('Tiles', 'Admitted patients, pending notes and urgent notes — tap to filter'),
+        ('Reminders', 'Due and upcoming tasks such as 48 h / 72 h investigations'),
+        ('Ward notes', 'Pending · All · Urgent. The ⇕ button collapses notes to one line each'),
+        ('🔔 Bell', 'Notifications panel; the person icon adds a patient'),
       ],
     ),
     _TutorialSlide(
       icon: Icons.add_circle,
       iconColor: AppColors.accent,
-      title: 'Posting a new note',
-      body:
-          "The blue 'New Note' button (bottom-right) opens a sheet where you pick:",
+      title: 'Posting a note',
+      body: "Doctors tap 'New note' (bottom-right) and pick:",
       points: [
-        ('Ward', 'Which ward this note belongs to'),
-        ('Patient', 'Tap to pick from your ward — or tap "Add new patient" inline'),
-        ('Category', 'Medication / Procedure / Observation / Alert / General'),
-        ('Priority', 'Low / Normal / Urgent'),
-        ('Content', 'Plain text. Be specific — your team relies on it.'),
+        ('Patient', 'From your wards — or add one inline'),
+        ('Category & priority', 'Low / Normal / Urgent'),
+        ('Scan text', 'Photograph a report and its text is added for you'),
+        ('Acknowledge ✓', 'Nurses confirm they have acted on a note'),
       ],
     ),
     _TutorialSlide(
-      icon: Icons.menu,
-      iconColor: AppColors.adminColor,
-      title: 'Bottom navigation',
-      body: "Up to six tabs, depending on your role:",
+      icon: Icons.people_outline,
+      iconColor: AppColors.doctorColor,
+      title: 'Patients',
+      body:
+          "Everyone on your wards, grouped by ward. Search by name, bed, diagnosis or ID, and switch to Discharged to see past patients.",
       points: [
-        ('Home', 'Stats + active patients + recent notes'),
-        ('Wards', 'Your wards · share codes · join · create · view members'),
-        ('Patients', 'Tabs per ward, full active patient list'),
-        ('Notes', 'Every ward note — full feed'),
-        ('Profile', 'Your account, theme, daily chai toggle, sign out'),
+        ('Patient page', 'Timeline, reminders and the ••• menu'),
+        ('••• menu', 'Edit details · transfer · discharge or readmit · delete'),
+        ('Newborns', 'Set the birth time to see hours of life and 48 h / 72 h reminders'),
       ],
     ),
     _TutorialSlide(
@@ -125,11 +90,11 @@ class _TutorialScreenState extends State<TutorialScreen> {
       iconColor: AppColors.accent,
       title: 'Wards — share & join',
       body:
-          "In the Wards tab, every ward has a 5-digit code. Tap the code to copy it; tap Share to send it through WhatsApp / SMS / email.\n\nTeammates use Join Ward (top right) and enter the code — they're in.",
+          "Every ward has a 5-digit code. Tap + in Wards to create one or join with a code, and tap a ward to copy or share its code.",
       points: [
-        ('Members', 'Who else is in this ward'),
-        ('Share', 'Send the join code'),
-        ('Delete', 'Only the ward creator can delete it (cascades patients + notes)'),
+        ('Members', 'Everyone in the ward, with their role'),
+        ('Invite', 'Send the code by WhatsApp, SMS or email'),
+        ('Leave / Delete', 'Only the owner can delete a ward (erases its patients and notes)'),
       ],
     ),
     _TutorialSlide(
@@ -137,11 +102,10 @@ class _TutorialScreenState extends State<TutorialScreen> {
       iconColor: AppColors.accent,
       title: "You're all set",
       body:
-          "That's the whole app. Sign in, join a ward, post a note. Your team gets it instantly.",
+          "Join a ward, admit a patient, post a note — your team sees it instantly.",
       points: [
-        ('Need help?', 'Profile → View tutorial brings this back any time'),
+        ('Need help?', 'Profile → Tutorial brings this back any time'),
         ('Notifications missing?', 'Profile → Notification setup walks you through it'),
-        ('Thanks!', 'If FolioMed helps your team — buy me a chai ☕'),
       ],
     ),
   ];

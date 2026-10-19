@@ -11,7 +11,6 @@ import 'package:provider/provider.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../utils/share_helper.dart';
-import '../../widgets/support_sheet.dart';
 import '../auth/background_setup_screen.dart';
 import 'help_screen.dart';
 import 'tutorial_screen.dart';
@@ -27,6 +26,7 @@ import '../../widgets/app_sheet.dart';
 import '../../utils/layout.dart';
 import '../../widgets/app_alert_dialog.dart';
 import '../../widgets/large_title_app_bar.dart';
+import '../../widgets/inset_group.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -58,26 +58,18 @@ class ProfileScreen extends StatelessWidget {
             sliver: SliverList.list(
               children: [
                 _headerCard(context, user, auth),
-                const SizedBox(height: 20),
-                _sectionLabel('Account'),
-
-                _accountCard(context, auth),
-                const SizedBox(height: 20),
-                _sectionLabel('Preferences'),
-
-                _preferencesCard(context),
-                const SizedBox(height: 20),
-                _sectionLabel('About'),
-
-                _aboutCard(context),
-                const SizedBox(height: 20),
-                _sectionLabel('Feedback & support'),
-
-                _feedbackCard(context),
-                const SizedBox(height: 20),
-                _sectionLabel('Danger zone'),
-
-                _dangerCard(context, auth),
+                const SizedBox(height: 24),
+                _accountGroup(context, auth),
+                const SizedBox(height: 24),
+                _preferencesGroup(context),
+                const SizedBox(height: 24),
+                _helpGroup(context),
+                const SizedBox(height: 24),
+                _feedbackGroup(context),
+                const SizedBox(height: 24),
+                _aboutGroup(context),
+                const SizedBox(height: 24),
+                _signOutGroup(context, auth),
               ],
             ),
           ),
@@ -86,98 +78,68 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _sectionLabel(String text) => GroupedSectionHeader(text);
 
   Widget _headerCard(BuildContext context, AppUser user, AuthProvider auth) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppColors.card,
+    final hasEmoji = user.avatarEmoji != null && user.avatarEmoji!.isNotEmpty;
+    return Material(
+      color: AppColors.card,
+      borderRadius: BorderRadius.circular(AppRadii.card),
+      child: InkWell(
         borderRadius: BorderRadius.circular(AppRadii.card),
-      ),
-      child: Column(
-        children: [
-          Stack(
+        onTap: () => _showEditProfile(context, auth),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
             children: [
-              GestureDetector(
-                onTap: () => _showEmojiPicker(context, auth),
-                child: CircleAvatar(
-                  radius: 40,
-                  backgroundColor: user.roleColor.withOpacity(0.15),
-                  child:
-                      user.avatarEmoji != null && user.avatarEmoji!.isNotEmpty
-                      ? Text(
-                          user.avatarEmoji!,
-                          style: const TextStyle(fontSize: 40),
-                        )
-                      : Text(
-                          getInitials(user.name),
-                          style: TextStyle(
-                            color: user.roleColor,
-                            fontSize: 26,
-                            fontWeight: FontWeight.bold,
+              Semantics(
+                button: true,
+                label: 'Change avatar',
+                child: GestureDetector(
+                  onTap: () => _showEmojiPicker(context, auth),
+                  child: CircleAvatar(
+                    radius: 32,
+                    backgroundColor: user.roleColor.withValues(alpha: 0.15),
+                    child: hasEmoji
+                        ? Text(user.avatarEmoji!,
+                            style: const TextStyle(fontSize: 32))
+                        : Text(
+                            getInitials(user.name),
+                            style: AppTypography.title2(
+                                color: user.roleColor, weight: FontWeight.w700),
                           ),
-                        ),
-                ),
-              ),
-              Positioned(
-                right: 0,
-                bottom: 0,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: AppColors.card,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.edit,
-                    size: 12,
-                    color: AppColors.textSecondary,
                   ),
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Text(
-            user.name,
-            style: appText(
-              color: AppColors.textPrimary,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          if (user.specialty != null && user.specialty!.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(
-              user.specialty!,
-              style: appText(
-                color: AppColors.primary,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-          const SizedBox(height: 6),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.alternate_email,
-                size: 14,
-                color: AppColors.textSecondary,
-              ),
-              const SizedBox(width: 4),
-              Flexible(
-                child: Text(
-                  user.email,
-                  overflow: TextOverflow.ellipsis,
-                  style: appText(color: AppColors.textSecondary, fontSize: 13),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(user.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.title3(
+                            color: AppColors.textPrimary)),
+                    Text(
+                      [
+                        user.roleLabel,
+                        if (user.specialty != null && user.specialty!.isNotEmpty)
+                          user.specialty!,
+                      ].join(' · '),
+                      style: AppTypography.subheadline(color: user.roleColor),
+                    ),
+                    Text(user.email,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.footnote(
+                            color: AppColors.textSecondary)),
+                  ],
                 ),
               ),
+              Icon(Icons.chevron_right, color: AppColors.textSecondary),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -279,234 +241,188 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _cardWrapper({required List<Widget> children}) {
-    final tiles = <Widget>[];
-    for (var i = 0; i < children.length; i++) {
-      tiles.add(children[i]);
-      // Inset hairline between rows, as in iOS grouped tables.
-      if (i < children.length - 1) {
-        tiles.add(const Divider(height: 0.5, thickness: 0.5, indent: 16));
-      }
-    }
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(AppRadii.card),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(children: tiles),
+  Widget _accountGroup(BuildContext context, AuthProvider auth) {
+    final isAdmin = auth.currentUser?.role == UserRole.admin;
+    return InsetGroup(
+      header: 'Account',
+      children: [
+        SettingsRow(
+          icon: Icons.person_outline,
+          title: 'Name & specialty',
+          onTap: () => _showEditProfile(context, auth),
+        ),
+        SettingsRow(
+          icon: Icons.emoji_emotions_outlined,
+          iconColor: AppColors.warning,
+          title: 'Avatar',
+          onTap: () => _showEmojiPicker(context, auth),
+        ),
+        SettingsRow(
+          icon: Icons.badge_outlined,
+          iconColor: AppColors.accent,
+          title: 'Role',
+          subtitle: isAdmin ? 'Admin roles are managed from Staff' : null,
+          value: auth.currentUser?.roleLabel ?? '',
+          showChevron: !isAdmin,
+          onTap: isAdmin ? null : () => _chooseRole(context, auth),
+        ),
+      ],
     );
   }
 
-  Widget _accountCard(BuildContext context, AuthProvider auth) {
-    return _cardWrapper(
+  Widget _preferencesGroup(BuildContext context) {
+    final tp = context.watch<ThemeProvider>();
+    final ts = context.watch<TextScaleProvider>();
+    return InsetGroup(
+      header: 'Preferences',
       children: [
-        ListTile(
-          leading: const Icon(Icons.edit_outlined),
-          title: const Text('Edit profile'),
-          subtitle: const Text('Update your name'),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => _showEditProfile(context, auth),
+        SettingsRow(
+          icon: tp.isDark ? Icons.dark_mode : Icons.light_mode,
+          iconColor: const Color(0xFF5856D6),
+          title: 'Dark mode',
+          trailing: Switch.adaptive(value: tp.isDark, onChanged: (_) => tp.toggle()),
+          onTap: tp.toggle,
+          showChevron: false,
         ),
-        ListTile(
-          leading: const Icon(Icons.badge_outlined),
-          title: const Text('Role'),
-          subtitle: Text(
-            auth.currentUser?.role == UserRole.admin
-                ? 'Admin roles are managed from Staff'
-                : 'Switch between doctor and nurse',
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 8, 4),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: AppColors.secondary,
+                      borderRadius: BorderRadius.circular(7),
+                    ),
+                    child: const Icon(Icons.format_size,
+                        size: 17, color: Colors.white),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text('Text size',
+                        style: AppTypography.body(color: AppColors.textPrimary)),
+                  ),
+                  Text('${(ts.scale * 100).round()}%',
+                      style: AppTypography.body(color: AppColors.textSecondary)),
+                  if (ts.scale != 1.0)
+                    TextButton(
+                      onPressed: () => ts.setScale(1.0),
+                      child: const Text('Reset'),
+                    )
+                  else
+                    const SizedBox(width: 8),
+                ],
+              ),
+              Row(
+                children: [
+                  const SizedBox(width: 44),
+                  const Text('A', style: TextStyle(fontSize: 12)),
+                  Expanded(
+                    child: Slider.adaptive(
+                      value: ts.scale,
+                      min: TextScaleProvider.minScale,
+                      max: TextScaleProvider.maxScale,
+                      divisions: ((TextScaleProvider.maxScale -
+                                  TextScaleProvider.minScale) /
+                              TextScaleProvider.step)
+                          .round(),
+                      onChanged: ts.setScale,
+                    ),
+                  ),
+                  const Text('A', style: TextStyle(fontSize: 20)),
+                  const SizedBox(width: 8),
+                ],
+              ),
+            ],
           ),
-          trailing: Text(
-            auth.currentUser?.roleLabel ?? '',
-            style: AppTypography.subheadline(color: AppColors.textSecondary),
-          ),
-          onTap: auth.currentUser?.role == UserRole.admin
-              ? null
-              : () => _chooseRole(context, auth),
         ),
-        const Divider(height: 1, indent: 60),
-        ListTile(
-          leading: const Icon(Icons.share_outlined),
-          title: const Text('Share FolioMed'),
-          subtitle: const Text('Invite your team to download the app'),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => ShareHelper.shareApp(),
-        ),
-        const Divider(height: 1, indent: 60),
-        ListTile(
-          leading: const Icon(
-            Icons.local_cafe_outlined,
-            color: Color(0xFFE57F00),
-          ),
-          title: const Text('Support FolioMed'),
-          subtitle: const Text('Buy me a chai · keep the servers running'),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => showSupportSheet(context),
-        ),
-        if (!BackgroundSetupScreen.shouldSkip()) ...[
-          const Divider(height: 1, indent: 60),
-          ListTile(
-            leading: const Icon(Icons.notifications_active_outlined),
-            title: const Text('Notification setup'),
-            subtitle: const Text('Re-run the background reliability wizard'),
-            trailing: const Icon(Icons.chevron_right),
+        if (!BackgroundSetupScreen.shouldSkip())
+          SettingsRow(
+            icon: Icons.notifications_active_outlined,
+            iconColor: AppColors.danger,
+            title: 'Notification setup',
+            subtitle: 'Make sure alerts arrive when the app is closed',
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const BackgroundSetupScreen()),
             ),
           ),
-        ],
-        const Divider(height: 1, indent: 60),
-        ListTile(
-          leading: const Icon(Icons.help_outline),
-          title: const Text('View tutorial'),
-          subtitle: const Text('Walk through every button and feature'),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => const TutorialScreen(),
-              fullscreenDialog: true,
-            ),
-          ),
-        ),
-        const Divider(height: 1, indent: 60),
-        ListTile(
-          leading: const Icon(Icons.quiz_outlined),
-          title: const Text('Help & FAQs'),
-          subtitle: const Text('Quick answers to the most common questions'),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => Navigator.of(
-            context,
-          ).push(MaterialPageRoute(builder: (_) => const HelpScreen())),
-        ),
       ],
     );
   }
 
-  Widget _preferencesCard(BuildContext context) {
-    final tp = context.watch<ThemeProvider>();
-    final ts = context.watch<TextScaleProvider>();
-    return _cardWrapper(
+  Widget _helpGroup(BuildContext context) {
+    return InsetGroup(
+      header: 'Help',
       children: [
-        SwitchListTile(
-          secondary: Icon(tp.isDark ? Icons.dark_mode : Icons.light_mode),
-          title: const Text('Dark mode'),
-          subtitle: Text(tp.isDark ? 'On' : 'Off'),
-          value: tp.isDark,
-          onChanged: (_) => tp.toggle(),
+        SettingsRow(
+          icon: Icons.play_lesson_outlined,
+          iconColor: AppColors.accent,
+          title: 'Tutorial',
+          onTap: () => Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => const TutorialScreen(),
+            fullscreenDialog: true,
+          )),
         ),
-        const Divider(height: 1, indent: 60),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-          child: Row(
-            children: [
-              Icon(Icons.format_size, color: AppColors.textSecondary),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Text size',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    Text(
-                      '${(ts.scale * 100).round()}% of default',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (ts.scale != 1.0)
-                TextButton(
-                  onPressed: () => ts.setScale(1.0),
-                  child: const Text('Reset'),
-                ),
-            ],
-          ),
+        SettingsRow(
+          icon: Icons.help_outline,
+          title: 'Help & FAQs',
+          onTap: () => Navigator.of(context)
+              .push(MaterialPageRoute(builder: (_) => const HelpScreen())),
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-          child: Row(
-            children: [
-              const Text('A', style: TextStyle(fontSize: 12)),
-              Expanded(
-                child: Slider(
-                  value: ts.scale,
-                  min: TextScaleProvider.minScale,
-                  max: TextScaleProvider.maxScale,
-                  divisions:
-                      ((TextScaleProvider.maxScale -
-                                  TextScaleProvider.minScale) /
-                              TextScaleProvider.step)
-                          .round(),
-                  label: '${(ts.scale * 100).round()}%',
-                  onChanged: ts.setScale,
-                ),
-              ),
-              const Text('A', style: TextStyle(fontSize: 20)),
-            ],
-          ),
-        ),
-        const Divider(height: 1, indent: 60),
-        // Stateful daily-support toggle — the previous FutureBuilder
-        // version never re-rendered because the future was cached after
-        // the first read, and `markNeedsBuild()` doesn't re-invoke a
-        // already-resolved FutureBuilder. A small dedicated widget owns
-        // the value in state and updates instantly on tap.
-        const _SupportPromptToggle(),
-        // Note: weekly rating reminder is always-on by default and not
-        // user-toggleable. Google Play rate-limits the dialog itself,
-        // so it appears at most a few times a year regardless.
       ],
     );
   }
 
-  Widget _aboutCard(BuildContext context) {
+  Widget _aboutGroup(BuildContext context) {
     final authUser = supabase.auth.currentUser;
     final lastSignIn = parseTimestampOrNull(authUser?.lastSignInAt);
     final created = parseTimestampOrNull(authUser?.createdAt);
-    return _cardWrapper(
+    return InsetGroup(
+      header: 'About',
       children: [
         FutureBuilder<PackageInfo>(
           future: PackageInfo.fromPlatform(),
-          builder: (context, snap) {
-            final v = snap.hasData
-                ? '${snap.data!.version} · build ${snap.data!.buildNumber}'
-                : '—';
-            return ListTile(
-              leading: const Icon(Icons.tag),
-              title: const Text('App version'),
-              subtitle: Text(v),
-            );
-          },
-        ),
-        const Divider(height: 1, indent: 60),
-        ListTile(
-          leading: const Icon(Icons.login_outlined),
-          title: const Text('Last sign-in'),
-          subtitle: Text(
-            lastSignIn == null
-                ? 'unknown'
-                : DateFormat('d MMM y · HH:mm').format(lastSignIn),
+          builder: (context, snap) => SettingsRow(
+            icon: Icons.info_outline,
+            iconColor: AppColors.textSecondary,
+            title: 'Version',
+            value: snap.hasData
+                ? '${snap.data!.version} (${snap.data!.buildNumber})'
+                : '—',
           ),
         ),
-        const Divider(height: 1, indent: 60),
-        ListTile(
-          leading: const Icon(Icons.calendar_today_outlined),
-          title: const Text('Account created'),
-          subtitle: Text(
-            created == null ? 'unknown' : DateFormat('d MMM y').format(created),
-          ),
+        SettingsRow(
+          icon: Icons.login_outlined,
+          iconColor: AppColors.textSecondary,
+          title: 'Last sign-in',
+          value: lastSignIn == null
+              ? '—'
+              : DateFormat('d MMM y, HH:mm').format(lastSignIn),
         ),
-        const Divider(height: 1, indent: 60),
-        ListTile(
-          leading: const Icon(Icons.person_pin_circle_outlined),
-          title: const Text('About the maker'),
-          trailing: const Icon(Icons.open_in_new, size: 18),
+        SettingsRow(
+          icon: Icons.calendar_today_outlined,
+          iconColor: AppColors.textSecondary,
+          title: 'Member since',
+          value: created == null ? '—' : DateFormat('d MMM y').format(created),
+        ),
+        SettingsRow(
+          icon: Icons.public,
+          title: 'Website',
+          trailing: Icon(Icons.open_in_new,
+              size: 18, color: AppColors.textSecondary),
           onTap: () => _openExternal(context, 'https://www.foliomed.app/'),
+        ),
+        SettingsRow(
+          icon: Icons.privacy_tip_outlined,
+          iconColor: AppColors.accent,
+          title: 'Privacy policy',
+          trailing: Icon(Icons.open_in_new,
+              size: 18, color: AppColors.textSecondary),
+          onTap: () =>
+              _openExternal(context, 'https://www.foliomed.app/privacy.html'),
         ),
       ],
     );
@@ -533,16 +449,14 @@ class ProfileScreen extends StatelessWidget {
   // Until then, the search-page URL is the second fallback.
   static const String _iosAppStoreId = '0000000000';
 
-  Widget _feedbackCard(BuildContext context) {
-    return _cardWrapper(
+  Widget _feedbackGroup(BuildContext context) {
+    return InsetGroup(
+      header: 'Feedback',
       children: [
-        ListTile(
-          leading: const Icon(Icons.lightbulb_outline),
-          title: const Text('Suggest a feature'),
-          subtitle: const Text(
-            'Idea for the app? Tell me — I read every email.',
-          ),
-          trailing: const Icon(Icons.chevron_right),
+        SettingsRow(
+          icon: Icons.lightbulb_outline,
+          iconColor: AppColors.warning,
+          title: 'Suggest a feature',
           onTap: () => _emailDeveloper(
             context,
             subject: 'FolioMed · Feature suggestion',
@@ -550,12 +464,10 @@ class ProfileScreen extends StatelessWidget {
             label: 'Feature suggestion',
           ),
         ),
-        const Divider(height: 1, indent: 60),
-        ListTile(
-          leading: const Icon(Icons.chat_bubble_outline),
-          title: const Text('Give feedback'),
-          subtitle: const Text('What works, what doesn\'t, what feels awkward'),
-          trailing: const Icon(Icons.chevron_right),
+        SettingsRow(
+          icon: Icons.chat_bubble_outline,
+          iconColor: AppColors.accent,
+          title: 'Give feedback',
           onTap: () => _emailDeveloper(
             context,
             subject: 'FolioMed · Feedback',
@@ -563,31 +475,22 @@ class ProfileScreen extends StatelessWidget {
             label: 'Feedback',
           ),
         ),
-        const Divider(height: 1, indent: 60),
-        ListTile(
-          leading: const Icon(Icons.star_outline, color: Color(0xFFE57F00)),
-          title: const Text('Rate on Play Store'),
-          subtitle: const Text(
-            'A 5-star rating helps the next ward find FolioMed',
-          ),
-          trailing: const Icon(Icons.chevron_right),
+        SettingsRow(
+          icon: Icons.bug_report_outlined,
+          iconColor: AppColors.danger,
+          title: 'Report a bug',
+          onTap: () => _reportBug(context),
+        ),
+        SettingsRow(
+          icon: Icons.star_outline,
+          iconColor: AppColors.warning,
+          title: 'Rate FolioMed',
           onTap: () => _openPlayStoreRating(context),
         ),
-        const Divider(height: 1, indent: 60),
-        ListTile(
-          leading: const Icon(
-            Icons.bug_report_outlined,
-            color: AppColors.danger,
-          ),
-          title: const Text(
-            'Report a bug',
-            style: TextStyle(color: AppColors.danger),
-          ),
-          subtitle: const Text(
-            'Something broke or behaved weird? Send the details',
-          ),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => _reportBug(context),
+        SettingsRow(
+          icon: Icons.ios_share,
+          title: 'Share FolioMed',
+          onTap: () => ShareHelper.shareApp(),
         ),
       ],
     );
@@ -616,12 +519,12 @@ class ProfileScreen extends StatelessWidget {
   /// Bug-report intent: same as feedback but the body already has version
   /// + platform info filled in so the user doesn't have to.
   Future<void> _reportBug(BuildContext context) async {
+    final auth = context.read<AuthProvider>();
     String version = 'unknown';
     try {
       final info = await PackageInfo.fromPlatform();
       version = '${info.version} · build ${info.buildNumber}';
     } catch (_) {}
-    final auth = context.read<AuthProvider>();
     final email = auth.currentUser?.email ?? '(not signed in)';
     final body =
         '''
@@ -759,30 +662,20 @@ Account: $email
         .join('&');
   }
 
-  Widget _dangerCard(BuildContext context, AuthProvider auth) {
-    return _cardWrapper(
+  Widget _signOutGroup(BuildContext context, AuthProvider auth) {
+    return InsetGroup(
+      footer: 'Deleting your account removes your profile and every ward you own, with its patients and notes.',
       children: [
-        ListTile(
-          leading: const Icon(Icons.logout, color: AppColors.danger),
-          title: const Text(
-            'Sign out',
-            style: TextStyle(color: AppColors.danger),
-          ),
+        SettingsRow(
+          icon: Icons.logout,
+          title: 'Sign out',
+          destructive: true,
           onTap: () => _confirmSignOut(context, auth),
         ),
-        const Divider(height: 1, indent: 60),
-        ListTile(
-          leading: const Icon(
-            Icons.delete_forever_outlined,
-            color: AppColors.danger,
-          ),
-          title: const Text(
-            'Delete account',
-            style: TextStyle(color: AppColors.danger),
-          ),
-          subtitle: const Text(
-            'Removes your account and profile data permanently',
-          ),
+        SettingsRow(
+          icon: Icons.delete_forever_outlined,
+          title: 'Delete account',
+          destructive: true,
           onTap: () => _confirmDeleteAccount(context, auth),
         ),
       ],
@@ -1030,58 +923,4 @@ Account: $email
     }
   }
 
-}
-
-// ─────────────────────────── Stateful toggle ────────────────────────────
-// Lives outside ProfileScreen because its state has to survive across
-// the parent rebuilds caused by AuthProvider / TextScaleProvider.
-
-class _SupportPromptToggle extends StatefulWidget {
-  const _SupportPromptToggle();
-
-  @override
-  State<_SupportPromptToggle> createState() => _SupportPromptToggleState();
-}
-
-class _SupportPromptToggleState extends State<_SupportPromptToggle> {
-  bool? _enabled;
-
-  @override
-  void initState() {
-    super.initState();
-    SupportPrompt.isEnabled().then((v) {
-      if (mounted) setState(() => _enabled = v);
-    });
-  }
-
-  Future<void> _toggle(bool v) async {
-    // Update UI optimistically so the switch animates immediately.
-    setState(() => _enabled = v);
-    try {
-      await SupportPrompt.setEnabled(v);
-    } catch (_) {
-      // Revert on failure
-      if (mounted) setState(() => _enabled = !v);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    context.watch<ThemeProvider>(); // rebuild on theme change
-    final enabled = _enabled ?? true;
-    return SwitchListTile(
-      secondary: const Icon(
-        Icons.local_cafe_outlined,
-        color: Color(0xFFE57F00),
-      ),
-      title: const Text('Daily support reminder'),
-      subtitle: Text(
-        enabled
-            ? 'Once a day, a friendly chai prompt'
-            : 'Off — you can still tap the chai icon any time',
-      ),
-      value: enabled,
-      onChanged: _toggle,
-    );
-  }
 }

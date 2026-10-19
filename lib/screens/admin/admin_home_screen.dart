@@ -12,7 +12,6 @@ import '../../services/supabase_service.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/app_utils.dart';
 import '../../utils/share_helper.dart';
-import '../../widgets/support_sheet.dart';
 import '../../widgets/theme_toggle_button.dart';
 import '../../widgets/large_title_app_bar.dart';
 import 'add_ward_screen.dart';
@@ -134,12 +133,6 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   icon: Icons.share_outlined,
                   tooltip: 'Share FolioMed',
                   onPressed: () => ShareHelper.shareApp(),
-                ),
-                ChromeIconButton(
-                  icon: Icons.local_cafe_outlined,
-                  tooltip: 'Support the developer',
-                  color: AppColors.warning,
-                  onPressed: () => showSupportSheet(context),
                 ),
               ],
             ),
