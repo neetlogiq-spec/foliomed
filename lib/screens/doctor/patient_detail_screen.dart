@@ -17,6 +17,9 @@ import '../../widgets/note_card.dart';
 import 'add_note_screen.dart';
 import '../../providers/theme_provider.dart';
 import '../../widgets/app_alert_dialog.dart';
+import '../../widgets/large_title_app_bar.dart';
+import '../../widgets/empty_state.dart';
+import '../../utils/layout.dart';
 
 class PatientDetailScreen extends StatefulWidget {
   final String patientId;
@@ -68,19 +71,27 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
     final patientProvider = context.watch<PatientProvider>();
     final patient = _resolvePatient(patientProvider);
 
+    if (patient == null) {
+      return Scaffold(
+        backgroundColor: AppColors.surface,
+        appBar: AppBar(title: const Text('Patient')),
+        body: const Center(child: CircularProgressIndicator.adaptive()),
+      );
+    }
     return Scaffold(
       backgroundColor: AppColors.surface,
-      appBar: AppBar(
-        title: Text(patient?.name ?? 'Patient'),
-      ),
-      body: patient == null
-          ? const Center(child: CircularProgressIndicator.adaptive())
-          : Column(
+      // The patient's name is the large title — the most important
+      // identifier on the screen — and folds into the bar on scroll.
+      body: NestedScrollView(
+        headerSliverBuilder: (context, _) => [
+          LargeTitleAppBar(title: patient.name, showBackButton: true),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            sliver: SliverList.list(
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-                  child: patient.hlsStreamUrl.isNotEmpty
-                      ? (kIsWeb
+                const GroupedSectionHeader('Camera'),
+                patient.hlsStreamUrl.isNotEmpty
+                    ? (kIsWeb
                           ? WebStreamCard(
                               patientName: patient.name,
                               hlsUrl: patient.hlsStreamUrl,
@@ -89,46 +100,52 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
                               patientName: patient.name,
                               hlsUrl: patient.hlsStreamUrl,
                             ))
-                      : _SetStreamUrlCard(onTap: () => _setStreamUrl(patient)),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: _infoCard(patient),
-                ),
-                TabBar(
-                  controller: _tabController,
-                  labelColor: AppColors.primary,
-                  unselectedLabelColor: AppColors.textSecondary,
-                  indicatorColor: AppColors.primary,
-                  labelStyle: appText(
-                    fontWeight: FontWeight.w600,
-                  ),
-                  tabs: const [
-                    Tab(text: 'Notes'),
-                    Tab(text: 'History'),
-                  ],
-                ),
-                Expanded(
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      _notesTab(patient),
-                      _historyTab(),
-                    ],
-                  ),
-                ),
+                    : _SetStreamUrlCard(onTap: () => _setStreamUrl(patient)),
+                const SizedBox(height: 24),
+                const GroupedSectionHeader('Patient info'),
+                _infoCard(patient),
+                const SizedBox(height: 16),
               ],
             ),
-      floatingActionButton: patient == null
-          ? null
-          : FloatingActionButton.extended(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              icon: const Icon(Icons.add),
-              label: const Text('Add Note'),
-              onPressed: () =>
-                  showAddNoteBottomSheet(context, preselectedPatient: patient),
+          ),
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _PinnedTabBar(
+              TabBar(
+                controller: _tabController,
+                labelColor: AppColors.isDark
+                    ? AppColors.darkPrimary
+                    : AppColors.primary,
+                unselectedLabelColor: AppColors.textSecondary,
+                indicatorColor: AppColors.isDark
+                    ? AppColors.darkPrimary
+                    : AppColors.primary,
+                indicatorSize: TabBarIndicatorSize.label,
+                dividerColor: AppColors.divider,
+                labelStyle: AppTypography.subheadline(weight: FontWeight.w600),
+                tabs: const [
+                  Tab(text: 'Notes'),
+                  Tab(text: 'History'),
+                ],
+              ),
             ),
+          ),
+        ],
+        body: TabBarView(
+          controller: _tabController,
+          children: [_notesTab(patient), _historyTab()],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: AppColors.isDark
+            ? AppColors.darkPrimary
+            : AppColors.primary,
+        foregroundColor: AppColors.onPrimary,
+        icon: const Icon(Icons.add),
+        label: const Text('Add Note'),
+        onPressed: () =>
+            showAddNoteBottomSheet(context, preselectedPatient: patient),
+      ),
     );
   }
 
@@ -203,10 +220,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
               const SizedBox(width: 6),
               Text(
                 'Admitted ${DateFormat.yMMMd().format(p.admittedAt)}',
-                style: appText(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                ),
+                style: appText(color: AppColors.textSecondary, fontSize: 12),
               ),
             ],
           ),
@@ -222,10 +236,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
         children: [
           Text(
             label,
-            style: appText(
-              color: AppColors.textSecondary,
-              fontSize: 11,
-            ),
+            style: appText(color: AppColors.textSecondary, fontSize: 11),
           ),
           const SizedBox(height: 2),
           Text(
@@ -246,15 +257,20 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
       builder: (context, provider, _) {
         final notes = provider.patientNotes;
         if (notes.isEmpty) {
-          return Center(
-            child: Text(
-              'No notes yet',
-              style: appText(color: AppColors.textSecondary),
-            ),
+          return EmptyState(
+            icon: Icons.notes_outlined,
+            title: 'No notes yet',
+            subtitle: 'Notes about ${patient.name} will appear here.',
+            buttonLabel: 'Add Note',
+            onButtonTap: () =>
+                showAddNoteBottomSheet(context, preselectedPatient: patient),
           );
         }
         return ListView.separated(
-          padding: const EdgeInsets.all(16),
+          padding: withBottomBarInset(
+            context,
+            const EdgeInsets.fromLTRB(16, 16, 16, 96),
+          ),
           itemCount: notes.length,
           separatorBuilder: (_, __) => const SizedBox(height: 10),
           itemBuilder: (_, i) => NoteCard(
@@ -262,13 +278,10 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
             onAcknowledge: () {
               final name =
                   context.read<AuthProvider>().currentUser?.name ?? 'Staff';
-              context
-                  .read<NoteProvider>()
-                  .acknowledgeNote(notes[i].id, name);
+              context.read<NoteProvider>().acknowledgeNote(notes[i].id, name);
             },
-            onUnacknowledge: () => context
-                .read<NoteProvider>()
-                .unacknowledgeNote(notes[i].id),
+            onUnacknowledge: () =>
+                context.read<NoteProvider>().unacknowledgeNote(notes[i].id),
           ),
         );
       },
@@ -280,15 +293,18 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
     final url = await showAdaptiveDialog<String>(
       context: context,
       builder: (_) => AppAlertDialog(
-        title: Text('Set Live Stream URL',
-            style: appText(fontWeight: FontWeight.w700)),
+        title: Text(
+          'Set Live Stream URL',
+          style: appText(fontWeight: FontWeight.w700),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Paste the HLS URL from your Cloudflare tunnel.',
-                style: appText(
-                    color: AppColors.textSecondary, fontSize: 12)),
+            Text(
+              'Paste the HLS URL from your Cloudflare tunnel.',
+              style: appText(color: AppColors.textSecondary, fontSize: 12),
+            ),
             const SizedBox(height: 12),
             TextField(
               controller: ctrl,
@@ -304,14 +320,13 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
         ),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel')),
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
             onPressed: () => Navigator.pop(context, ctrl.text.trim()),
-            child: const Text('Save',
-                style: TextStyle(color: Colors.white)),
+            child: const Text('Save', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -321,14 +336,15 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
     try {
       await PatientService().saveHlsUrl(patient.id, url);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Stream URL saved.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Stream URL saved.')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -348,11 +364,10 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
       builder: (context, provider, _) {
         final notes = provider.patientNotes;
         if (notes.isEmpty) {
-          return Center(
-            child: Text(
-              'No history yet',
-              style: appText(color: AppColors.textSecondary),
-            ),
+          return const EmptyState(
+            icon: Icons.history,
+            title: 'No history yet',
+            subtitle: 'A day-by-day timeline builds up as notes are added.',
           );
         }
         final grouped = <String, List<Note>>{};
@@ -361,7 +376,10 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
           grouped.putIfAbsent(key, () => []).add(n);
         }
         return ListView(
-          padding: const EdgeInsets.all(16),
+          padding: withBottomBarInset(
+            context,
+            const EdgeInsets.fromLTRB(16, 16, 16, 96),
+          ),
           children: [
             for (final entry in grouped.entries) ...[
               Padding(
@@ -411,30 +429,63 @@ class _SetStreamUrlCard extends StatelessWidget {
                 color: AppColors.primary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.videocam_outlined,
-                  color: AppColors.primary, size: 22),
+              child: const Icon(
+                Icons.videocam_outlined,
+                color: AppColors.primary,
+                size: 22,
+              ),
             ),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Set Live Stream URL',
-                      style: appText(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.textPrimary,
-                          fontSize: 14)),
-                  Text('Tap to connect a remote camera feed',
-                      style: appText(
-                          color: AppColors.textSecondary, fontSize: 12)),
+                  Text(
+                    'Set Live Stream URL',
+                    style: appText(
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                    ),
+                  ),
+                  Text(
+                    'Tap to connect a remote camera feed',
+                    style: appText(
+                      color: AppColors.textSecondary,
+                      fontSize: 12,
+                    ),
+                  ),
                 ],
               ),
             ),
-            Icon(Icons.arrow_forward_ios,
-                size: 14, color: AppColors.textSecondary),
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 14,
+              color: AppColors.textSecondary,
+            ),
           ],
         ),
       ),
     );
   }
+}
+
+/// Keeps the Notes / History tabs pinned under the collapsed title.
+class _PinnedTabBar extends SliverPersistentHeaderDelegate {
+  _PinnedTabBar(this.tabBar);
+
+  final TabBar tabBar;
+
+  @override
+  double get minExtent => tabBar.preferredSize.height;
+  @override
+  double get maxExtent => tabBar.preferredSize.height;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlaps) =>
+      ColoredBox(color: AppColors.surface, child: tabBar);
+
+  @override
+  bool shouldRebuild(covariant _PinnedTabBar oldDelegate) =>
+      oldDelegate.tabBar != tabBar;
 }

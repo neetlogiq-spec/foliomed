@@ -486,7 +486,7 @@ class WardsScreen extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadii.card),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -498,12 +498,15 @@ class WardsScreen extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFE6F1FB),
+                  color: AppColors.primary
+                      .withOpacity(AppColors.iconChipOpacity),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.add_box_outlined,
-                  color: AppColors.primary,
+                  color: AppColors.isDark
+                      ? AppColors.darkPrimary
+                      : AppColors.primary,
                   size: 26,
                 ),
               ),
@@ -517,11 +520,8 @@ class WardsScreen extends StatelessWidget {
                         Flexible(
                           child: Text(
                             w.name,
-                            style: appText(
+                            style: AppTypography.title3(
                               color: AppColors.textPrimary,
-                              fontSize: 19,
-                              fontWeight: FontWeight.bold,
-                              height: 1.2,
                             ),
                           ),
                         ),
@@ -533,16 +533,14 @@ class WardsScreen extends StatelessWidget {
                               vertical: 3,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.accent.withOpacity(0.15),
+                              color: AppColors.quaternaryFill,
                               borderRadius: BorderRadius.circular(7),
                             ),
                             child: Text(
-                              'OWNED BY YOU',
-                              style: appText(
-                                color: AppColors.accent,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.6,
+                              'Owner',
+                              style: AppTypography.caption2(
+                                color: AppColors.textPrimary,
+                                weight: FontWeight.w600,
                               ),
                             ),
                           ),
@@ -588,6 +586,8 @@ class WardsScreen extends StatelessWidget {
                   ],
                 ),
               ),
+              // Trailing accessory, as iOS list rows show counts.
+              _MemberCount(wardId: w.id),
             ],
           ),
           const SizedBox(height: 12),
@@ -615,14 +615,17 @@ class WardsScreen extends StatelessWidget {
               child: Row(
                 children: [
                   Expanded(
+                    // Monospaced, tabular digits: a 5-digit code is read
+                    // aloud and typed — every digit must be unambiguous.
                     child: SelectableText(
                       w.id,
-                      style: appText(
+                      semanticsLabel: 'Ward code ${w.id.split('').join(' ')}',
+                      style: appMonoText(
                         color: AppColors.textPrimary,
-                        fontSize: 14,
+                        fontSize: 17,
                         fontWeight: FontWeight.w600,
-                        letterSpacing: 1,
-                      ),
+                        letterSpacing: 2,
+                      ).copyWith(fontFeatures: AppTypography.tabular),
                     ),
                   ),
                   Icon(
@@ -821,6 +824,49 @@ class WardsScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Member count for a ward, fetched once per row (not on every rebuild).
+class _MemberCount extends StatefulWidget {
+  const _MemberCount({required this.wardId});
+
+  final String wardId;
+
+  @override
+  State<_MemberCount> createState() => _MemberCountState();
+}
+
+class _MemberCountState extends State<_MemberCount> {
+  late final Future<int> _count = WardService().memberCount(widget.wardId);
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<int>(
+      future: _count,
+      builder: (context, snap) {
+        final count = snap.data;
+        if (count == null) return const SizedBox.shrink();
+        return Semantics(
+          label: '$count ${count == 1 ? 'member' : 'members'}',
+          excludeSemantics: true,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.people_outline,
+                  size: 16, color: AppColors.textSecondary),
+              const SizedBox(width: 4),
+              Text(
+                '$count',
+                style: AppTypography.subheadline(
+                  color: AppColors.textSecondary,
+                ).copyWith(fontFeatures: AppTypography.tabular),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

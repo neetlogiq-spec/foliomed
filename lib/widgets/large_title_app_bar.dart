@@ -31,18 +31,21 @@ class LargeTitleAppBar extends StatelessWidget {
     required this.title,
     this.eyebrow,
     this.actions = const [],
+    this.showBackButton = false,
   });
 
   final String title;
   final String? eyebrow;
   final List<Widget> actions;
 
+  /// Pushed screens (e.g. patient detail) show the system back button.
+  final bool showBackButton;
+
   static const double _toolbarHeight = 52;
 
   @override
   Widget build(BuildContext context) {
-    final textScale =
-        MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 2.0);
+    final textScale = MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 2.0);
     final expandedExtra = (eyebrow == null ? 44.0 : 64.0) * textScale + 14;
     return ValueListenableBuilder<bool>(
       valueListenable: AccessibilitySettings.reduceTransparency,
@@ -57,14 +60,17 @@ class LargeTitleAppBar extends StatelessWidget {
           surfaceTintColor: Colors.transparent,
           elevation: 0,
           scrolledUnderElevation: 0,
-          automaticallyImplyLeading: false,
+          automaticallyImplyLeading: showBackButton,
           actions: [...actions, const SizedBox(width: 8)],
           flexibleSpace: LayoutBuilder(
             builder: (context, constraints) {
               final top = MediaQuery.paddingOf(context).top;
               final minH = _toolbarHeight + top;
               final range = expandedExtra;
-              final t = ((constraints.maxHeight - minH) / range).clamp(0.0, 1.0);
+              final t = ((constraints.maxHeight - minH) / range).clamp(
+                0.0,
+                1.0,
+              );
               // Chrome + small title appear as the large title leaves.
               final chromeOpacity = (1 - t / 0.25).clamp(0.0, 1.0);
               final smallTitleOpacity = (1 - t / 0.35).clamp(0.0, 1.0);
@@ -191,8 +197,8 @@ class ChromeIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tint = color ??
-        (AppColors.isDark ? AppColors.darkPrimary : AppColors.primary);
+    final tint =
+        color ?? (AppColors.isDark ? AppColors.darkPrimary : AppColors.primary);
     return Semantics(
       button: true,
       label: badgeCount > 0 ? '$tooltip, $badgeCount new' : tooltip,
@@ -337,5 +343,34 @@ Widget staggeredEntrance(
   return child
       .animate(delay: (40 * index).ms)
       .fadeIn(duration: 200.ms, curve: Curves.easeOutCubic)
-      .slideY(begin: 0.03, end: 0, duration: 200.ms, curve: Curves.easeOutCubic);
+      .slideY(
+        begin: 0.03,
+        end: 0,
+        duration: 200.ms,
+        curve: Curves.easeOutCubic,
+      );
+}
+
+/// iOS grouped-table section header: footnote size, uppercase, secondary
+/// label colour, aligned with the content inset.
+class GroupedSectionHeader extends StatelessWidget {
+  const GroupedSectionHeader(this.title, {super.key});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 0, 4, 6),
+      child: Semantics(
+        header: true,
+        child: Text(
+          title.toUpperCase(),
+          style: AppTypography.footnote(
+            color: AppColors.textSecondary,
+          ).copyWith(letterSpacing: 0.4),
+        ),
+      ),
+    );
+  }
 }

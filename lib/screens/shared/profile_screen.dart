@@ -29,6 +29,7 @@ import '../monitor/foliomed_edge_screen.dart';
 import '../../widgets/app_sheet.dart';
 import '../../utils/layout.dart';
 import '../../widgets/app_alert_dialog.dart';
+import '../../widgets/large_title_app_bar.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -39,72 +40,72 @@ class ProfileScreen extends StatelessWidget {
     final auth = context.watch<AuthProvider>();
     final user = auth.currentUser;
 
+    if (user == null) {
+      return Scaffold(
+        backgroundColor: AppColors.surface,
+        appBar: AppBar(title: const Text('Profile')),
+        body: const Center(child: CircularProgressIndicator.adaptive()),
+      );
+    }
+    // iOS Settings pattern: large title + grouped sections.
     return Scaffold(
       backgroundColor: AppColors.surface,
-      appBar: AppBar(title: const Text('Profile')),
-      body: user == null
-          ? const Center(child: CircularProgressIndicator.adaptive())
-          : SingleChildScrollView(
-              padding: withBottomBarInset(context, const EdgeInsets.all(16)),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _headerCard(context, user, auth),
-                  const SizedBox(height: 20),
-                  _sectionLabel('Account'),
-                  const SizedBox(height: 8),
-                  _accountCard(context, auth),
-                  const SizedBox(height: 20),
-                  _sectionLabel('Preferences'),
-                  const SizedBox(height: 8),
-                  _preferencesCard(context),
-                  if (!kIsWeb && (defaultTargetPlatform == TargetPlatform.macOS ||
-                      defaultTargetPlatform == TargetPlatform.windows ||
-                      defaultTargetPlatform == TargetPlatform.linux)) ...[
-                    const SizedBox(height: 20),
-                    _sectionLabel('FolioMed Edge'),
-                    const SizedBox(height: 8),
-                    _edgeCard(context),
-                  ],
-                  const SizedBox(height: 20),
-                  _sectionLabel('About'),
-                  const SizedBox(height: 8),
-                  _aboutCard(context),
-                  const SizedBox(height: 20),
-                  _sectionLabel('Feedback & support'),
-                  const SizedBox(height: 8),
-                  _feedbackCard(context),
-                  const SizedBox(height: 20),
-                  _sectionLabel('Danger zone'),
-                  const SizedBox(height: 8),
-                  _dangerCard(context, auth),
-                ],
-              ),
+      body: CustomScrollView(
+        slivers: [
+          const LargeTitleAppBar(title: 'Profile'),
+          SliverPadding(
+            padding: withBottomBarInset(
+              context,
+              const EdgeInsets.fromLTRB(16, 8, 16, 16),
             ),
-    );
-  }
+            sliver: SliverList.list(
+              children: [
+                _headerCard(context, user, auth),
+                const SizedBox(height: 20),
+                _sectionLabel('Account'),
 
-  Widget _sectionLabel(String text) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: Text(
-        text.toUpperCase(),
-        style: appText(
-          color: AppColors.textSecondary,
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 1.2,
-        ),
+                _accountCard(context, auth),
+                const SizedBox(height: 20),
+                _sectionLabel('Preferences'),
+
+                _preferencesCard(context),
+                if (!kIsWeb &&
+                    (defaultTargetPlatform == TargetPlatform.macOS ||
+                        defaultTargetPlatform == TargetPlatform.windows ||
+                        defaultTargetPlatform == TargetPlatform.linux)) ...[
+                  const SizedBox(height: 20),
+                  _sectionLabel('FolioMed Edge'),
+                  const SizedBox(height: 8),
+                  _edgeCard(context),
+                ],
+                const SizedBox(height: 20),
+                _sectionLabel('About'),
+
+                _aboutCard(context),
+                const SizedBox(height: 20),
+                _sectionLabel('Feedback & support'),
+
+                _feedbackCard(context),
+                const SizedBox(height: 20),
+                _sectionLabel('Danger zone'),
+
+                _dangerCard(context, auth),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
+
+  Widget _sectionLabel(String text) => GroupedSectionHeader(text);
 
   Widget _headerCard(BuildContext context, AppUser user, AuthProvider auth) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadii.card),
       ),
       child: Column(
         children: [
@@ -115,8 +116,8 @@ class ProfileScreen extends StatelessWidget {
                 child: CircleAvatar(
                   radius: 40,
                   backgroundColor: user.roleColor.withOpacity(0.15),
-                  child: user.avatarEmoji != null &&
-                          user.avatarEmoji!.isNotEmpty
+                  child:
+                      user.avatarEmoji != null && user.avatarEmoji!.isNotEmpty
                       ? Text(
                           user.avatarEmoji!,
                           style: const TextStyle(fontSize: 40),
@@ -183,10 +184,7 @@ class ProfileScreen extends StatelessWidget {
                 child: Text(
                   user.email,
                   overflow: TextOverflow.ellipsis,
-                  style: appText(
-                    color: AppColors.textSecondary,
-                    fontSize: 13,
-                  ),
+                  style: appText(color: AppColors.textSecondary, fontSize: 13),
                 ),
               ),
             ],
@@ -197,11 +195,41 @@ class ProfileScreen extends StatelessWidget {
   }
 
   static const List<String> _emojiOptions = [
-    '👨‍⚕️', '👩‍⚕️', '🧑‍⚕️', '🩺', '💉', '🧬', '🧪',
-    '❤️', '🩷', '💙', '💚', '🔥', '⭐', '✨',
-    '😀', '😎', '🤓', '🧐', '🤗', '🙂', '😇',
-    '🐱', '🐶', '🦊', '🐼', '🦁', '🐯', '🐻',
-    '🚀', '⚡', '🎯', '🏆', '🌟', '🌈', '☕',
+    '👨‍⚕️',
+    '👩‍⚕️',
+    '🧑‍⚕️',
+    '🩺',
+    '💉',
+    '🧬',
+    '🧪',
+    '❤️',
+    '🩷',
+    '💙',
+    '💚',
+    '🔥',
+    '⭐',
+    '✨',
+    '😀',
+    '😎',
+    '🤓',
+    '🧐',
+    '🤗',
+    '🙂',
+    '😇',
+    '🐱',
+    '🐶',
+    '🦊',
+    '🐼',
+    '🦁',
+    '🐯',
+    '🐻',
+    '🚀',
+    '⚡',
+    '🎯',
+    '🏆',
+    '🌟',
+    '🌈',
+    '☕',
   ];
 
   void _showEmojiPicker(BuildContext context, AuthProvider auth) {
@@ -242,10 +270,7 @@ class ProfileScreen extends StatelessWidget {
                     },
                     borderRadius: BorderRadius.circular(8),
                     child: Center(
-                      child: Text(
-                        e,
-                        style: const TextStyle(fontSize: 28),
-                      ),
+                      child: Text(e, style: const TextStyle(fontSize: 28)),
                     ),
                   ),
               ],
@@ -255,9 +280,7 @@ class ProfileScreen extends StatelessWidget {
               child: TextButton(
                 onPressed: () {
                   Navigator.pop(context);
-                  Future.microtask(
-                    () => auth.updateProfile(avatarEmoji: ''),
-                  );
+                  Future.microtask(() => auth.updateProfile(avatarEmoji: ''));
                 },
                 child: const Text('Remove emoji · use initials'),
               ),
@@ -272,12 +295,15 @@ class ProfileScreen extends StatelessWidget {
     final tiles = <Widget>[];
     for (var i = 0; i < children.length; i++) {
       tiles.add(children[i]);
-      if (i < children.length - 1) tiles.add(const Divider(height: 1));
+      // Inset hairline between rows, as in iOS grouped tables.
+      if (i < children.length - 1) {
+        tiles.add(const Divider(height: 0.5, thickness: 0.5, indent: 16));
+      }
     }
     return Container(
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadii.card),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(children: tiles),
@@ -324,14 +350,10 @@ class ProfileScreen extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.notifications_active_outlined),
             title: const Text('Notification setup'),
-            subtitle: const Text(
-              'Re-run the background reliability wizard',
-            ),
+            subtitle: const Text('Re-run the background reliability wizard'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => const BackgroundSetupScreen(),
-              ),
+              MaterialPageRoute(builder: (_) => const BackgroundSetupScreen()),
             ),
           ),
         ],
@@ -352,13 +374,11 @@ class ProfileScreen extends StatelessWidget {
         ListTile(
           leading: const Icon(Icons.quiz_outlined),
           title: const Text('Help & FAQs'),
-          subtitle: const Text(
-            'Quick answers to the most common questions',
-          ),
+          subtitle: const Text('Quick answers to the most common questions'),
           trailing: const Icon(Icons.chevron_right),
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const HelpScreen()),
-          ),
+          onTap: () => Navigator.of(
+            context,
+          ).push(MaterialPageRoute(builder: (_) => const HelpScreen())),
         ),
       ],
     );
@@ -370,9 +390,7 @@ class ProfileScreen extends StatelessWidget {
     return _cardWrapper(
       children: [
         SwitchListTile(
-          secondary: Icon(
-            tp.isDark ? Icons.dark_mode : Icons.light_mode,
-          ),
+          secondary: Icon(tp.isDark ? Icons.dark_mode : Icons.light_mode),
           title: const Text('Dark mode'),
           subtitle: Text(tp.isDark ? 'On' : 'Off'),
           value: tp.isDark,
@@ -383,10 +401,7 @@ class ProfileScreen extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
           child: Row(
             children: [
-              Icon(
-                Icons.format_size,
-                color: AppColors.textSecondary,
-              ),
+              Icon(Icons.format_size, color: AppColors.textSecondary),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -394,9 +409,7 @@ class ProfileScreen extends StatelessWidget {
                   children: [
                     const Text(
                       'Text size',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                     Text(
                       '${(ts.scale * 100).round()}% of default',
@@ -426,10 +439,11 @@ class ProfileScreen extends StatelessWidget {
                   value: ts.scale,
                   min: TextScaleProvider.minScale,
                   max: TextScaleProvider.maxScale,
-                  divisions: ((TextScaleProvider.maxScale -
-                              TextScaleProvider.minScale) /
-                          TextScaleProvider.step)
-                      .round(),
+                  divisions:
+                      ((TextScaleProvider.maxScale -
+                                  TextScaleProvider.minScale) /
+                              TextScaleProvider.step)
+                          .round(),
                   label: '${(ts.scale * 100).round()}%',
                   onChanged: ts.setScale,
                 ),
@@ -453,86 +467,109 @@ class ProfileScreen extends StatelessWidget {
   }
 
   Widget _edgeCard(BuildContext context) {
-    return _cardWrapper(children: [
-      ListTile(
-        leading: const Icon(Icons.settings_input_antenna, color: AppColors.primary),
-        title: Text('Manage Cameras',
-            style: appText(fontWeight: FontWeight.w600)),
-        subtitle: Text('View, edit, or add CCTV cameras',
-            style: appText(fontSize: 12, color: AppColors.textSecondary)),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 14),
-        onTap: () => Navigator.push(context,
-            MaterialPageRoute(builder: (_) => const FolioMedEdgeScreen())),
-      ),
-      const Divider(height: 1, indent: 56),
-      ListTile(
-        leading: const Icon(Icons.add_a_photo_outlined, color: AppColors.primary),
-        title: Text('Set Up a New Camera',
-            style: appText(fontWeight: FontWeight.w600)),
-        subtitle: Text('Step-by-step connection wizard',
-            style: appText(fontSize: 12, color: AppColors.textSecondary)),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 14),
-        onTap: () => Navigator.push(context,
-            MaterialPageRoute(builder: (_) => const EdgeSetupScreen())),
-      ),
-      const Divider(height: 1, indent: 56),
-      ListTile(
-        leading: const Icon(Icons.info_outline, color: AppColors.primary),
-        title: Text('What is FolioMed Edge?',
-            style: appText(fontWeight: FontWeight.w600)),
-        subtitle: Text(
+    return _cardWrapper(
+      children: [
+        ListTile(
+          leading: const Icon(
+            Icons.settings_input_antenna,
+            color: AppColors.primary,
+          ),
+          title: Text(
+            'Manage Cameras',
+            style: appText(fontWeight: FontWeight.w600),
+          ),
+          subtitle: Text(
+            'View, edit, or add CCTV cameras',
+            style: appText(fontSize: 12, color: AppColors.textSecondary),
+          ),
+          trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const FolioMedEdgeScreen()),
+          ),
+        ),
+        const Divider(height: 1, indent: 56),
+        ListTile(
+          leading: const Icon(
+            Icons.add_a_photo_outlined,
+            color: AppColors.primary,
+          ),
+          title: Text(
+            'Set Up a New Camera',
+            style: appText(fontWeight: FontWeight.w600),
+          ),
+          subtitle: Text(
+            'Step-by-step connection wizard',
+            style: appText(fontSize: 12, color: AppColors.textSecondary),
+          ),
+          trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const EdgeSetupScreen()),
+          ),
+        ),
+        const Divider(height: 1, indent: 56),
+        ListTile(
+          leading: const Icon(Icons.info_outline, color: AppColors.primary),
+          title: Text(
+            'What is FolioMed Edge?',
+            style: appText(fontWeight: FontWeight.w600),
+          ),
+          subtitle: Text(
             'Connects CCTV cameras → auto-reads vitals → no manual charting',
-            style: appText(fontSize: 12, color: AppColors.textSecondary)),
-      ),
-    ]);
+            style: appText(fontSize: 12, color: AppColors.textSecondary),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _aboutCard(BuildContext context) {
     final authUser = supabase.auth.currentUser;
     final lastSignIn = parseTimestampOrNull(authUser?.lastSignInAt);
     final created = parseTimestampOrNull(authUser?.createdAt);
-    return _cardWrapper(children: [
-      FutureBuilder<PackageInfo>(
-        future: PackageInfo.fromPlatform(),
-        builder: (context, snap) {
-          final v = snap.hasData
-              ? '${snap.data!.version} · build ${snap.data!.buildNumber}'
-              : '—';
-          return ListTile(
-            leading: const Icon(Icons.tag),
-            title: const Text('App version'),
-            subtitle: Text(v),
-          );
-        },
-      ),
-      const Divider(height: 1, indent: 60),
-      ListTile(
-        leading: const Icon(Icons.login_outlined),
-        title: const Text('Last sign-in'),
-        subtitle: Text(
-          lastSignIn == null
-              ? 'unknown'
-              : DateFormat('d MMM y · HH:mm').format(lastSignIn),
+    return _cardWrapper(
+      children: [
+        FutureBuilder<PackageInfo>(
+          future: PackageInfo.fromPlatform(),
+          builder: (context, snap) {
+            final v = snap.hasData
+                ? '${snap.data!.version} · build ${snap.data!.buildNumber}'
+                : '—';
+            return ListTile(
+              leading: const Icon(Icons.tag),
+              title: const Text('App version'),
+              subtitle: Text(v),
+            );
+          },
         ),
-      ),
-      const Divider(height: 1, indent: 60),
-      ListTile(
-        leading: const Icon(Icons.calendar_today_outlined),
-        title: const Text('Account created'),
-        subtitle: Text(
-          created == null
-              ? 'unknown'
-              : DateFormat('d MMM y').format(created),
+        const Divider(height: 1, indent: 60),
+        ListTile(
+          leading: const Icon(Icons.login_outlined),
+          title: const Text('Last sign-in'),
+          subtitle: Text(
+            lastSignIn == null
+                ? 'unknown'
+                : DateFormat('d MMM y · HH:mm').format(lastSignIn),
+          ),
         ),
-      ),
-      const Divider(height: 1, indent: 60),
-      ListTile(
-        leading: const Icon(Icons.person_pin_circle_outlined),
-        title: const Text('About the maker'),
-        trailing: const Icon(Icons.open_in_new, size: 18),
-        onTap: () => _openExternal(context, 'https://www.foliomed.app/'),
-      ),
-    ]);
+        const Divider(height: 1, indent: 60),
+        ListTile(
+          leading: const Icon(Icons.calendar_today_outlined),
+          title: const Text('Account created'),
+          subtitle: Text(
+            created == null ? 'unknown' : DateFormat('d MMM y').format(created),
+          ),
+        ),
+        const Divider(height: 1, indent: 60),
+        ListTile(
+          leading: const Icon(Icons.person_pin_circle_outlined),
+          title: const Text('About the maker'),
+          trailing: const Icon(Icons.open_in_new, size: 18),
+          onTap: () => _openExternal(context, 'https://www.foliomed.app/'),
+        ),
+      ],
+    );
   }
 
   /// Opens an external URL in the user's default browser. Falls back to
@@ -541,9 +578,9 @@ class ProfileScreen extends StatelessWidget {
     final uri = Uri.parse(url);
     final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!ok && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Couldn't open $url")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Couldn't open $url")));
     }
   }
 
@@ -577,9 +614,7 @@ class ProfileScreen extends StatelessWidget {
         ListTile(
           leading: const Icon(Icons.chat_bubble_outline),
           title: const Text('Give feedback'),
-          subtitle: const Text(
-            'What works, what doesn\'t, what feels awkward',
-          ),
+          subtitle: const Text('What works, what doesn\'t, what feels awkward'),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => _emailDeveloper(
             context,
@@ -630,10 +665,7 @@ class ProfileScreen extends StatelessWidget {
     final uri = Uri(
       scheme: 'mailto',
       path: _supportEmail,
-      query: _encodeQueryParameters({
-        'subject': subject,
-        'body': body,
-      }),
+      query: _encodeQueryParameters({'subject': subject, 'body': body}),
     );
     final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!ok && context.mounted) {
@@ -651,7 +683,8 @@ class ProfileScreen extends StatelessWidget {
     } catch (_) {}
     final auth = context.read<AuthProvider>();
     final email = auth.currentUser?.email ?? '(not signed in)';
-    final body = '''
+    final body =
+        '''
 What happened:
 
 
@@ -723,23 +756,21 @@ Account: $email
       // it, paste it here as `_iosAppStoreId`. Until then, the search
       // URL works as a fallback.
       attempts = [
-        Uri.parse(
-          'https://apps.apple.com/app/id$_iosAppStoreId',
-        ),
+        Uri.parse('https://apps.apple.com/app/id$_iosAppStoreId'),
         Uri.parse('https://apps.apple.com/search?term=foliomed'),
       ];
     } else {
       attempts = [
         Uri.parse('market://details?id=$_androidPackage'),
         Uri.parse(
-            'https://play.google.com/store/apps/details?id=$_androidPackage'),
+          'https://play.google.com/store/apps/details?id=$_androidPackage',
+        ),
       ];
     }
     bool launched = false;
     for (final uri in attempts) {
       try {
-        launched = await launchUrl(uri,
-            mode: LaunchMode.externalApplication);
+        launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
         if (launched) break;
       } catch (_) {}
     }
@@ -781,8 +812,10 @@ Account: $email
   /// decode back into spaces.
   String? _encodeQueryParameters(Map<String, String> params) {
     return params.entries
-        .map((e) =>
-            '${Uri.encodeQueryComponent(e.key)}=${Uri.encodeQueryComponent(e.value)}')
+        .map(
+          (e) =>
+              '${Uri.encodeQueryComponent(e.key)}=${Uri.encodeQueryComponent(e.value)}',
+        )
         .join('&');
   }
 
@@ -843,9 +876,9 @@ Account: $email
     final wardWarning = ownedWardNames.isEmpty
         ? ''
         : '\n⚠️ You are the creator of ${ownedWardNames.length} ward${ownedWardNames.length > 1 ? 's' : ''}. '
-          'Deleting your account will permanently delete ${ownedWardNames.length > 1 ? 'them' : 'it'} and '
-          'ALL their patients, notes and replies — even for other team members still using them:\n'
-          '${ownedWardNames.map((n) => '  • $n').join('\n')}\n';
+              'Deleting your account will permanently delete ${ownedWardNames.length > 1 ? 'them' : 'it'} and '
+              'ALL their patients, notes and replies — even for other team members still using them:\n'
+              '${ownedWardNames.map((n) => '  • $n').join('\n')}\n';
 
     final typed = await showAdaptiveDialog<String>(
       context: context,
@@ -904,34 +937,26 @@ Account: $email
   /// Deletes the account via the `delete_my_account` Postgres function,
   /// which cascades to owned wards (patients, notes, replies) and removes
   /// the user from every ward they joined.
-  Future<void> _doDeleteAccount(
-    BuildContext context,
-    AuthProvider auth,
-  ) async {
+  Future<void> _doDeleteAccount(BuildContext context, AuthProvider auth) async {
     try {
       await AuthService().deleteAccount();
       await auth.signOut();
       if (context.mounted) {
-        Navigator.of(context)
-            .pushNamedAndRemoveUntil('/login', (_) => false);
+        Navigator.of(context).pushNamedAndRemoveUntil('/login', (_) => false);
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: AppColors.danger,
-            content: Text(
-                'Could not delete account — ${friendlyError(e)}'),
+            content: Text('Could not delete account — ${friendlyError(e)}'),
           ),
         );
       }
     }
   }
 
-  Future<void> _confirmSignOut(
-    BuildContext context,
-    AuthProvider auth,
-  ) async {
+  Future<void> _confirmSignOut(BuildContext context, AuthProvider auth) async {
     final confirm = await showAdaptiveDialog<bool>(
       context: context,
       builder: (_) => AppAlertDialog(
@@ -943,9 +968,7 @@ Account: $email
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.danger,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger),
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Sign out'),
           ),
@@ -955,19 +978,16 @@ Account: $email
     if (confirm == true) {
       await auth.signOut();
       if (context.mounted) {
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          '/login',
-          (_) => false,
-        );
+        Navigator.of(context).pushNamedAndRemoveUntil('/login', (_) => false);
       }
     }
   }
 
   void _showEditProfile(BuildContext context, AuthProvider auth) {
-    final nameController =
-        TextEditingController(text: auth.currentUser?.name);
-    final specialtyController =
-        TextEditingController(text: auth.currentUser?.specialty ?? '');
+    final nameController = TextEditingController(text: auth.currentUser?.name);
+    final specialtyController = TextEditingController(
+      text: auth.currentUser?.specialty ?? '',
+    );
     showAppSheet(
       context: context,
       isScrollControlled: true,
@@ -980,9 +1000,7 @@ Account: $email
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: AppColors.card,
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(24),
-            ),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -1017,10 +1035,12 @@ Account: $email
                   final newName = nameController.text.trim();
                   final newSpecialty = specialtyController.text.trim();
                   Navigator.pop(context);
-                  Future.microtask(() => auth.updateProfile(
-                        name: newName,
-                        specialty: newSpecialty,
-                      ));
+                  Future.microtask(
+                    () => auth.updateProfile(
+                      name: newName,
+                      specialty: newSpecialty,
+                    ),
+                  );
                 },
                 child: const Text('Save changes'),
               ),
@@ -1045,8 +1065,7 @@ Account: $email
             TextField(
               controller: currentController,
               obscureText: true,
-              decoration:
-                  const InputDecoration(labelText: 'Current password'),
+              decoration: const InputDecoration(labelText: 'Current password'),
             ),
             const SizedBox(height: 10),
             TextField(
@@ -1108,7 +1127,6 @@ Account: $email
   }
 }
 
-
 // ─────────────────────────── Stateful toggle ────────────────────────────
 // Lives outside ProfileScreen because its state has to survive across
 // the parent rebuilds caused by AuthProvider / TextScaleProvider.
@@ -1162,4 +1180,3 @@ class _SupportPromptToggleState extends State<_SupportPromptToggle> {
     );
   }
 }
-

@@ -122,46 +122,55 @@ class _NoteCardState extends State<NoteCard> {
                           ),
                         ),
                         const SizedBox(width: 6),
-                        Text(
-                          n.priority,
-                          style: appText(
-                            color: pColor,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
+                        // Rows shrink and truncate instead of overflowing
+                        // at large Dynamic Type sizes.
+                        Expanded(
+                          child: Text(
+                            n.priority,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.caption1(
+                              color: pColor,
+                              weight: FontWeight.w600,
+                            ),
                           ),
                         ),
-                        const Spacer(),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: pColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(n.categoryIcon, size: 14, color: pColor),
-                              const SizedBox(width: 4),
-                              Text(
-                                n.category,
-                                style: appText(
-                                  color: pColor,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: pColor.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(n.categoryIcon, size: 14, color: pColor),
+                                const SizedBox(width: 4),
+                                Flexible(
+                                  child: Text(
+                                    n.category,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: AppTypography.caption2(
+                                      color: AppColors.textPrimary,
+                                      weight: FontWeight.w600,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Text(
                           timeago.format(n.createdAt, locale: 'en_short'),
-                          style: appText(
+                          style: AppTypography.caption2(
                             color: AppColors.textSecondary,
-                            fontSize: 11,
                           ),
                         ),
                         if (widget.onDelete != null)
@@ -197,19 +206,25 @@ class _NoteCardState extends State<NoteCard> {
                           acknowledged: acknowledged,
                         ),
                         const SizedBox(width: 8),
-                        Text(
-                          'Note by ',
-                          style: appText(
-                            color: AppColors.textSecondary,
-                            fontSize: 12,
-                          ),
-                        ),
-                        Text(
-                          n.authorName,
-                          style: appText(
-                            color: AppColors.textPrimary,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
+                        Flexible(
+                          child: Text.rich(
+                            TextSpan(
+                              text: 'Note by ',
+                              style: AppTypography.caption1(
+                                color: AppColors.textSecondary,
+                              ),
+                              children: [
+                                TextSpan(
+                                  text: n.authorName,
+                                  style: AppTypography.footnote(
+                                    color: AppColors.textPrimary,
+                                    weight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         const SizedBox(width: 6),
@@ -219,15 +234,14 @@ class _NoteCardState extends State<NoteCard> {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: rColor.withOpacity(0.1),
+                            color: rColor.withOpacity(0.12),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
                             n.authorRole,
-                            style: appText(
-                              color: rColor,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
+                            style: AppTypography.caption2(
+                              color: AppColors.textPrimary,
+                              weight: FontWeight.w600,
                             ),
                           ),
                         ),
@@ -242,11 +256,14 @@ class _NoteCardState extends State<NoteCard> {
                           color: AppColors.textSecondary,
                         ),
                         const SizedBox(width: 4),
-                        Text(
-                          'for ${n.patientName}',
-                          style: appText(
-                            color: AppColors.textSecondary,
-                            fontSize: 12,
+                        Expanded(
+                          child: Text(
+                            'for ${n.patientName}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTypography.caption1(
+                              color: AppColors.textSecondary,
+                            ),
                           ),
                         ),
                       ],
