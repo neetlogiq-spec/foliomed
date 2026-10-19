@@ -69,4 +69,18 @@ void main() {
     expect(find.byType(AlertDialog), findsOneWidget);
     expect(find.byType(CupertinoAlertDialog), findsNothing);
   });
+
+  testWidgets('Material: destructive is red text, not a red fill',
+      (tester) async {
+    AppAlertDialog.useCupertino = () => false;
+    await tester.pumpWidget(
+        MaterialApp(home: Scaffold(body: _dialog(onDelete: () {}))));
+    final delete = tester.widget<ButtonStyleButton>(find.ancestor(
+        of: find.text('Delete'), matching: find.byWidgetPredicate((w) => w is ButtonStyleButton)));
+    expect(delete, isA<TextButton>());
+    expect(delete.style!.foregroundColor!.resolve({}), AppColors.danger);
+    final save = find.ancestor(
+        of: find.text('Save'), matching: find.byType(ElevatedButton));
+    expect(save, findsOneWidget, reason: 'non-destructive filled stays filled');
+  });
 }

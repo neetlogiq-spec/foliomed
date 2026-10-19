@@ -25,41 +25,30 @@ class EmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     context.watch<ThemeProvider>(); // rebuild on theme change
 
+    // Apple's first-party empty state: a large muted symbol, a short
+    // explanation and — when there is an obvious next step — one button.
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.08),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: AppColors.primary, size: 36),
+            ExcludeSemantics(
+              child: Icon(icon, size: 44, color: AppColors.tertiaryLabel),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Text(
               title,
               textAlign: TextAlign.center,
-              style: appText(
-                color: AppColors.textPrimary,
-                fontSize: 17,
-                fontWeight: FontWeight.bold,
-              ),
+              style: AppTypography.title3(color: AppColors.textPrimary),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
               subtitle,
               textAlign: TextAlign.center,
-              style: appText(
-                color: AppColors.textSecondary,
-                fontSize: 13,
-              ),
+              style: AppTypography.subheadline(color: AppColors.textSecondary),
             ),
-            if (buttonLabel != null) ...[
+            if (buttonLabel != null && onButtonTap != null) ...[
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: onButtonTap,

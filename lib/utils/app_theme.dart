@@ -10,8 +10,8 @@ class AppColors {
   static bool isDark = false;
 
   // ── Brand + system tints ────────────────────────────────────────────
-  static const Color primary = Color(0xFF0A5C8A);
-  static const Color darkPrimary = Color(0xFF4FA3D1);
+  static const Color primary = Color(0xFF0F6D99);
+  static const Color darkPrimary = Color(0xFF5AADDB);
   static const Color accent = Color(0xFF00C7BE); // systemMint
   static const Color secondary = accent;
   static const Color danger = Color(0xFFFF3B30); // systemRed
@@ -35,7 +35,7 @@ class AppColors {
   static const Color lightSurface = Color(0xFFF2F2F7);
   static const Color lightCard = Color(0xFFFFFFFF);
   static const Color lightTextPrimary = Color(0xFF1C1C1E);
-  static const Color lightTextSecondary = Color(0xFF6C6C70);
+  static const Color lightTextSecondary = Color(0xFF636366); // secondaryLabel
   static const Color lightDivider = Color(0xFFD1D1D6);
 
   // ── Dark: true black base, elevated greys ───────────────────────────
@@ -45,7 +45,7 @@ class AppColors {
   static const Color darkAppBar = Color(0xFF000000);
   static const Color darkDivider = Color(0xFF38383A);
   static const Color darkTextPrimary = Color(0xFFFFFFFF);
-  static const Color darkTextSecondary = Color(0xFF98989F);
+  static const Color darkTextSecondary = Color(0xFF8E8E93); // secondaryLabel
 
   /// Grouped content relies on background contrast, not heavy shadows.
   static List<BoxShadow> get cardShadow => isDark
@@ -72,6 +72,19 @@ class AppColors {
   static Color get criticalBackground => isDark ? darkCriticalBg : criticalBg;
   static Color get warningBackground => isDark ? darkWarningBg : warningBg;
   static Color get stableBackground => isDark ? darkStableBg : stableBg;
+
+  /// iOS tertiaryLabel. Decorative only (icons, grabbers): at 1.7:1 it is
+  /// too faint for text — use [textSecondary] for timestamps/metadata.
+  static Color get tertiaryLabel =>
+      isDark ? const Color(0xFF48484A) : const Color(0xFFC7C7CC);
+
+  /// iOS quaternarySystemFill — inline badges and soft backgrounds.
+  static Color get quaternaryFill =>
+      isDark ? const Color(0x29747480) : const Color(0x14747480);
+
+  /// Text/icons placed on a [primary]-filled surface. White fails contrast
+  /// on the lighter dark-mode tint (2.5:1), so dark mode uses black (8.4:1).
+  static Color get onPrimary => isDark ? Colors.black : Colors.white;
 
   /// iOS "tertiarySystemFill" — input fields and inset controls.
   static Color get fill =>
@@ -150,10 +163,11 @@ class AppTheme {
       bodyColor: textPrimary,
       displayColor: textPrimary,
     );
+    final onTint = isDark ? Colors.black : Colors.white;
     final colorScheme = (isDark ? const ColorScheme.dark() : const ColorScheme.light())
         .copyWith(
       primary: tint,
-      onPrimary: Colors.white,
+      onPrimary: onTint,
       secondary: AppColors.accent,
       onSecondary: Colors.white,
       error: AppColors.danger,
@@ -234,7 +248,7 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: tint,
-          foregroundColor: Colors.white,
+          foregroundColor: onTint,
           elevation: 0,
           minimumSize: const Size(64, 50),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
@@ -248,7 +262,7 @@ class AppTheme {
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           backgroundColor: tint,
-          foregroundColor: Colors.white,
+          foregroundColor: onTint,
           minimumSize: const Size(64, 50),
           shape: controlShape,
           textStyle: buttonText,
@@ -339,7 +353,7 @@ class AppTheme {
         elevation: 0,
         modalBarrierColor: Colors.black.withOpacity(0.35),
         showDragHandle: false, // sheets draw their own grabber
-        dragHandleColor: textSecondary.withOpacity(0.4),
+        dragHandleColor: isDark ? const Color(0xFF48484A) : const Color(0xFFC7C7CC),
         dragHandleSize: const Size(36, 5),
         shape: const RoundedRectangleBorder(
           borderRadius:
@@ -371,7 +385,7 @@ class AppTheme {
 
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: tint,
-        foregroundColor: Colors.white,
+        foregroundColor: onTint,
         elevation: 2,
         highlightElevation: 2,
         shape: const StadiumBorder(),

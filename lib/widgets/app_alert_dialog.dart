@@ -40,7 +40,10 @@ class AppAlertDialog extends StatelessWidget {
       return AlertDialog(
         title: title,
         content: content,
-        actions: actions,
+        actions: [
+          for (final action in actions ?? const <Widget>[])
+            toMaterialAction(action),
+        ],
         backgroundColor: backgroundColor,
         shape: shape,
       );
@@ -72,6 +75,21 @@ class AppAlertDialog extends StatelessWidget {
       onPressed: action.onPressed,
       isDefaultAction: filled && !destructive,
       isDestructiveAction: destructive,
+      child: _plainLabel(action.child) ?? const SizedBox.shrink(),
+    );
+  }
+
+  /// Material: a destructive action is red *text* on a plain button — a
+  /// red-filled button would read as the recommended action (HIG).
+  @visibleForTesting
+  static Widget toMaterialAction(Widget action) {
+    if (action is! ButtonStyleButton || !_isDanger(action.style)) return action;
+    return TextButton(
+      onPressed: action.onPressed,
+      style: TextButton.styleFrom(
+        foregroundColor: AppColors.danger,
+        textStyle: const TextStyle(fontWeight: FontWeight.w600),
+      ),
       child: _plainLabel(action.child) ?? const SizedBox.shrink(),
     );
   }

@@ -1,3 +1,5 @@
+import 'dart:ui' show FontFeature;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -129,6 +131,37 @@ class AppTypography {
     if (size < 24) return size * -0.01;
     return size * -0.02;
   }
+
+  // ── Named type roles (Apple HIG text styles, 1:1) ────────────────────
+  // Use these instead of ad-hoc `appText(fontSize: …)` so the same role is
+  // never reinvented with a different size. Tracking comes from the SF table.
+
+  static TextStyle largeTitle({Color? color, FontWeight? weight}) =>
+      appText(fontSize: 34, fontWeight: weight ?? FontWeight.bold, color: color);
+  static TextStyle title1({Color? color, FontWeight? weight}) =>
+      appText(fontSize: 28, fontWeight: weight ?? FontWeight.bold, color: color);
+  static TextStyle title2({Color? color, FontWeight? weight}) =>
+      appText(fontSize: 22, fontWeight: weight ?? FontWeight.bold, color: color);
+  static TextStyle title3({Color? color, FontWeight? weight}) =>
+      appText(fontSize: 20, fontWeight: weight ?? FontWeight.w600, color: color);
+  static TextStyle headline({Color? color, FontWeight? weight}) =>
+      appText(fontSize: 17, fontWeight: weight ?? FontWeight.w600, color: color);
+  static TextStyle body({Color? color, FontWeight? weight}) =>
+      appText(fontSize: 17, fontWeight: weight ?? FontWeight.w400, color: color);
+  static TextStyle callout({Color? color, FontWeight? weight}) =>
+      appText(fontSize: 16, fontWeight: weight ?? FontWeight.w400, color: color);
+  static TextStyle subheadline({Color? color, FontWeight? weight}) =>
+      appText(fontSize: 15, fontWeight: weight ?? FontWeight.w400, color: color);
+  static TextStyle footnote({Color? color, FontWeight? weight}) =>
+      appText(fontSize: 13, fontWeight: weight ?? FontWeight.w400, color: color);
+  static TextStyle caption1({Color? color, FontWeight? weight}) =>
+      appText(fontSize: 12, fontWeight: weight ?? FontWeight.w400, color: color);
+  static TextStyle caption2({Color? color, FontWeight? weight}) =>
+      appText(fontSize: 11, fontWeight: weight ?? FontWeight.w400, color: color);
+
+  /// Numbers that change in place (counters, codes): tabular figures so the
+  /// layout never shifts as digits change.
+  static const List<FontFeature> tabular = [FontFeature.tabularFigures()];
 
   /// Applies the system font + size-specific tracking to every style of a
   /// Material [TextTheme].

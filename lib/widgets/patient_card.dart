@@ -32,7 +32,7 @@ class PatientCard extends StatelessWidget {
     return Pressable(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(AppRadii.card),
@@ -75,10 +75,10 @@ class PatientCard extends StatelessWidget {
                           horizontal: 8,
                           vertical: 3,
                         ),
+                        // Background contrast alone separates it — no border.
                         decoration: BoxDecoration(
                           color: AppColors.surface,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppColors.divider),
                         ),
                         child: Text(
                           'Bed ${patient.bedNumber}',
@@ -101,7 +101,11 @@ class PatientCard extends StatelessWidget {
                       fontSize: 12,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  // Hairline groups the metadata into its own zone.
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: Divider(height: 0.5, thickness: 0.5),
+                  ),
                   Row(
                     children: [
                       Icon(
@@ -130,20 +134,37 @@ class PatientCard extends StatelessWidget {
     );
   }
 
+  /// Filled dot + label (the iOS accessory pattern). The dot carries the
+  /// colour; the label stays in label colour so it passes contrast.
   Widget _statusChip(bool active) {
     final color = active ? AppColors.accent : AppColors.textSecondary;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        active ? 'Active' : 'Discharged',
-        style: appText(
-          color: color,
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
+    final label = active ? 'Active' : 'Discharged';
+    return Semantics(
+      label: 'Status: $label',
+      excludeSemantics: true,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.12),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: AppTypography.footnote(
+                color: AppColors.textPrimary,
+                weight: FontWeight.w600,
+              ),
+            ),
+          ],
         ),
       ),
     );

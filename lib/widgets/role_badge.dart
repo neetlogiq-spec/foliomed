@@ -38,20 +38,36 @@ class RoleBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     context.watch<ThemeProvider>(); // rebuild on theme change
 
-    return Container(
-      padding: small
-          ? const EdgeInsets.symmetric(horizontal: 8, vertical: 4)
-          : const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: _color.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        _label,
-        style: appText(
-          color: _color,
-          fontSize: small ? 10 : 12,
-          fontWeight: FontWeight.w600,
+    // Role colour lives in the dot; the label stays in label colour so it
+    // passes contrast (several role tints are under 4.5:1 as text).
+    return Semantics(
+      label: 'Role: $_label',
+      excludeSemantics: true,
+      child: Container(
+        padding: small
+            ? const EdgeInsets.symmetric(horizontal: 8, vertical: 3)
+            : const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: AppColors.quaternaryFill,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(color: _color, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 5),
+            Text(
+              _label,
+              style: (small ? AppTypography.caption2 : AppTypography.caption1)(
+                color: AppColors.textPrimary,
+                weight: FontWeight.w600,
+              ),
+            ),
+          ],
         ),
       ),
     );

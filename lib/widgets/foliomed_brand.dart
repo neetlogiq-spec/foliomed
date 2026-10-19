@@ -14,40 +14,45 @@ class FolioMedBrand extends StatelessWidget {
   Widget build(BuildContext context) {
     context.watch<ThemeProvider>(); // rebuild on theme change
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(
-            color: AppColors.primary,
-            borderRadius: BorderRadius.circular(size * 0.22),
-          ),
-          child: Center(
-            child: Text(
-              'F',
-              style: appText(
-                color: Colors.white,
-                fontSize: size * 0.6,
-                fontWeight: FontWeight.w900,
-                height: 1,
-                letterSpacing: -1,
+    return Semantics(
+      label: 'FolioMed',
+      excludeSemantics: true,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(size * 0.24),
+            ),
+            child: Center(
+              child: Text(
+                'F',
+                style: appText(
+                  color: Colors.white,
+                  fontSize: size * 0.6,
+                  fontWeight: FontWeight.w900,
+                  height: 1,
+                  letterSpacing: -1,
+                ),
               ),
             ),
           ),
-        ),
-        const SizedBox(width: 10),
-        Text(
-          'FOLIOMED',
-          style: appText(
-            color: AppColors.textPrimary,
-            fontSize: size * 0.5,
-            fontWeight: FontWeight.w800,
-            letterSpacing: size * 0.08,
+          const SizedBox(width: 10),
+          Text(
+            'FOLIOMED',
+            style: appText(
+              color: AppColors.textPrimary,
+              fontSize: size * 0.5,
+              fontWeight: FontWeight.w800,
+              // Product wordmark, not a template: tight tracking.
+              letterSpacing: size * 0.04,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
