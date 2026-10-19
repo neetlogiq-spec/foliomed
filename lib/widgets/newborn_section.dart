@@ -44,7 +44,16 @@ class _NewbornSectionState extends State<NewbornSection> {
               [
                 if (apgarLabel(p) != null) apgarLabel(p)!,
                 if (p.resuscitated == true) 'resuscitated at birth',
-                if (p.motherBloodGroup != null) 'mother ${p.motherBloodGroup}',
+                if (p.motherName != null ||
+                    p.motherAge != null ||
+                    p.gravidaPara != null ||
+                    p.motherBloodGroup != null)
+                  'Mother ${[
+                    if (p.motherName != null) p.motherName!,
+                    if (p.motherAge != null) '${p.motherAge}y',
+                    if (p.gravidaPara != null) p.gravidaPara!,
+                    if (p.motherBloodGroup != null) p.motherBloodGroup!,
+                  ].join(', ')}',
               ].join(' · '),
             ].where((l) => l.isNotEmpty).join('\n'),
           ),

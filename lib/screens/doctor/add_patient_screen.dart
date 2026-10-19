@@ -63,6 +63,9 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
   // Birth details (newborns)
   final _birthWeight = TextEditingController(); // kg
   final _indication = TextEditingController();
+  final _motherName = TextEditingController();
+  final _motherAge = TextEditingController();
+  final _gravidaPara = TextEditingController();
   String? _sizeForDates;
   String? _deliveryMode;
   String? _motherGroup;
@@ -112,6 +115,9 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
             .replaceFirst(RegExp(r'\.$'), '');
       }
       _indication.text = p.deliveryIndication ?? '';
+      _motherName.text = p.motherName ?? '';
+      _motherAge.text = p.motherAge?.toString() ?? '';
+      _gravidaPara.text = p.gravidaPara ?? '';
       _sizeForDates = p.sizeForDates;
       _deliveryMode = p.deliveryMode;
       _motherGroup = p.motherBloodGroup;
@@ -139,7 +145,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
 
   @override
   void dispose() {
-    for (final c in [_name, _age, _hospitalId, _bed, _diagnosis, _birthWeight, _indication]) {
+    for (final c in [_name, _age, _hospitalId, _bed, _diagnosis, _birthWeight, _indication, _motherName, _motherAge, _gravidaPara]) {
       c.dispose();
     }
     super.dispose();
@@ -194,6 +200,9 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
       apgar5: newborn ? _apgar5 : null,
       resuscitated: newborn ? _resuscitated : null,
       unitId: _unitId,
+      motherName: newborn ? _motherName.text.trim() : null,
+      motherAge: newborn ? int.tryParse(_motherAge.text.trim()) : null,
+      gravidaPara: newborn ? _gravidaPara.text.trim().toUpperCase() : null,
     );
   }
 
@@ -300,7 +309,12 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
             _ageGroup(),
             const SizedBox(height: 24),
             _newbornGroup(),
-            if (_bornAt != null) ...[const SizedBox(height: 24), _birthDetailsGroup()],
+            if (_bornAt != null) ...[
+              const SizedBox(height: 24),
+              _birthDetailsGroup(),
+              const SizedBox(height: 24),
+              _motherSection(),
+            ],
             if (_askPlan) ...[const SizedBox(height: 24), _planGroup()],
             const SizedBox(height: 24),
             _admissionGroup(),
@@ -611,6 +625,40 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
             onChanged: (v) => setState(() => _resuscitated = v),
           ),
           showChevron: false,
+        ),
+      ],
+    );
+  }
+
+  Widget _motherSection() {
+    return InsetGroup(
+      header: 'Mother',
+      dividerIndent: 16,
+      footer: 'Search finds babies by mother’s name too.',
+      children: [
+        InsetTextRow(
+          label: 'Name',
+          controller: _motherName,
+          placeholder: 'Optional',
+          textCapitalization: TextCapitalization.words,
+        ),
+        InsetTextRow(
+          label: 'Age',
+          controller: _motherAge,
+          placeholder: 'Optional',
+          suffix: 'years',
+          keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          validator: (v) {
+            final n = int.tryParse(v?.trim() ?? '');
+            return n == null || (n >= 12 && n <= 60) ? null : 'Between 12 and 60';
+          },
+        ),
+        InsetTextRow(
+          label: 'Gravida/para',
+          controller: _gravidaPara,
+          placeholder: 'e.g. G2P1',
+          textCapitalization: TextCapitalization.characters,
         ),
         SettingsRow(
           title: "Mother's blood group",

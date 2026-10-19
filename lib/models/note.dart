@@ -108,6 +108,8 @@ class Note {
         return Icons.login;
       case 'investigation':
         return Icons.science_outlined;
+      case 'phototherapy':
+        return Icons.light_mode_outlined;
       case 'general':
       default:
         return Icons.notes_outlined;

@@ -71,6 +71,11 @@ class Patient {
   /// Changed through `move_patient_unit`, so [toRow] never writes it.
   final String? unitId;
 
+  /// Mother (newborns): name, age, gravida/para (e.g. "G2P1").
+  final String? motherName;
+  final int? motherAge;
+  final String? gravidaPara;
+
   const Patient({
     required this.id,
     this.patientCode = '',
@@ -100,6 +105,9 @@ class Patient {
     this.apgar5,
     this.resuscitated,
     this.unitId,
+    this.motherName,
+    this.motherAge,
+    this.gravidaPara,
   });
 
   /// "39+2 wk", or null when not recorded.
@@ -156,6 +164,9 @@ class Patient {
       apgar5: (row['apgar_5'] as num?)?.toInt(),
       resuscitated: row['resuscitated'] as bool?,
       unitId: row['unit_id'] as String?,
+      motherName: row['mother_name'] as String?,
+      motherAge: (row['mother_age'] as num?)?.toInt(),
+      gravidaPara: row['gravida_para'] as String?,
     );
   }
 
@@ -186,6 +197,9 @@ class Patient {
       'apgar_1': apgar1,
       'apgar_5': apgar5,
       'resuscitated': resuscitated,
+      'mother_name': _blankToNull(motherName),
+      'mother_age': motherAge,
+      'gravida_para': _blankToNull(gravidaPara),
     };
   }
 
@@ -228,6 +242,9 @@ class Patient {
       apgar5: apgar5,
       resuscitated: resuscitated,
       unitId: unitId,
+      motherName: motherName,
+      motherAge: motherAge,
+      gravidaPara: gravidaPara,
     );
   }
 

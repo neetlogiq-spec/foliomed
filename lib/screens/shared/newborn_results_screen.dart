@@ -2,7 +2,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'package:image_picker/image_picker.dart';
+
 import '../../clinical/bilirubin.dart';
+import '../../clinical/lab_report_parser.dart';
+import '../../services/text_scan_service.dart';
 import '../../models/newborn_screen.dart';
 import '../../models/patient.dart';
 import '../../services/newborn_screen_service.dart';
@@ -57,6 +61,54 @@ class _NewbornResultsScreenState extends State<NewbornResultsScreen> {
   late OaeResult? _oaeR = _initial.oaeRight;
   late OaeResult? _oaeL = _initial.oaeLeft;
   bool _saving = false;
+  bool _scanning = false;
+
+  /// Photo of the lab report → values into the blank fields only.
+  Future<void> _scanReport() async {
+    final source = await showOptionSheet<ImageSource>(
+      context,
+      title: 'Scan lab report',
+      options: const {ImageSource.camera: 'Take photo', ImageSource.gallery: 'Choose photo'},
+    );
+    if (source == null || !mounted) return;
+    setState(() => _scanning = true);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final text = await TextScanService().scan(source);
+      if (text == null) return;
+      final parsed = parseLabReport(text);
+      final targets = <String, TextEditingController>{
+        'hb': _hb, 'tlc': _tlc, 'platelets': _plt, 'hct': _hct, 'tsh': _tsh,
+        'tsb_total': _tsbTotal, 'tsb_direct': _tsbDirect, 'urea': _urea,
+        'creatinine': _creat, 'sodium': _na, 'potassium': _k, 'chloride': _cl,
+      };
+      var filled = 0;
+      final bothBiliBlank = _tsbTotal.text.isEmpty && _tsbDirect.text.isEmpty;
+      for (final e in parsed.values.entries) {
+        final c = targets[e.key];
+        if (c == null || c.text.trim().isNotEmpty) continue;
+        final v = e.value;
+        c.text = v == v.roundToDouble() ? v.toStringAsFixed(0) : '$v';
+        filled++;
+      }
+      if (bothBiliBlank && parsed.bilirubinInUmol) _unit = BiliUnit.umol;
+      setState(() {});
+      Haptics.success();
+      messenger.showSnackBar(SnackBar(
+        content: Text(filled == 0
+            ? 'No new values found — enter them by hand.'
+            : 'Filled $filled value${filled == 1 ? '' : 's'} — check each one against the report.'),
+      ));
+    } catch (e) {
+      Haptics.error();
+      messenger.showSnackBar(SnackBar(
+        backgroundColor: AppColors.danger,
+        content: Text(e is TextScanException ? e.message : friendlyError(e)),
+      ));
+    } finally {
+      if (mounted) setState(() => _scanning = false);
+    }
+  }
 
   static TextEditingController _c(double? v) => TextEditingController(
       text: v == null ? '' : (v == v.roundToDouble() ? v.toStringAsFixed(0) : '$v'));
@@ -192,6 +244,13 @@ class _NewbornResultsScreenState extends State<NewbornResultsScreen> {
             dividerIndent: 16,
             footer: 'Leave a field blank if it is not back yet — you can add it later.',
             children: [
+              if (TextScanService.isSupported)
+                SettingsRow(
+                  icon: Icons.document_scanner_outlined,
+                  title: _scanning ? 'Reading report…' : 'Scan lab report',
+                  subtitle: 'Fills blank fields from a photo — check them before saving',
+                  onTap: _scanning ? null : _scanReport,
+                ),
               SettingsRow(
                 title: 'Sampled at',
                 subtitle: hours == null ? null : '${hours.round()} h of life',

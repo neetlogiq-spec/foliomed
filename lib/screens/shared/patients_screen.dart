@@ -22,6 +22,7 @@ import '../../providers/unit_provider.dart';
 import '../../widgets/large_title_app_bar.dart';
 import '../doctor/add_patient_screen.dart';
 import '../doctor/patient_detail_screen.dart';
+import 'census_screen.dart';
 
 /// Every patient on the user's wards, grouped by ward, with search, a ward
 /// filter and an Admitted / Discharged switch. Shared by doctors and nurses.
@@ -86,6 +87,14 @@ class _PatientsScreenState extends State<PatientsScreen> {
                 actions: [
                   if (wards.isNotEmpty)
                     ChromeIconButton(
+                      icon: Icons.assignment_outlined,
+                      tooltip: 'Census & handover',
+                      onPressed: () => Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const CensusScreen()),
+                      ),
+                    ),
+                  if (wards.isNotEmpty)
+                    ChromeIconButton(
                       icon: Icons.person_add_alt,
                       tooltip: 'Add patient',
                       onPressed: () => _addPatient(wards),
@@ -135,7 +144,7 @@ class _PatientsScreenState extends State<PatientsScreen> {
         children: [
           CupertinoSearchTextField(
             controller: _search,
-            placeholder: 'Name, bed, diagnosis or ID',
+            placeholder: 'Name, mother, bed, diagnosis or ID',
             style: AppTypography.body(color: AppColors.textPrimary),
           ),
           const SizedBox(height: 10),
@@ -258,7 +267,8 @@ class _PatientsScreenState extends State<PatientsScreen> {
         p.bedNumber.toLowerCase().contains(q) ||
         p.diagnosis.toLowerCase().contains(q) ||
         p.patientCode.toLowerCase().contains(q) ||
-        (p.hospitalId?.toLowerCase().contains(q) ?? false);
+        (p.hospitalId?.toLowerCase().contains(q) ?? false) ||
+        (p.motherName?.toLowerCase().contains(q) ?? false);
   }
 
   Widget _empty() {

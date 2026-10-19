@@ -19,6 +19,7 @@ import '../../widgets/empty_state.dart';
 import '../../utils/layout.dart';
 import '../../widgets/reminder_widgets.dart';
 import '../../widgets/newborn_section.dart';
+import '../../widgets/newborn_tracking_section.dart';
 import '../../providers/unit_provider.dart';
 import '../../widgets/note_list_items.dart';
 import '../../utils/app_utils.dart';
@@ -130,6 +131,8 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
                 const SizedBox(height: 16),
                 if (patient.bornAt != null) ...[
                   NewbornSection(patient: patient),
+                  const SizedBox(height: 16),
+                  NewbornTrackingSection(patient: patient),
                   const SizedBox(height: 16),
                 ],
                 PatientRemindersSection(patient: patient),
