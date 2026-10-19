@@ -23,6 +23,9 @@ import '../../widgets/large_title_app_bar.dart';
 import '../../widgets/note_list_items.dart';
 import '../../widgets/notifications_panel.dart';
 import '../../widgets/pressable.dart';
+import '../../widgets/scope_button.dart';
+import '../../providers/unit_provider.dart';
+import '../../utils/scope_filter.dart';
 import '../../widgets/reminder_widgets.dart';
 import '../doctor/add_note_screen.dart';
 import '../doctor/add_patient_screen.dart';
@@ -159,6 +162,11 @@ class _TodayScreenState extends State<TodayScreen> {
               ),
               sliver: SliverList.list(
                 children: [
+                  const Align(
+                    alignment: Alignment.centerLeft,
+                    child: ScopeButton(),
+                  ),
+                  const SizedBox(height: 6),
                   _summary(),
                   const SizedBox(height: 24),
                   const _RemindersBlock(),
@@ -176,11 +184,22 @@ class _TodayScreenState extends State<TodayScreen> {
 
   // ─────────────────────────── Summary tiles ───────────────────────────
 
+  ScopeFilter _filter() => ScopeFilter(context.watch<UnitProvider>().scope,
+      context.watch<PatientProvider>().patients);
+
   Widget _summary() {
-    final patients = context.watch<PatientProvider>().patientCount;
+    final f = _filter();
+    final patients =
+        context.watch<PatientProvider>().patients.where(f.patient).length;
     final notes = context.watch<NoteProvider>();
-    final urgentOpen =
-        notes.urgentNotes.where((n) => !n.isAcknowledged).length;
+    final urgentOpen = notes.urgentNotes
+        .where((n) => !n.isAcknowledged && f.note(n))
+        .length;
+    // The provider's pending count covers every note; a scoped count has
+    // to come from the (recent) notes list.
+    final pending = f.scope.isAll
+        ? notes.unacknowledgedCount
+        : notes.notes.where((n) => !n.isAcknowledged && f.note(n)).length;
     return Row(
       children: [
         _Tile(
@@ -193,7 +212,7 @@ class _TodayScreenState extends State<TodayScreen> {
         const SizedBox(width: 10),
         _Tile(
           label: 'Pending',
-          value: notes.unacknowledgedCount,
+          value: pending,
           icon: Icons.pending_actions_outlined,
           color: AppColors.warning,
           selected: _feed == _Feed.pending,
@@ -234,11 +253,12 @@ class _TodayScreenState extends State<TodayScreen> {
 
   Widget _feedList() {
     final np = context.watch<NoteProvider>();
+    final f = _filter();
     final List<Note> all = switch (_feed) {
       _Feed.pending => np.notes.where((n) => !n.isAcknowledged).toList(),
       _Feed.urgent => np.urgentNotes,
       _Feed.all => np.notes,
-    };
+    }.where(f.note).toList();
     final visible = all.take(_shown).toList();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -391,9 +411,12 @@ class _RemindersBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final rp = context.watch<ReminderProvider>();
+    final f = ScopeFilter(context.watch<UnitProvider>().scope,
+        context.watch<PatientProvider>().patients);
+    final open = rp.open.where(f.reminder).toList();
     final now = DateTime.now();
-    final due = rp.open.where((r) => r.isOverdueAt(now)).toList();
-    final soon = rp.open
+    final due = open.where((r) => r.isOverdueAt(now)).toList();
+    final soon = open
         .where((r) =>
             !r.isOverdueAt(now) &&
             r.dueAt.isBefore(now.add(const Duration(hours: 24))))

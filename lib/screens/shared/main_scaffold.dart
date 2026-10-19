@@ -23,6 +23,7 @@ import 'wards_screen.dart';
 import '../../providers/theme_provider.dart';
 import '../../services/accessibility_settings.dart';
 import '../../providers/reminder_provider.dart';
+import '../../providers/unit_provider.dart';
 import '../../services/reminder_notifications.dart';
 import '../../widgets/reminder_widgets.dart';
 
@@ -317,7 +318,9 @@ class _MainScaffoldState extends State<MainScaffold>
     final wardIds = context.select<AuthProvider, List<String>>(
         (a) => a.currentUser?.wardIds ?? const <String>[]);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) context.read<ReminderProvider>().subscribe(wardIds);
+      if (!mounted) return;
+      context.read<ReminderProvider>().subscribe(wardIds);
+      context.read<UnitProvider>().subscribe(wardIds);
     });
     return Scaffold(
       // Content scrolls under the translucent tab bar; tab screens add the

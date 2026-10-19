@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show PostgrestException;
 
 import '../../models/app_user.dart';
 import '../../models/ward.dart';
+import '../../models/ward_unit.dart';
+import '../../providers/unit_provider.dart';
+import '../../services/unit_service.dart';
+import '../../utils/friendly_error.dart';
+import '../../utils/haptics.dart';
+import '../../widgets/app_alert_dialog.dart';
 import '../../providers/patient_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../services/supabase_service.dart';
@@ -96,6 +103,8 @@ class _WardPageState extends State<WardPage> {
                   ],
                 ),
                 const SizedBox(height: 24),
+                _unitsGroup(),
+                const SizedBox(height: 24),
                 _membersGroup(),
                 const SizedBox(height: 24),
                 InsetGroup(
@@ -135,6 +144,160 @@ class _WardPageState extends State<WardPage> {
         ],
       ),
     );
+  }
+
+  Widget _unitsGroup() {
+    final w = widget.ward;
+    final units = context.watch<UnitProvider>();
+    final list = units.unitsOf(w.id);
+    final admitted = context
+        .watch<PatientProvider>()
+        .patients
+        .where((p) => p.wardId == w.id)
+        .toList();
+    final counts = UnitCounts.of(admitted.map((p) => p.unitId));
+    final mine = units.myUnitFor(w.id);
+    return InsetGroup(
+      header: 'Units (teams)',
+      footer: list.isEmpty
+          ? (_isOwner
+              ? 'Add units such as Unit A and Unit B to sort and count patients by team. Everyone in the ward still sees every unit.'
+              : 'The ward owner can add units (teams) here.')
+          : '${counts.total} admitted · ${[
+              for (final u in list) '${u.name} ${counts.byUnit[u.id] ?? 0}',
+              if (counts.unassigned > 0) 'Unassigned ${counts.unassigned}',
+            ].join(' · ')}',
+      children: [
+        for (final (i, u) in list.indexed)
+          SettingsRow(
+            icon: Icons.groups_outlined,
+            iconColor: AppColors.secondary,
+            title: u.name,
+            subtitle: mine == u.id ? 'My unit' : null,
+            value: '${counts.byUnit[u.id] ?? 0}',
+            showChevron: _isOwner,
+            onTap: _isOwner ? () => _unitActions(u, i, list) : null,
+          ),
+        if (list.isNotEmpty)
+          SettingsRow(
+            icon: Icons.person_pin_outlined,
+            iconColor: AppColors.accent,
+            title: 'My unit',
+            subtitle: 'Today and Patients open on this unit',
+            value: units.unitById(mine)?.name ?? 'None',
+            onTap: () async {
+              final id = await showOptionSheet<String>(
+                context,
+                title: 'Your unit in ${w.name}',
+                selected: mine ?? '',
+                options: {for (final u in list) u.id: u.name, '': 'None — whole ward'},
+              );
+              if (id != null) await units.setMyUnit(w.id, id.isEmpty ? null : id);
+            },
+          ),
+        if (_isOwner)
+          SettingsRow(
+            icon: Icons.add,
+            title: 'Add unit',
+            onTap: () => _editUnitName(position: list.length),
+          ),
+      ],
+    );
+  }
+
+  Future<void> _editUnitName({WardUnit? unit, int position = 0}) async {
+    final name = await showAdaptiveDialog<String>(
+      context: context,
+      builder: (ctx) {
+        final c = TextEditingController(text: unit?.name ?? '');
+        return AppAlertDialog(
+          title: Text(unit == null ? 'New unit' : 'Rename unit'),
+          content: TextField(
+            controller: c,
+            autofocus: true,
+            maxLength: 40,
+            textCapitalization: TextCapitalization.words,
+            decoration: const InputDecoration(hintText: 'e.g. Unit A', counterText: ''),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, c.text.trim()),
+              child: Text(unit == null ? 'Add' : 'Save'),
+            ),
+          ],
+        );
+      },
+    );
+    if (name == null || name.isEmpty || !mounted) return;
+    await _run(() => unit == null
+        ? UnitService().add(widget.ward.id, name, position: position)
+        : UnitService().rename(unit.id, name));
+  }
+
+  Future<void> _unitActions(WardUnit u, int index, List<WardUnit> list) async {
+    final action = await showOptionSheet<String>(
+      context,
+      title: u.name,
+      options: {
+        'rename': 'Rename',
+        if (index > 0) 'up': 'Move up',
+        if (index < list.length - 1) 'down': 'Move down',
+        'delete': 'Delete unit',
+      },
+    );
+    if (!mounted || action == null) return;
+    switch (action) {
+      case 'rename':
+        await _editUnitName(unit: u);
+      case 'up':
+      case 'down':
+        final other = list[action == 'up' ? index - 1 : index + 1];
+        // Normalise positions to the list order, then swap the pair.
+        await _run(() async {
+          for (final (i, x) in list.indexed) {
+            final pos = x.id == u.id
+                ? (action == 'up' ? index - 1 : index + 1)
+                : x.id == other.id
+                    ? index
+                    : i;
+            if (pos != x.position) await UnitService().setPosition(x.id, pos);
+          }
+        });
+      case 'delete':
+        final ok = await showAdaptiveDialog<bool>(
+          context: context,
+          builder: (ctx) => AppAlertDialog(
+            title: Text('Delete ${u.name}?'),
+            content: const Text('Its patients stay in the ward and become Unassigned.'),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger),
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('Delete'),
+              ),
+            ],
+          ),
+        );
+        if (ok == true) await _run(() => UnitService().delete(u.id));
+    }
+  }
+
+  Future<void> _run(Future<void> Function() action) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await action();
+      Haptics.commit();
+    } catch (e) {
+      Haptics.error();
+      messenger.showSnackBar(SnackBar(
+        backgroundColor: AppColors.danger,
+        content: Text(e is PostgrestException && e.code == '23505'
+            ? 'There is already a unit with that name.'
+            : friendlyError(e)),
+      ));
+    }
   }
 
   Widget _codeCard(Ward w) {

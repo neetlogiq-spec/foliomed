@@ -5,6 +5,10 @@ import '../models/patient.dart';
 import '../models/ward.dart';
 import '../providers/auth_provider.dart';
 import '../providers/patient_provider.dart';
+import '../providers/unit_provider.dart';
+import '../services/patient_service.dart';
+import '../utils/haptics.dart';
+import 'inset_group.dart';
 import '../services/ward_service.dart';
 import '../utils/app_theme.dart';
 import '../utils/app_typography.dart';
@@ -61,6 +65,14 @@ class PatientActionsButton extends StatelessWidget {
                 subtitle: const Text('Name, age, birth time, bed, diagnosis, IDs'),
                 onTap: () => Navigator.pop(sheetContext, _Action.edit),
               ),
+              if (patient.isActive &&
+                  context.read<UnitProvider>().unitsOf(patient.wardId).isNotEmpty)
+                ListTile(
+                  leading: const Icon(Icons.groups_outlined),
+                  title: const Text('Move to another unit'),
+                  subtitle: Text('Now: ${context.read<UnitProvider>().unitById(patient.unitId)?.name ?? 'Unassigned'}'),
+                  onTap: () => Navigator.pop(sheetContext, _Action.unit),
+                ),
               if (patient.isActive) ...[
                 ListTile(
                   leading: const Icon(Icons.swap_horiz),
@@ -107,6 +119,33 @@ class PatientActionsButton extends StatelessWidget {
         ));
       case _Action.delete:
         await _delete(context);
+      case _Action.unit:
+        await _moveUnit(context);
+    }
+  }
+
+  Future<void> _moveUnit(BuildContext context) async {
+    final units = context.read<UnitProvider>();
+    final list = units.unitsOf(patient.wardId);
+    final id = await showOptionSheet<String>(
+      context,
+      title: 'Move ${patient.name} to',
+      selected: patient.unitId ?? '',
+      options: {for (final u in list) u.id: u.name, '': 'Unassigned'},
+    );
+    if (id == null || !context.mounted) return;
+    final target = id.isEmpty ? null : id;
+    if (target == patient.unitId) return;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await PatientService().moveToUnit(patient.id, target);
+      Haptics.commit();
+      messenger.showSnackBar(SnackBar(
+          content: Text('Moved to ${units.unitById(target)?.name ?? 'Unassigned'}')));
+    } catch (e) {
+      Haptics.error();
+      messenger.showSnackBar(SnackBar(
+          backgroundColor: AppColors.danger, content: Text(friendlyError(e))));
     }
   }
 
@@ -239,7 +278,7 @@ class PatientActionsButton extends StatelessWidget {
   }
 }
 
-enum _Action { edit, transfer, discharge, readmit, delete }
+enum _Action { edit, unit, transfer, discharge, readmit, delete }
 
 class _TransferRequest {
   const _TransferRequest(this.ward, this.reason, this.bed);

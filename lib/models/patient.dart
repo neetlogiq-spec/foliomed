@@ -67,6 +67,10 @@ class Patient {
   final int? apgar5;
   final bool? resuscitated;
 
+  /// Unit (consultant team) within the ward, or null = unassigned.
+  /// Changed through `move_patient_unit`, so [toRow] never writes it.
+  final String? unitId;
+
   const Patient({
     required this.id,
     this.patientCode = '',
@@ -95,6 +99,7 @@ class Patient {
     this.apgar1,
     this.apgar5,
     this.resuscitated,
+    this.unitId,
   });
 
   /// "39+2 wk", or null when not recorded.
@@ -150,6 +155,7 @@ class Patient {
       apgar1: (row['apgar_1'] as num?)?.toInt(),
       apgar5: (row['apgar_5'] as num?)?.toInt(),
       resuscitated: row['resuscitated'] as bool?,
+      unitId: row['unit_id'] as String?,
     );
   }
 
@@ -221,6 +227,7 @@ class Patient {
       apgar1: apgar1,
       apgar5: apgar5,
       resuscitated: resuscitated,
+      unitId: unitId,
     );
   }
 

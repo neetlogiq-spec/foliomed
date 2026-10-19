@@ -17,7 +17,8 @@ import '../../utils/haptics.dart';
 import '../../utils/layout.dart';
 import '../../utils/stream_cache.dart';
 import '../../widgets/empty_state.dart';
-import '../../widgets/inset_group.dart';
+import '../../widgets/scope_button.dart';
+import '../../providers/unit_provider.dart';
 import '../../widgets/large_title_app_bar.dart';
 import '../doctor/add_patient_screen.dart';
 import '../doctor/patient_detail_screen.dart';
@@ -39,8 +40,6 @@ class _PatientsScreenState extends State<PatientsScreen> {
   String _query = '';
   bool _discharged = false;
 
-  /// null = all wards.
-  String? _wardFilter;
 
   @override
   void initState() {
@@ -60,7 +59,8 @@ class _PatientsScreenState extends State<PatientsScreen> {
   void _addPatient(List<Ward> wards) {
     Navigator.of(context).push(MaterialPageRoute(
       builder: (_) => AddPatientScreen(
-        initialWardId: _wardFilter ?? (wards.isEmpty ? null : wards.first.id),
+        initialWardId: context.read<UnitProvider>().scope.wardId ??
+            (wards.isEmpty ? null : wards.first.id),
       ),
     ));
   }
@@ -79,9 +79,6 @@ class _PatientsScreenState extends State<PatientsScreen> {
                 ids.join(','), () => WardService().wardsForUser(ids)),
         builder: (context, wardSnap) {
           final wards = wardSnap.data ?? const <Ward>[];
-          if (_wardFilter != null && !wards.any((w) => w.id == _wardFilter)) {
-            _wardFilter = null;
-          }
           return CustomScrollView(
             slivers: [
               LargeTitleAppBar(
@@ -154,43 +151,8 @@ class _PatientsScreenState extends State<PatientsScreen> {
               true: _segment('Discharged'),
             },
           ),
-          if (wards.length > 1) ...[
-            const SizedBox(height: 6),
-            // iOS pull-down button for the ward filter.
-            Align(
-              alignment: Alignment.centerLeft,
-              child: CupertinoButton(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
-                minimumSize: Size.zero,
-                onPressed: () async {
-                  final id = await showOptionSheet<String>(
-                    context,
-                    title: 'Show patients from',
-                    selected: _wardFilter ?? '',
-                    options: {'': 'All wards', for (final w in wards) w.id: w.name},
-                  );
-                  if (id == null) return;
-                  Haptics.selection();
-                  setState(() => _wardFilter = id.isEmpty ? null : id);
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.filter_list, size: 18, color: AppColors.primary),
-                    const SizedBox(width: 6),
-                    Text(
-                      _wardFilter == null
-                          ? 'All wards'
-                          : wards.firstWhere((w) => w.id == _wardFilter).name,
-                      style: AppTypography.subheadline(
-                          color: AppColors.primary, weight: FontWeight.w600),
-                    ),
-                    Icon(Icons.expand_more, size: 18, color: AppColors.primary),
-                  ],
-                ),
-              ),
-            ),
-          ],
+          const SizedBox(height: 6),
+          const Align(alignment: Alignment.centerLeft, child: ScopeButton()),
         ],
       ),
     );
@@ -230,27 +192,57 @@ class _PatientsScreenState extends State<PatientsScreen> {
             child: Center(child: CircularProgressIndicator.adaptive()),
           );
         }
-        final matches = snap.data!.where(_matches).toList();
-        if (matches.isEmpty) return SliverToBoxAdapter(child: _empty());
-
-        final byWard = <String, List<Patient>>{};
-        for (final p in matches) {
-          (byWard[p.wardId] ??= []).add(p);
+        final units = context.watch<UnitProvider>();
+        final scope = units.scope;
+        final all = snap.data!;
+        final matches = all
+            .where((p) => scope.includes(wardId: p.wardId, unitId: p.unitId))
+            .where(_matches)
+            .toList();
+        // Head count for the ward in view (or everything), before search.
+        final countWard = scope.wardId ?? (wards.length == 1 ? wards.first.id : null);
+        final header = Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          child: UnitCountsLine(
+            patients: all,
+            wardId: countWard,
+            noun: _discharged ? 'discharged' : 'admitted',
+          ),
+        );
+        if (matches.isEmpty) {
+          return SliverToBoxAdapter(
+            child: Column(children: [header, _empty()]),
+          );
         }
-        final groups = [
-          for (final w in wards)
-            if (byWard[w.id]?.isNotEmpty ?? false) (w, byWard[w.id]!),
-        ];
+
+        // Ward → unit (in the ward's order) → unassigned.
+        final groups = <(String, List<Patient>)>[];
+        for (final w in wards) {
+          final inWard = matches.where((p) => p.wardId == w.id).toList();
+          if (inWard.isEmpty) continue;
+          final wardUnits = units.unitsOf(w.id);
+          if (wardUnits.isEmpty) {
+            groups.add((w.name, inWard));
+            continue;
+          }
+          for (final u in wardUnits) {
+            final inUnit = inWard.where((p) => p.unitId == u.id).toList();
+            if (inUnit.isNotEmpty) groups.add(('${w.name} · ${u.name}', inUnit));
+          }
+          final none = inWard.where((p) => units.unitById(p.unitId) == null).toList();
+          if (none.isNotEmpty) groups.add(('${w.name} · Unassigned', none));
+        }
         return SliverPadding(
           padding: withBottomBarInset(
-              context, const EdgeInsets.fromLTRB(16, 8, 16, 24)),
+              context, const EdgeInsets.fromLTRB(0, 0, 0, 24)),
           sliver: SliverList.builder(
-            itemCount: groups.length,
+            itemCount: groups.length + 1,
             itemBuilder: (_, i) {
-              final (ward, patients) = groups[i];
+              if (i == 0) return header;
+              final (title, patients) = groups[i - 1];
               return Padding(
-                padding: const EdgeInsets.only(bottom: 20),
-                child: _WardGroup(ward: ward, patients: patients),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                child: _Group(title: title, patients: patients),
               );
             },
           ),
@@ -260,7 +252,6 @@ class _PatientsScreenState extends State<PatientsScreen> {
   }
 
   bool _matches(Patient p) {
-    if (_wardFilter != null && p.wardId != _wardFilter) return false;
     final q = _query;
     if (q.isEmpty) return true;
     return p.name.toLowerCase().contains(q) ||
@@ -292,10 +283,10 @@ class _PatientsScreenState extends State<PatientsScreen> {
   }
 }
 
-class _WardGroup extends StatelessWidget {
-  const _WardGroup({required this.ward, required this.patients});
+class _Group extends StatelessWidget {
+  const _Group({required this.title, required this.patients});
 
-  final Ward ward;
+  final String title;
   final List<Patient> patients;
 
   @override
@@ -309,7 +300,7 @@ class _WardGroup extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  ward.name.toUpperCase(),
+                  title.toUpperCase(),
                   style: AppTypography.footnote(color: AppColors.textSecondary)
                       .copyWith(letterSpacing: 0.4),
                 ),

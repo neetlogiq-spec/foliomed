@@ -19,6 +19,7 @@ import '../../widgets/empty_state.dart';
 import '../../utils/layout.dart';
 import '../../widgets/reminder_widgets.dart';
 import '../../widgets/newborn_section.dart';
+import '../../providers/unit_provider.dart';
 import '../../widgets/note_list_items.dart';
 import '../../utils/app_utils.dart';
 
@@ -211,6 +212,9 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
               _infoChip('Age', p.ageLabel),
               _infoChip('Gender', p.gender),
               _infoChip('Bed', p.bedNumber),
+              if (context.watch<UnitProvider>().unitsOf(p.wardId).isNotEmpty)
+                _infoChip('Unit',
+                    context.watch<UnitProvider>().unitById(p.unitId)?.name ?? '—'),
               _infoChip('Blood', p.bloodGroup ?? '-'),
             ],
           ),

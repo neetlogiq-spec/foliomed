@@ -68,7 +68,10 @@ class PatientService {
   }
 
   Future<String> addPatient(Patient patient) async {
-    final row = await _patients.insert(patient.toRow()).select('id').single();
+    final row = await _patients
+        .insert({...patient.toRow(), 'unit_id': patient.unitId})
+        .select('id')
+        .single();
     MetricsService.bump('patient', summary: 'Admitted ${patient.name}');
     return row['id'] as String;
   }
@@ -110,6 +113,11 @@ class PatientService {
         'p_reason': reason.trim(),
         'p_bed': bedNumber?.trim(),
       });
+
+  /// Moves the patient to [unitId] (null = unassigned); logged on the
+  /// timeline.
+  Future<void> moveToUnit(String patientId, String? unitId) => _client.rpc(
+      'move_patient_unit', params: {'p_patient': patientId, 'p_unit': unitId});
 
   /// Notes and their comments cascade-delete in Postgres.
   Future<void> deletePatient(String patientId) async {

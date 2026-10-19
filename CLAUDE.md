@@ -62,9 +62,10 @@ Firestore → Postgres mapping: `users`→`profiles`, `wards`, `patients`,
 
 - Newborn investigations (`newborn_screens`, migration `20261020000000`): planned at 48/72 h of life with an 8/12 h heads-up. RPC-only writes: `plan_newborn_screen`, `mark_newborn_screen_sent`, `remind_newborn_results`, `save_newborn_results` (each also writes reminders with `kind` newborn_prep/send/results and a timeline note, category Investigation). Results are JSON owned by `NewbornResults` (`lib/models/newborn_screen.dart`). UI: `NewbornFlow`, `NewbornSection`, `NewbornResultsScreen`.
 - Birth details (migration `20261020010000`): birth weight, AGA/SGA/LGA (manual — no growth-chart data built in), delivery mode + indication, APGAR 1/5, resuscitation, mother's blood group. `birthSummaryLine()` (`lib/clinical/birth_summary.dart`) composes "TERM/MALE/AGA/LSCS (CPD) on 19/10/2026 at 10:19pm with birth weight of 3.1kgs"; maturity is derived from gestation (WHO bands). It fills the diagnosis when that is blank or was the previous composed line.
+- Units (teams) inside a ward (migration `20261020020000`): `ward_units` (owner writes, members read), `patients.unit_id` (trigger keeps it in the patient's ward; transfer clears it), `move_patient_unit` RPC logs "Moved from Unit A to Unit B". App: `UnitProvider` (units + shared `PatientScope` filter + per-device "My unit"), `ScopeButton` / `UnitCountsLine` (`lib/widgets/scope_button.dart`), `ScopeFilter` maps notes/reminders to units via their patient.
 - Bilirubin decision support: `lib/clinical/bilirubin.dart` — NICE CG98 Table 1 (≥38 wk, linear interpolation, flat from 96 h). AAP 2022 is a stub that reports "not built in" until its tables are supplied and verified. Never present as diagnosis; UI always shows the disclaimer.
 
-Test the schema locally without Docker: `supabase/tests/README.md` (suites 10–50).
+Test the schema locally without Docker: `supabase/tests/README.md` (suites 10–70).
 
 ## User Roles & tabs
 - **Doctor / Nurse** — Today (`today_screen.dart`: tiles, reminders, collapsible Pending/All/Urgent note feed), Patients (`patients_screen.dart`, grouped by ward), Wards (`wards_screen.dart` → `ward_page.dart`), Profile. Doctors get the New note FAB; nurses acknowledge through the acknowledge sheet (`WiredNoteCard`).

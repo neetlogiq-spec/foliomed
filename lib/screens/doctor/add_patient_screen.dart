@@ -11,6 +11,8 @@ import '../../models/ward.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/patient_provider.dart';
 import '../../providers/theme_provider.dart';
+import '../../providers/unit_provider.dart';
+import '../../services/patient_service.dart';
 import '../../services/newborn_screen_service.dart';
 import '../../services/reminder_notifications.dart';
 import '../../services/ward_service.dart';
@@ -68,6 +70,10 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
   int? _apgar5;
   bool _resuscitated = false;
 
+  /// Unit (team) within the ward; null = unassigned.
+  String? _unitId;
+  bool _unitTouched = false;
+
   _Plan _plan = _Plan.h48;
   int _leadHours = 12;
   bool _saving = false;
@@ -112,7 +118,18 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
       _apgar1 = p.apgar1;
       _apgar5 = p.apgar5;
       _resuscitated = p.resuscitated ?? false;
+      _unitId = p.unitId;
+      _unitTouched = true;
     }
+  }
+
+  /// New patients default to the unit being viewed, else "my unit".
+  String? _defaultUnit(String? wardId) {
+    if (wardId == null) return null;
+    final units = context.read<UnitProvider>();
+    final scope = units.scope;
+    if (scope.wardId == wardId && scope.unitId != null) return scope.unitId;
+    return units.myUnitFor(wardId);
   }
 
   int? get _birthWeightG {
@@ -176,6 +193,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
       apgar1: newborn ? _apgar1 : null,
       apgar5: newborn ? _apgar5 : null,
       resuscitated: newborn ? _resuscitated : null,
+      unitId: _unitId,
     );
   }
 
@@ -194,6 +212,16 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
       final ok = await provider.updatePatient(
           _build(id: widget.existing!.id, wardId: widget.existing!.wardId));
       if (ok) patientId = widget.existing!.id;
+      if (ok && _unitId != widget.existing!.unitId) {
+        try {
+          await PatientService().moveToUnit(widget.existing!.id, _unitId);
+        } catch (e) {
+          messenger.showSnackBar(SnackBar(
+            backgroundColor: AppColors.danger,
+            content: Text("Saved, but couldn't change the unit — ${friendlyError(e)}"),
+          ));
+        }
+      }
     } else {
       patientId =
           await provider.addPatient(_build(id: const Uuid().v4(), wardId: wardId));
@@ -297,6 +325,14 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
             if (mounted) setState(() => _wardId = wards.first.id);
           });
         }
+        if (!_unitTouched && _wardId != null) {
+          final d = _defaultUnit(_wardId);
+          if (d != _unitId) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted && !_unitTouched) setState(() => _unitId = d);
+            });
+          }
+        }
         final current = wards.where((w) => w.id == _wardId).firstOrNull;
         return InsetGroup(
           footer: wards.isEmpty && snap.hasData
@@ -315,13 +351,48 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                         selected: _wardId,
                         options: {for (final w in wards) w.id: w.name},
                       );
-                      if (id != null) setState(() => _wardId = id);
+                      if (id != null && id != _wardId) {
+                        setState(() {
+                          _wardId = id;
+                          _unitId = _defaultUnit(id);
+                        });
+                      }
                     },
             ),
+            ..._unitRow(),
           ],
         );
       },
     );
+  }
+
+  /// Unit picker for the chosen ward (hidden when the ward has none).
+  List<Widget> _unitRow() {
+    final wardId = _wardId;
+    if (wardId == null) return const [];
+    final units = context.watch<UnitProvider>();
+    final list = units.unitsOf(wardId);
+    if (list.isEmpty) return const [];
+    return [
+      SettingsRow(
+        title: 'Unit',
+        value: units.unitById(_unitId)?.name ?? 'Unassigned',
+        onTap: () async {
+          final id = await showOptionSheet<String>(
+            context,
+            title: 'Unit (team)',
+            selected: _unitId ?? '',
+            options: {for (final u in list) u.id: u.name, '': 'Unassigned'},
+          );
+          if (id != null) {
+            setState(() {
+              _unitTouched = true;
+              _unitId = id.isEmpty ? null : id;
+            });
+          }
+        },
+      ),
+    ];
   }
 
   Widget _patientGroup() {
@@ -329,6 +400,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
       header: 'Patient',
       dividerIndent: 16,
       children: [
+        if (_editing) ..._unitRow(),
         InsetTextRow(
           label: 'Name',
           controller: _name,

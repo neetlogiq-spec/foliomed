@@ -66,6 +66,7 @@ class FolioMedApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => TextScaleProvider()..load()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => ReminderProvider()),
+        ChangeNotifierProvider(create: (_) => UnitProvider()),
       ],
       child: Consumer2<ThemeProvider, TextScaleProvider>(
         builder: (context, themeProvider, textScale, _) {
