@@ -32,6 +32,9 @@ class AppUser {
   final String? specialty;
   final DateTime createdAt;
 
+  /// False until the user has picked doctor/nurse once after first sign-in.
+  final bool roleConfirmed;
+
   const AppUser({
     required this.uid,
     required this.name,
@@ -43,6 +46,7 @@ class AppUser {
     this.avatarEmoji,
     this.specialty,
     required this.createdAt,
+    this.roleConfirmed = true,
   });
 
   /// Builds a user from a `profiles` row.
@@ -58,6 +62,7 @@ class AppUser {
       avatarEmoji: row['avatar_emoji'] as String?,
       specialty: row['specialty'] as String?,
       createdAt: parseTimestamp(row['created_at']),
+      roleConfirmed: row['role_confirmed'] as bool? ?? true,
     );
   }
 

@@ -115,6 +115,13 @@ String? _supabaseMessage(Object e) {
     return e.message.isEmpty ? null : e.message;
   }
   if (e is PostgrestException) {
+    final message = e.message.toLowerCase();
+    if (message.contains('last admin')) {
+      return "You're the only admin — make someone else an admin first.";
+    }
+    if (message.contains('only an admin') || message.contains('admin only')) {
+      return 'Only a ward admin can change roles.';
+    }
     switch (e.code) {
       case '42501': // insufficient_privilege / row-level security
         return "You don't have permission to do that.";

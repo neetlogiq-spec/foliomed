@@ -55,47 +55,6 @@ class AuthService {
     return _fetchProfile(user.id);
   }
 
-  Future<AppUser?> signIn(String email, String password) async {
-    final res = await _auth.signInWithPassword(
-      email: email.trim(),
-      password: password,
-    );
-    final uid = res.user?.id;
-    if (uid == null) return null;
-    return _fetchProfileWithRetry(uid);
-  }
-
-  /// Creates the auth account. `name`, `role` and `ward_id` travel as user
-  /// metadata; the `handle_new_user` trigger turns them into a profile row.
-  Future<AppUser?> registerUser({
-    required String name,
-    required String email,
-    required String password,
-    required String role,
-    String? wardId,
-  }) async {
-    final res = await _auth.signUp(
-      email: email.trim(),
-      password: password,
-      emailRedirectTo: kIsWeb ? null : SupabaseConfig.authRedirectUrl,
-      data: {
-        'name': name,
-        'role': role,
-        'ward_id': wardId ?? '',
-      },
-    );
-    final user = res.user;
-    if (user == null) return null;
-    if (res.session == null) {
-      // Email confirmation is enabled in Supabase Auth settings.
-      throw const AuthException(
-        'Check your inbox to confirm your email, then sign in.',
-        code: 'email_not_confirmed',
-      );
-    }
-    return _fetchProfileWithRetry(user.id);
-  }
-
   /// Google sign-in through Supabase's hosted OAuth flow (the Google
   /// provider is configured in the Supabase dashboard).
   ///
@@ -208,23 +167,19 @@ class AuthService {
     return sha256.convert(bytes).toString();
   }
 
-  /// Sends a password-reset email via Supabase Auth. Delivery goes through
-  /// the custom SMTP configured in the Supabase dashboard (Resend).
-  /// Supabase never reveals whether the address is registered.
-  Future<void> sendPasswordReset(String email) async {
-    await _auth.resetPasswordForEmail(
-      email.trim().toLowerCase(),
-      redirectTo: kIsWeb ? null : SupabaseConfig.authRedirectUrl,
-    );
+  /// One-time doctor/nurse choice after first sign-in (`confirm_my_role`).
+  /// "admin" can never be self-assigned — the database rejects it.
+  Future<AppUser?> confirmRole(String role) async {
+    await _client.rpc('confirm_my_role', params: {'p_role': role});
+    return getCurrentUser();
   }
 
-  /// Re-checks the password for a sensitive action (account deletion).
-  Future<void> reauthenticate(String password) async {
-    final email = _auth.currentUser?.email;
-    if (email == null || email.isEmpty) {
-      throw const AuthException('No email on this account.');
-    }
-    await _auth.signInWithPassword(email: email, password: password);
+  /// Admin-only: grant or change another user's role (`set_user_role`).
+  Future<void> setUserRole(String userId, String role) async {
+    await _client.rpc('set_user_role', params: {
+      'p_user': userId,
+      'p_role': role,
+    });
   }
 
   /// Permanently deletes the signed-in account and everything it owns

@@ -1,4 +1,3 @@
-import 'package:supabase_flutter/supabase_flutter.dart' show UserAttributes;
 import '../../models/row_parsing.dart';
 import '../../services/auth_service.dart';
 import '../../services/supabase_service.dart';
@@ -321,10 +320,20 @@ class ProfileScreen extends StatelessWidget {
           onTap: () => _showEditProfile(context, auth),
         ),
         ListTile(
-          leading: const Icon(Icons.lock_outline),
-          title: const Text('Change password'),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => _showChangePassword(context),
+          leading: const Icon(Icons.badge_outlined),
+          title: const Text('Role'),
+          subtitle: Text(
+            auth.currentUser?.role == UserRole.admin
+                ? 'Admin roles are managed from Staff'
+                : 'Switch between doctor and nurse',
+          ),
+          trailing: Text(
+            auth.currentUser?.roleLabel ?? '',
+            style: AppTypography.subheadline(color: AppColors.textSecondary),
+          ),
+          onTap: auth.currentUser?.role == UserRole.admin
+              ? null
+              : () => _chooseRole(context, auth),
         ),
         const Divider(height: 1, indent: 60),
         ListTile(
@@ -1051,80 +1060,45 @@ Account: $email
     );
   }
 
-  void _showChangePassword(BuildContext context) {
-    final currentController = TextEditingController();
-    final newController = TextEditingController();
-    final confirmController = TextEditingController();
-    showAdaptiveDialog(
+  /// Self-service doctor ↔ nurse switch (admin is never self-assigned).
+  Future<void> _chooseRole(BuildContext context, AuthProvider auth) async {
+    final role = await showAdaptiveDialog<UserRole>(
       context: context,
-      builder: (_) => AppAlertDialog(
-        title: const Text('Change password'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: currentController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: 'Current password'),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: newController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: 'New password'),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: confirmController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: 'Confirm new'),
-            ),
-          ],
-        ),
+      builder: (ctx) => AppAlertDialog(
+        title: const Text('Your role'),
+        content: const Text('This decides your home screen and what you can do.'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            onPressed: () => Navigator.pop(ctx, UserRole.doctor),
+            child: const Text('Doctor'),
           ),
-          ElevatedButton(
-            onPressed: () async {
-              if (newController.text != confirmController.text) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Passwords do not match')),
-                );
-                return;
-              }
-              final user = supabase.auth.currentUser;
-              if (user == null || user.email == null) return;
-              try {
-                // Verify the current password before changing it.
-                await AuthService().reauthenticate(currentController.text);
-                await supabase.auth.updateUser(
-                  UserAttributes(password: newController.text),
-                );
-                if (context.mounted) {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Password updated')),
-                  );
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      backgroundColor: AppColors.danger,
-                      content: Text(friendlyError(e)),
-                    ),
-                  );
-                }
-              }
-            },
-            child: const Text('Update'),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, UserRole.nurse),
+            child: const Text('Nurse'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
           ),
         ],
       ),
     );
+    if (role == null || role == auth.currentUser?.role) return;
+    final ok = await auth.confirmRole(role);
+    if (!context.mounted) return;
+    if (ok) {
+      // Home screen and tabs depend on the role — restart at the gate.
+      Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
+    } else if (auth.error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: AppColors.danger,
+          content: Text(friendlyError(auth.error!)),
+        ),
+      );
+    }
   }
+
 }
 
 // ─────────────────────────── Stateful toggle ────────────────────────────

@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import '../../utils/app_typography.dart';
+import 'package:share_plus/share_plus.dart';
 
-import '../../models/app_user.dart';
-import '../../services/auth_service.dart';
-import '../../utils/app_theme.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
+import '../../utils/app_theme.dart';
+import '../../utils/app_typography.dart';
 import '../../widgets/app_sheet.dart';
+import '../../widgets/large_title_app_bar.dart';
 
+/// Invite staff. Accounts are created by signing in with Google or Apple —
+/// there are no passwords to hand out — so inviting means sharing a ward's
+/// join code. Roles are then set from the Staff screen.
 Future<void> showAddStaffBottomSheet(
   BuildContext context, {
   String? wardId,
@@ -16,271 +21,121 @@ Future<void> showAddStaffBottomSheet(
   return showAppSheet(
     context: context,
     isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    builder: (_) => AddStaffBottomSheet(
-      wardId: wardId,
-      showWardSelector: showWardSelector,
-    ),
+    builder: (_) => InviteStaffSheet(wardId: wardId),
   );
 }
 
-class AddStaffBottomSheet extends StatefulWidget {
+class InviteStaffSheet extends StatelessWidget {
+  const InviteStaffSheet({super.key, this.wardId});
+
+  /// A specific ward, or null to list every ward the admin belongs to.
   final String? wardId;
-  final bool showWardSelector;
 
-  const AddStaffBottomSheet({
-    super.key,
-    this.wardId,
-    this.showWardSelector = false,
-  });
+  static const _appUrl = 'https://www.foliomed.app/app/';
 
-  @override
-  State<AddStaffBottomSheet> createState() => _AddStaffBottomSheetState();
-}
-
-class _AddStaffBottomSheetState extends State<AddStaffBottomSheet> {
-  final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _wardController = TextEditingController();
-  final _authService = AuthService();
-
-  UserRole _role = UserRole.nurse;
-  bool _obscure = true;
-  bool _submitting = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _wardController.text = widget.wardId ?? '';
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
-    _wardController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
-    setState(() => _submitting = true);
-    try {
-      await _authService.registerUser(
-        name: _nameController.text.trim(),
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-        role: _role.name,
-        wardId: _wardController.text.trim(),
-      );
-      if (!mounted) return;
-      Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Staff account created. They can now log in.'),
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _submitting = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: AppColors.danger,
-          content: Text(e.toString()),
-        ),
-      );
-    }
-  }
+  String _message(String code) =>
+      'Join my ward on FolioMed.\n\n'
+      '1. Open $_appUrl (or install the app)\n'
+      '2. Sign in with Google or Apple\n'
+      '3. Wards → Join Ward → enter code $code';
 
   @override
   Widget build(BuildContext context) {
-    context.watch<ThemeProvider>(); // rebuild on theme change
+    context.watch<ThemeProvider>();
+    final user = context.watch<AuthProvider>().currentUser;
+    final codes = wardId != null ? [wardId!] : (user?.wardIds ?? const []);
 
-    return DraggableScrollableSheet(
-      initialChildSize: 0.7,
-      minChildSize: 0.4,
-      maxChildSize: 0.95,
-      expand: false,
-      builder: (context, scrollController) {
-        return Container(
-          decoration: BoxDecoration(
-            color: AppColors.card,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: Column(
-            children: [
-              const SizedBox(height: 10),
-              Container(
-                width: 40,
-                height: 4,
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(
+                width: 36,
+                height: 5,
                 decoration: BoxDecoration(
-                  color: AppColors.divider,
-                  borderRadius: BorderRadius.circular(4),
+                  color: AppColors.tertiaryLabel,
+                  borderRadius: BorderRadius.circular(3),
                 ),
               ),
-              Expanded(
-                child: SingleChildScrollView(
-                  controller: scrollController,
-                  padding: const EdgeInsets.all(20),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          'Add Staff to Ward',
-                          style: appText(
-                            color: AppColors.textPrimary,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Enter staff details to create their account',
-                          style: appText(
-                            color: AppColors.textSecondary,
-                            fontSize: 13,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        TextFormField(
-                          controller: _nameController,
-                          textCapitalization: TextCapitalization.words,
-                          decoration: const InputDecoration(
-                            labelText: 'Full name',
-                            prefixIcon: Icon(Icons.person_outline),
-                          ),
-                          validator: (v) => (v == null || v.trim().isEmpty)
-                              ? 'Required'
-                              : null,
-                        ),
-                        const SizedBox(height: 12),
-                        TextFormField(
-                          controller: _emailController,
-                          keyboardType: TextInputType.emailAddress,
-                          decoration: const InputDecoration(
-                            labelText: 'Email',
-                            prefixIcon: Icon(Icons.email_outlined),
-                          ),
-                          validator: (v) {
-                            if (v == null ||
-                                !v.contains('@') ||
-                                !v.contains('.')) {
-                              return 'Invalid email';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 12),
-                        TextFormField(
-                          controller: _passwordController,
-                          obscureText: _obscure,
-                          decoration: InputDecoration(
-                            labelText: 'Temporary password',
-                            prefixIcon: const Icon(Icons.lock_outline),
-                            suffixIcon: IconButton(
-                              icon: Icon(_obscure
-                                  ? Icons.visibility_off_outlined
-                                  : Icons.visibility_outlined),
-                              onPressed: () =>
-                                  setState(() => _obscure = !_obscure),
-                            ),
-                          ),
-                          validator: (v) =>
-                              (v == null || v.length < 6) ? 'Min 6 chars' : null,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Role',
-                          style: appText(
-                            color: AppColors.textSecondary,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            _roleChip('Doctor', UserRole.doctor),
-                            const SizedBox(width: 8),
-                            _roleChip('Nurse', UserRole.nurse),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: _wardController,
-                          readOnly: !widget.showWardSelector,
-                          decoration: const InputDecoration(
-                            labelText: 'Ward ID',
-                            prefixIcon: Icon(Icons.business_outlined),
-                          ),
-                          validator: (v) => (v == null || v.trim().isEmpty)
-                              ? 'Required'
-                              : null,
-                        ),
-                        const SizedBox(height: 24),
-                        ElevatedButton(
-                          onPressed: _submitting ? null : _submit,
-                          child: _submitting
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator.adaptive(
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : const Padding(
-                                  padding:
-                                      EdgeInsets.symmetric(vertical: 4),
-                                  child: Text('Create Staff Account'),
-                                ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+            ),
+            const SizedBox(height: 16),
+            Text('Invite staff',
+                style: AppTypography.title2(color: AppColors.textPrimary)),
+            const SizedBox(height: 6),
+            Text(
+              'Colleagues sign in with Google or Apple, then join with the '
+              'ward code. Once they appear in Staff, you can set their role.',
+              style: AppTypography.subheadline(color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 20),
+            if (codes.isEmpty)
+              Text(
+                'Create or join a ward first — its code is what you share.',
+                style: AppTypography.subheadline(color: AppColors.textPrimary),
+              )
+            else ...[
+              const GroupedSectionHeader('Ward codes'),
+              for (final code in codes) _CodeRow(code: code, message: _message(code)),
             ],
-          ),
-        );
-      },
+          ],
+        ),
+      ),
     );
   }
+}
 
-  Widget _roleChip(String label, UserRole role) {
-    final selected = _role == role;
-    final color = role == UserRole.doctor
-        ? AppColors.doctorColor
-        : AppColors.nurseColor;
-    return Expanded(
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () => setState(() => _role = role),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          decoration: BoxDecoration(
-            color: selected ? color.withOpacity(0.1) : AppColors.card,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: selected ? color : AppColors.divider,
-              width: selected ? 1.5 : 1,
-            ),
-          ),
-          child: Center(
+class _CodeRow extends StatelessWidget {
+  const _CodeRow({required this.code, required this.message});
+
+  final String code;
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadii.card),
+      ),
+      child: Row(
+        children: [
+          Expanded(
             child: Text(
-              label,
-              style: appText(
-                color: selected ? color : AppColors.textPrimary,
+              code,
+              semanticsLabel: 'Ward code ${code.split('').join(' ')}',
+              style: appMonoText(
+                color: AppColors.textPrimary,
+                fontSize: 20,
                 fontWeight: FontWeight.w600,
-              ),
+                letterSpacing: 3,
+              ).copyWith(fontFeatures: AppTypography.tabular),
             ),
           ),
-        ),
+          IconButton(
+            tooltip: 'Copy code',
+            icon: const Icon(Icons.copy),
+            onPressed: () async {
+              await Clipboard.setData(ClipboardData(text: code));
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Ward code $code copied')),
+                );
+              }
+            },
+          ),
+          IconButton(
+            tooltip: 'Share invite',
+            icon: const Icon(Icons.ios_share),
+            onPressed: () => Share.share(message, subject: 'Join my ward on FolioMed'),
+          ),
+        ],
       ),
     );
   }

@@ -12,7 +12,7 @@ import 'add_staff_bottom_sheet.dart';
 import '../../providers/theme_provider.dart';
 import '../../widgets/app_sheet.dart';
 import '../../utils/layout.dart';
-import '../../widgets/app_alert_dialog.dart';
+import '../../services/auth_service.dart';
 
 class AdminStaffScreen extends StatefulWidget {
   const AdminStaffScreen({super.key});
@@ -95,7 +95,9 @@ class _AdminStaffScreenState extends State<AdminStaffScreen> {
                   .then((rows) => rows.map(AppUser.fromRow).toList()),
               builder: (context, snap) {
                 if (!snap.hasData) {
-                  return const Center(child: CircularProgressIndicator.adaptive());
+                  return const Center(
+                    child: CircularProgressIndicator.adaptive(),
+                  );
                 }
                 final all = snap.data!;
                 final staff = all.where((u) {
@@ -108,14 +110,15 @@ class _AdminStaffScreenState extends State<AdminStaffScreen> {
                   return Center(
                     child: Text(
                       'No staff found',
-                      style: appText(
-                        color: AppColors.textSecondary,
-                      ),
+                      style: appText(color: AppColors.textSecondary),
                     ),
                   );
                 }
                 return ListView.separated(
-                  padding: withBottomBarInset(context, const EdgeInsets.all(16)),
+                  padding: withBottomBarInset(
+                    context,
+                    const EdgeInsets.all(16),
+                  ),
                   itemCount: staff.length,
                   separatorBuilder: (_, __) => const SizedBox(height: 10),
                   itemBuilder: (_, i) => _staffCard(staff[i]),
@@ -153,8 +156,7 @@ class _AdminStaffScreenState extends State<AdminStaffScreen> {
             borderRadius: BorderRadius.circular(20),
             onTap: () => setState(() => _filter = f),
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
               decoration: BoxDecoration(
                 color: selected ? AppColors.primary : Colors.white,
                 borderRadius: BorderRadius.circular(20),
@@ -243,21 +245,17 @@ class _AdminStaffScreenState extends State<AdminStaffScreen> {
               ),
             ),
             RoleBadge(role: user.role, small: true),
-            PopupMenuButton<String>(
-              icon: Icon(
-                Icons.more_vert,
-                color: AppColors.textSecondary,
-              ),
-              onSelected: (value) {
-                if (value == 'ward') {
-                  _changeWard(user);
-                } else if (value == 'remove') {
-                  _removeStaff(user);
-                }
-              },
-              itemBuilder: (_) => const [
-                PopupMenuItem(value: 'ward', child: Text('Change Ward')),
-                PopupMenuItem(value: 'remove', child: Text('Remove Staff')),
+            PopupMenuButton<UserRole>(
+              tooltip: 'Change role',
+              icon: Icon(Icons.more_vert, color: AppColors.textSecondary),
+              onSelected: (role) => _setRole(user, role),
+              itemBuilder: (_) => [
+                for (final role in UserRole.values)
+                  CheckedPopupMenuItem(
+                    value: role,
+                    checked: user.role == role,
+                    child: Text('Make ${_roleName(role)}'),
+                  ),
               ],
             ),
           ],
@@ -293,25 +291,15 @@ class _AdminStaffScreenState extends State<AdminStaffScreen> {
             const SizedBox(height: 12),
             Text(
               user.name,
-              style: appText(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: appText(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             RoleBadge(role: user.role),
             const SizedBox(height: 12),
-            Text(
-              user.email,
-              style: appText(
-                color: AppColors.textSecondary,
-              ),
-            ),
+            Text(user.email, style: appText(color: AppColors.textSecondary)),
             Text(
               'Ward ${user.wardId}',
-              style: appText(
-                color: AppColors.textSecondary,
-              ),
+              style: appText(color: AppColors.textSecondary),
             ),
           ],
         ),
@@ -319,95 +307,25 @@ class _AdminStaffScreenState extends State<AdminStaffScreen> {
     );
   }
 
-  Future<void> _changeWard(AppUser user) async {
-    final controller = TextEditingController(text: user.wardId);
-    final newWard = await showAdaptiveDialog<String>(
-      context: context,
-      builder: (_) => AppAlertDialog(
-        title: const Text('Change Ward'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(labelText: 'Ward ID'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, controller.text.trim()),
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-    if (newWard != null && newWard.isNotEmpty) {
-      await _applyToProfile(
-        user,
-        () => supabase
-            .from(Tables.profiles)
-            .update({'ward_id': newWard})
-            .eq('id', user.uid)
-            .select('id'),
-      );
-    }
-  }
+  static String _roleName(UserRole role) => switch (role) {
+    UserRole.doctor => 'Doctor',
+    UserRole.nurse => 'Nurse',
+    UserRole.admin => 'Admin',
+  };
 
-  Future<void> _removeStaff(AppUser user) async {
-    final confirm = await showAdaptiveDialog<bool>(
-      context: context,
-      builder: (_) => AppAlertDialog(
-        title: const Text('Remove staff?'),
-        content: Text(
-          'This removes ${user.name} from the staff directory.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.danger,
-            ),
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Remove'),
-          ),
-        ],
-      ),
-    );
-    if (confirm == true) {
-      await _applyToProfile(
-        user,
-        () => supabase
-            .from(Tables.profiles)
-            .delete()
-            .eq('id', user.uid)
-            .select('id'),
-      );
-    }
-  }
-
-  /// Row-level security only lets people edit their own profile, so an
-  /// admin acting on someone else affects zero rows. Surface that instead
-  /// of failing silently.
-  Future<void> _applyToProfile(
-    AppUser user,
-    Future<List<Map<String, dynamic>>> Function() action,
-  ) async {
+  /// Admin-only role change via the `set_user_role` database function,
+  /// which also refuses to demote the last remaining admin.
+  Future<void> _setRole(AppUser user, UserRole role) async {
+    if (role == user.role) return;
     try {
-      final rows = await action();
+      await AuthService().setUserRole(user.uid, role.name);
       if (!mounted) return;
-      if (rows.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: AppColors.danger,
-            content: Text('Only ${user.name} can change their own account.'),
-          ),
-        );
-      } else {
-        setState(() {});
-      }
+      setState(() {}); // re-fetch the staff list
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${user.name} is now ${_roleName(role).toLowerCase()}'),
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

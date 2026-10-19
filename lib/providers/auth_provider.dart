@@ -26,51 +26,6 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> signIn(String email, String password) async {
-    _error = null;
-    _setLoading(true);
-    try {
-      final user = await _authService.signIn(email, password);
-      _currentUser = user;
-      _setLoading(false);
-      return user != null;
-    } catch (e) {
-      debugPrint('AUTH ERROR FULL: $e');
-      debugPrint('AUTH ERROR TYPE: ${e.runtimeType}');
-      _error = e;
-      _setLoading(false);
-      return false;
-    }
-  }
-
-  Future<bool> register({
-    required String name,
-    required String email,
-    required String password,
-    required String role,
-    String? wardId,
-  }) async {
-    _error = null;
-    _setLoading(true);
-    try {
-      final user = await _authService.registerUser(
-        name: name,
-        email: email,
-        password: password,
-        role: role,
-        wardId: wardId,
-      );
-      _currentUser = user;
-      _setLoading(false);
-      return user != null;
-    } catch (e) {
-      debugPrint('AUTH ERROR: $e (${e.runtimeType})');
-      _error = e;
-      _setLoading(false);
-      return false;
-    }
-  }
-
   Future<bool> signInWithGoogle() async {
     _error = null;
     _setLoading(true);
@@ -105,11 +60,13 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> sendPasswordReset(String email) async {
+  /// One-time doctor/nurse choice after first sign-in.
+  Future<bool> confirmRole(UserRole role) async {
     _error = null;
     try {
-      await _authService.sendPasswordReset(email);
-      return true;
+      _currentUser = await _authService.confirmRole(role.name);
+      notifyListeners();
+      return _currentUser != null;
     } catch (e) {
       debugPrint('AUTH ERROR: $e (${e.runtimeType})');
       _error = e;
@@ -162,6 +119,7 @@ class AuthProvider extends ChangeNotifier {
         avatarEmoji: avatarEmoji ?? current.avatarEmoji,
         specialty: specialty ?? current.specialty,
         createdAt: current.createdAt,
+        roleConfirmed: current.roleConfirmed,
       );
       notifyListeners();
     }
@@ -172,20 +130,5 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  String _friendly(Object e) {
-    final msg = e.toString();
-    if (msg.contains('user-not-found')) return 'No account with that email';
-    if (msg.contains('wrong-password')) return 'Wrong password';
-    if (msg.contains('invalid-credential') ||
-        msg.contains('invalid-login-credentials')) {
-      return 'Email or password is incorrect';
-    }
-    if (msg.contains('invalid-email')) return 'Invalid email';
-    if (msg.contains('email-already-in-use')) {
-      return 'That email is already registered. Switch to Sign In.';
-    }
-    if (msg.contains('weak-password')) return 'Password too weak';
-    if (msg.contains('network-request-failed')) return 'Network error';
-    return msg;
-  }
+
 }

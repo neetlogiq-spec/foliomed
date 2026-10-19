@@ -16,12 +16,14 @@ import '../screens/doctor/patients_list_screen.dart';
 import '../screens/nurse/nurse_patient_detail_screen.dart';
 import '../screens/nurse/nurse_patients_screen.dart';
 import '../screens/shared/main_scaffold.dart';
+import '../screens/auth/role_choice_screen.dart';
 
 class AppRoutes {
   static const String splash = '/';
   static const String onboarding = '/onboarding';
   static const String login = '/login';
   static const String backgroundSetup = '/background-setup';
+  static const String chooseRole = '/choose-role';
 
   static const String doctorHome = '/doctor/home';
   static const String doctorPatients = '/doctor/patients';
@@ -42,6 +44,7 @@ class AppRoutes {
         onboarding: (_) => const OnboardingScreen(),
         login: (_) => const LoginScreen(),
         backgroundSetup: (_) => const BackgroundSetupScreen(),
+        chooseRole: (_) => const RoleChoiceScreen(),
         doctorHome: (_) => const MainScaffold(role: UserRole.doctor),
         doctorPatients: (_) => const PatientsListScreen(),
         doctorAddPatient: (_) => const AddPatientScreen(),

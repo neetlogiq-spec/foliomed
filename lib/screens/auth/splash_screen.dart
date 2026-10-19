@@ -62,6 +62,12 @@ class _SplashScreenState extends State<SplashScreen> {
       return;
     }
 
+    // New account: pick doctor/nurse once before entering the app.
+    if (!authProvider.currentUser!.roleConfirmed) {
+      Navigator.of(context).pushReplacementNamed('/choose-role');
+      return;
+    }
+
     final wizardSkip = BackgroundSetupScreen.shouldSkip();
     final wizardDone = wizardSkip
         ? true
