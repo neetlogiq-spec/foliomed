@@ -60,3 +60,4 @@ env.json
 supabase/.temp/
 supabase/.env
 *.p8
+/android/build/
