@@ -41,7 +41,7 @@
 
   <main id="main" class="doc">
     <h1 class="headline">Privacy Policy</h1>
-    <p class="meta">Effective 19 October 2026 · Last updated 19 October 2026</p>
+    <p class="meta">Effective 19 October 2026 · Last updated 20 October 2026</p>
 
     <div class="summary">
       <p><strong>In short:</strong> FolioMed stores what you and your ward team write so you can share it with each other — and nothing more. No ads, no tracking, no selling data. Only members of a ward can read that ward’s patients and notes. You can delete your account at any time.</p>
@@ -56,6 +56,7 @@
         <li><a href="#share">Who can see it</a></li>
         <li><a href="#where">Where it’s stored</a></li>
         <li><a href="#keep">How long we keep it</a></li>
+        <li><a href="#roles">Patient data</a></li>
         <li><a href="#rights">Your rights</a></li>
         <li><a href="#security">Security</a></li>
         <li><a href="#children">Children</a></li>
@@ -80,16 +81,18 @@
       <li><strong>Patient details</strong> your team enters: name, age, gender, bed number, diagnosis, blood group and, optionally, a hospital ID and, for newborns, birth details: date and time of birth, gestational age, birth weight, size for dates, mode of delivery, APGAR scores, whether resuscitation was needed and the mother’s blood group. Each patient also gets a FolioMed patient ID.</li>
       <li><strong>Newborn investigation results</strong> your team enters (blood counts, TSH, blood groups, bilirubin, kidney function and electrolytes, hearing screen), with gestational age, who entered them and when.</li>
       <li><strong>Reminders</strong> your team sets on a patient (for example, 48-hour investigations), with who marked them done and when. Reminder alerts are scheduled on your own device.</li>
+      <li><strong>Newborn tracking:</strong> bilirubin readings, phototherapy start and stop times, daily weights, and the mother’s name, age and gravida/para.</li>
       <li><strong>Units (teams)</strong> a ward is divided into, and which unit each patient belongs to.</li>
       <li><strong>Admission history:</strong> transfers between wards and discharges, with who did them, when, and any summary written.</li>
       <li><strong>Notes, replies and acknowledgements</strong>, with who wrote them and when.</li>
       <li><strong>Optional profile details:</strong> specialty and avatar emoji.</li>
     </ul>
     <h3>Scanning text from photos</h3>
-    <p>If you use <strong>Scan text</strong> when writing a note, the photo you take or choose is read on your device to extract its text. The photo is not uploaded or stored by FolioMed — only the text you choose to keep, as part of your note.</p>
+    <p>If you use <strong>Scan text</strong> when writing a note, or <strong>Scan lab report</strong> when entering results, the photo you take or choose is read on your device to extract its text. The photo is not uploaded or stored by FolioMed — only the text or values you choose to keep.</p>
     <h3>Automatically</h3>
     <ul>
       <li>Account creation and last sign-in times, shown to you in Profile.</li>
+      <li>A notification token for each phone you sign in on, so alerts reach you when FolioMed is closed. It is deleted when you sign out.</li>
       <li>Anonymous counters (for example “number of notes posted”) shown on our website. They contain no names or clinical content.</li>
     </ul>
     <h3>What we don’t collect</h3>
@@ -102,15 +105,16 @@
     <ul>
       <li>To sign you in and show you the wards you belong to.</li>
       <li>To show your ward team the patients, notes and acknowledgements in that ward, live.</li>
-      <li>To show in-app alerts when a teammate posts a note in your ward.</li>
+      <li>To alert you — in the app and as phone notifications — when a teammate posts a note in your ward or a reminder falls due.</li>
+      <li>To show clinical decision support you can see (for example, bilirubin compared with published thresholds). It never makes decisions on its own.</li>
       <li>To answer feedback and bug reports you send us.</li>
     </ul>
     <p>We never use your data for advertising, profiling, training AI models, or sale to anyone.</p>
 
     <h2 id="share">4. Who can see it</h2>
-    <p><strong>Your ward:</strong> patients, notes, replies and vitals are visible only to members of the same ward. This is enforced by row-level security in the database, so it holds even if the app had a bug.</p>
+    <p><strong>Your ward:</strong> patients, notes, replies, reminders, results and tracking data are visible only to members of the same ward. This is enforced by row-level security in the database, so it holds even if the app had a bug.</p>
     <p><strong>Other signed-in users</strong> can see your name, role and profile picture — for example, as the author of a note.</p>
-    <p><strong>Service providers:</strong> data is stored and processed by <a href="https://supabase.com/privacy">Supabase</a> (authentication, database and file storage) and sign-in passes through Google or Apple. They process data only to run the service. The website is hosted on GitHub Pages.</p>
+    <p><strong>Service providers:</strong> data is stored and processed by <a href="https://supabase.com/privacy">Supabase</a> (authentication, database and file storage), phone notifications are delivered through Google Firebase Cloud Messaging and Apple Push Notification service (the notification shows the patient’s name and a short summary), and sign-in passes through Google or Apple. They process data only to run the service. The website is hosted on GitHub Pages.</p>
     <p>We do not sell, rent or trade personal data.</p>
 
     <h2 id="where">5. Where it’s stored</h2>
@@ -124,11 +128,16 @@
       <li><strong>Activity counters</strong> on the website are anonymous and kept indefinitely.</li>
     </ul>
 
-    <h2 id="rights">7. Your rights</h2>
-    <p>You can see most of your data in the app, change your name, role and profile in Profile, and delete your account there at any time. To get a copy of your data, email us and we’ll reply within 30 days. If data-protection laws such as the GDPR, UK GDPR or India’s DPDP Act apply to you, you have the rights they give you, and you can contact us to use them.</p>
-    <p>Patient information is entered by clinicians. Patients who want their information corrected or removed should ask the ward team caring for them, or contact us.</p>
+    <h2 id="roles">7. Patient data and who is responsible</h2>
+    <p>Patient information is entered by the clinicians and hospital using FolioMed, who decide what to record and are responsible for having a lawful basis (such as the patient’s or parent’s consent, or medical treatment) under India’s Digital Personal Data Protection Act, 2023 and other laws that apply to them. FolioMed processes that information only to provide the service to the ward team.</p>
+    <p>Notes may be shared outside FolioMed only when a team member chooses to (for example, sharing a handover summary). Anyone sharing must follow their hospital’s rules on patient confidentiality.</p>
 
-    <h2 id="security">8. Security</h2>
+    <h2 id="rights">8. Your rights</h2>
+    <p>You can see most of your data in the app, change your name, role and profile in Profile, and delete your account there at any time. To get a copy of your data, email us and we’ll reply within 30 days. If data-protection laws such as the GDPR, UK GDPR or India’s DPDP Act apply to you, you have the rights they give you, and you can contact us to use them.</p>
+    <p>Patients (or parents of newborns) who want their information seen, corrected or removed should ask the ward team caring for them, or contact us. You may withdraw consent for your own account at any time by deleting it.</p>
+    <p><strong>Grievances:</strong> contact our grievance officer, Kashyap Anand, at <a href="mailto:kashyap2k007@gmail.com">kashyap2k007@gmail.com</a>. We acknowledge complaints within 7 days and aim to resolve them within 30 days. If you are not satisfied, you may approach the Data Protection Board of India.</p>
+
+    <h2 id="security">9. Security</h2>
     <ul>
       <li>All traffic is encrypted in transit (TLS); Supabase encrypts data at rest.</li>
       <li>There are no FolioMed passwords to steal — sign-in is through Google or Apple.</li>
@@ -136,13 +145,13 @@
     </ul>
     <p>No system is perfectly secure. If you find a vulnerability, please email us — we respond to and credit responsible disclosures.</p>
 
-    <h2 id="children">9. Children</h2>
+    <h2 id="children">10. Children</h2>
     <p>FolioMed is for healthcare professionals and is not directed at children. We don’t knowingly create accounts for anyone under 18.</p>
 
-    <h2 id="changes">10. Changes to this policy</h2>
+    <h2 id="changes">11. Changes to this policy</h2>
     <p>If we change this policy meaningfully we’ll update the date above, and where a change reduces your rights we’ll tell you in the app first.</p>
 
-    <h2 id="contact">11. Contact</h2>
+    <h2 id="contact">12. Contact</h2>
     <p>Kashyap Anand · <a href="mailto:kashyap2k007@gmail.com">kashyap2k007@gmail.com</a></p>
   </main>
 

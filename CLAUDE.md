@@ -58,17 +58,19 @@ Firestore → Postgres mapping: `users`→`profiles`, `wards`, `patients`,
 
 - Newborns: `patients.born_at` (date + time of birth) overrides `age` for display (hours in week one).
 - `patient_reminders`: ward-shared due-at reminders (RLS = ward members; `ward_id` must match the patient's). `done_by`/`done_by_name`/`created_by` are stamped by triggers; snooze = `snoozed_until`. They move with the patient on transfer.
-- Reminder alerts are **local** notifications (`ReminderNotifications`, flutter_local_notifications): each phone schedules its wards' open reminders whenever the list changes; the in-app "has this been done?" prompt comes from `ReminderProvider.onDue`. A phone that hasn't opened the app since a reminder was added won't alert — server push is still TODO.
+- Alerts: **server push** (migration `20261020030000`, setup in `docs/PUSH_SETUP.md`) — notes trigger and `enqueue_due_reminders()` (pg_cron) fill `push_outbox`; Edge Function `supabase/functions/push-dispatch` sends via FCM to ward members' `push_tokens`. App: `PushRegistration` (Firebase options from env.json `FIREBASE_*`, no google-services file). Until `push_enabled()` is true, `ReminderNotifications` schedules **local** reminder alarms instead (never both). The in-app "has this been done?" prompt comes from `ReminderProvider.onDue`.
 
 - Newborn investigations (`newborn_screens`, migration `20261020000000`): planned at 48/72 h of life with an 8/12 h heads-up. RPC-only writes: `plan_newborn_screen`, `mark_newborn_screen_sent`, `remind_newborn_results`, `save_newborn_results` (each also writes reminders with `kind` newborn_prep/send/results and a timeline note, category Investigation). Results are JSON owned by `NewbornResults` (`lib/models/newborn_screen.dart`). UI: `NewbornFlow`, `NewbornSection`, `NewbornResultsScreen`.
 - Birth details (migration `20261020010000`): birth weight, AGA/SGA/LGA (manual — no growth-chart data built in), delivery mode + indication, APGAR 1/5, resuscitation, mother's blood group. `birthSummaryLine()` (`lib/clinical/birth_summary.dart`) composes "TERM/MALE/AGA/LSCS (CPD) on 19/10/2026 at 10:19pm with birth weight of 3.1kgs"; maturity is derived from gestation (WHO bands). It fills the diagnosis when that is blank or was the previous composed line.
 - Units (teams) inside a ward (migration `20261020020000`): `ward_units` (owner writes, members read), `patients.unit_id` (trigger keeps it in the patient's ward; transfer clears it), `move_patient_unit` RPC logs "Moved from Unit A to Unit B". App: `UnitProvider` (units + shared `PatientScope` filter + per-device "My unit"), `ScopeButton` / `UnitCountsLine` (`lib/widgets/scope_button.dart`), `ScopeFilter` maps notes/reminders to units via their patient.
 - Bilirubin decision support: `lib/clinical/bilirubin.dart` — NICE CG98 Table 1 (≥38 wk, linear interpolation, flat from 96 h). AAP 2022 is a stub that reports "not built in" until its tables are supplied and verified. Never present as diagnosis; UI always shows the disclaimer.
 
-Test the schema locally without Docker: `supabase/tests/README.md` (suites 10–70).
+- Newborn tracking (migration `20261021000000`): `bilirubin_readings` (results add one per screen), `phototherapy_sessions` (one running per baby; start/stop on timeline), `weights`, mother name/age/G-P. UI: `NewbornTrackingSection`, `BilirubinChart` (CustomPainter vs NICE lines), `CensusScreen` (census + shareable handover; logic in `lib/clinical/handover.dart`). Lab-report OCR → results fields: `lib/clinical/lab_report_parser.dart`.
+
+Test the schema locally without Docker: `supabase/tests/README.md` (suites 10–90).
 
 ## User Roles & tabs
-- **Doctor / Nurse** — Today (`today_screen.dart`: tiles, reminders, collapsible Pending/All/Urgent note feed), Patients (`patients_screen.dart`, grouped by ward), Wards (`wards_screen.dart` → `ward_page.dart`), Profile. Doctors get the New note FAB; nurses acknowledge through the acknowledge sheet (`WiredNoteCard`).
+- **Doctor / Nurse** — Today (`today_screen.dart`: tiles, reminders, collapsible Pending/All/Urgent note feed), Patients (`patients_screen.dart`, grouped by ward), Wards (`wards_screen.dart` → `ward_page.dart`), Profile. Doctors get the compose button in the nav bar; nurses acknowledge through the acknowledge sheet (`WiredNoteCard`).
 - **Admin** — dashboard analytics, wards, staff list, profile
 - Patient edits reuse `AddPatientScreen(existing:)`; the ward is changed only via Transfer.
 - List UI uses `InsetGroup` / `SettingsRow` (`lib/widgets/inset_group.dart`) — iOS inset-grouped rows.
@@ -81,7 +83,7 @@ Test the schema locally without Docker: `supabase/tests/README.md` (suites 10–
 - `lib/services/supabase_service.dart` — `supabase` client getter, table/bucket names
 - `lib/services/auth_service.dart` — email, Google, Apple sign-in; reset; delete account
 - `lib/services/{note,patient,ward}_service.dart` — CRUD + realtime streams
-- `lib/services/push_service.dart` — realtime in-app alerts (background push TODO)
+- `lib/services/push_service.dart` — realtime in-app alerts; `push_registration.dart` — FCM device token
 - `lib/services/metrics_service.dart` — `bump_metric` RPC
 - `lib/utils/stream_cache.dart` — keep one realtime stream per key across rebuilds
 - `lib/utils/friendly_error.dart` — maps Supabase errors to plain English
