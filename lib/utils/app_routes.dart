@@ -13,7 +13,6 @@ import '../screens/auth/splash_screen.dart';
 import '../screens/doctor/add_patient_screen.dart';
 import '../screens/doctor/patient_detail_screen.dart';
 import '../screens/doctor/patients_list_screen.dart';
-import '../screens/nurse/nurse_patient_detail_screen.dart';
 import '../screens/nurse/nurse_patients_screen.dart';
 import '../screens/shared/main_scaffold.dart';
 import '../screens/auth/role_choice_screen.dart';
@@ -67,7 +66,7 @@ class AppRoutes {
         final patient = settings.arguments as Patient?;
         if (patient == null) return null;
         return MaterialPageRoute(
-          builder: (_) => NursePatientDetailScreen(patientId: patient.id),
+          builder: (_) => PatientDetailScreen(patientId: patient.id),
         );
       case adminWardDetail:
         final ward = settings.arguments as Ward?;

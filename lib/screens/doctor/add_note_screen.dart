@@ -14,6 +14,10 @@ import '../../utils/app_theme.dart';
 import 'add_patient_screen.dart';
 import '../../providers/theme_provider.dart';
 import '../../widgets/app_sheet.dart';
+import 'package:image_picker/image_picker.dart';
+import '../../services/text_scan_service.dart';
+import '../../widgets/app_alert_dialog.dart';
+import '../../utils/friendly_error.dart';
 
 Future<void> showAddNoteBottomSheet(
   BuildContext context, {
@@ -41,6 +45,53 @@ class _AddNoteBottomSheetState extends State<AddNoteBottomSheet> {
   final _patientStreams = StreamCache<List<Patient>>();
 
   final _contentController = TextEditingController();
+  bool _scanning = false;
+
+  /// Photo → text (on-device OCR), appended to the note for review.
+  Future<void> _scanText() async {
+    final source = await showAdaptiveDialog<ImageSource>(
+      context: context,
+      builder: (ctx) => AppAlertDialog(
+        title: const Text('Scan text from a photo'),
+        content: const Text('Text is read on this device. The photo is not '
+            'uploaded — check the text before posting.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, ImageSource.camera),
+            child: const Text('Take Photo'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, ImageSource.gallery),
+            child: const Text('Choose Photo'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+    if (source == null || !mounted) return;
+    setState(() => _scanning = true);
+    try {
+      final text = await TextScanService().scan(source);
+      if (text == null || !mounted) return;
+      final current = _contentController.text.trimRight();
+      final merged = current.isEmpty ? text : '$current\n\n$text';
+      _contentController.value = TextEditingValue(
+        text: merged,
+        selection: TextSelection.collapsed(offset: merged.length),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        backgroundColor: AppColors.danger,
+        content: Text(e is TextScanException ? e.message : friendlyError(e)),
+      ));
+    } finally {
+      if (mounted) setState(() => _scanning = false);
+    }
+  }
 
   Patient? _selectedPatient;
   String? _selectedWardId;
@@ -198,7 +249,25 @@ class _AddNoteBottomSheetState extends State<AddNoteBottomSheet> {
                       const SizedBox(height: 8),
                       _patientSelectorStream(),
                       const SizedBox(height: 16),
-                      _sectionLabel('Note'),
+                      Row(
+                        children: [
+                          Expanded(child: _sectionLabel('Note')),
+                          if (TextScanService.isSupported)
+                            TextButton.icon(
+                              onPressed: _scanning ? null : _scanText,
+                              icon: _scanning
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator.adaptive(
+                                          strokeWidth: 2),
+                                    )
+                                  : const Icon(Icons.document_scanner_outlined,
+                                      size: 18),
+                              label: const Text('Scan text'),
+                            ),
+                        ],
+                      ),
                       const SizedBox(height: 8),
                       TextField(
                         controller: _contentController,

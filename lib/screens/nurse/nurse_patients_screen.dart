@@ -7,9 +7,9 @@ import '../../utils/app_theme.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/patient_card.dart';
 import '../../widgets/support_action.dart';
-import 'nurse_patient_detail_screen.dart';
 import '../../providers/theme_provider.dart';
 import '../../utils/layout.dart';
+import '../doctor/patient_detail_screen.dart';
 
 class NursePatientsScreen extends StatefulWidget {
   const NursePatientsScreen({super.key});
@@ -103,7 +103,7 @@ class _NursePatientsScreenState extends State<NursePatientsScreen> {
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (_) => NursePatientDetailScreen(
+                    builder: (_) => PatientDetailScreen(
                       patientId: patients[i].id,
                     ),
                   ),

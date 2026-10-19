@@ -24,6 +24,9 @@ class PatientProvider extends ChangeNotifier {
   Patient? get selectedPatient => _selectedPatient;
   bool get isLoading => _isLoading;
   String? get error => _error;
+
+  /// The raw error from the last failed action, for `friendlyError`.
+  Object? lastException;
   int get patientCount => _patients.length;
 
   void subscribeForWards(List<String> wardIds) {
@@ -112,6 +115,44 @@ class PatientProvider extends ChangeNotifier {
       return false;
     }
   }
+
+  /// Runs a patient action with the standard haptics + error capture.
+  Future<bool> _run(Future<void> Function() action, void Function() haptic) async {
+    try {
+      await action();
+      haptic();
+      return true;
+    } catch (e) {
+      Haptics.error();
+      _error = e.toString();
+      lastException = e;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> dischargePatient(String patientId, {String summary = ''}) =>
+      _run(() => _patientService.dischargePatient(patientId, summary: summary),
+          Haptics.success);
+
+  Future<bool> readmitPatient(String patientId) =>
+      _run(() => _patientService.readmitPatient(patientId), Haptics.commit);
+
+  Future<bool> transferPatient(
+    String patientId, {
+    required String targetWardId,
+    String reason = '',
+    String? bedNumber,
+  }) =>
+      _run(
+        () => _patientService.transferPatient(
+          patientId,
+          targetWardId: targetWardId,
+          reason: reason,
+          bedNumber: bedNumber,
+        ),
+        Haptics.success,
+      );
 
   void pauseStream() {
     _subscription?.cancel();

@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import '../../utils/app_typography.dart';
 import 'package:intl/intl.dart';
@@ -8,15 +8,12 @@ import '../../models/note.dart';
 import '../../models/patient.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/note_provider.dart';
-import '../../providers/patient_provider.dart';
 import '../../utils/app_theme.dart';
 import '../../services/patient_service.dart';
-import '../../widgets/monitor/remote_video_viewer.dart';
-import '../../widgets/monitor/web_stream_card.dart';
+import '../../widgets/patient_actions.dart';
 import '../../widgets/note_card.dart';
 import 'add_note_screen.dart';
 import '../../providers/theme_provider.dart';
-import '../../widgets/app_alert_dialog.dart';
 import '../../widgets/large_title_app_bar.dart';
 import '../../widgets/empty_state.dart';
 import '../../utils/layout.dart';
@@ -57,51 +54,65 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
     super.dispose();
   }
 
-  Patient? _resolvePatient(PatientProvider provider) {
-    for (final p in provider.patients) {
-      if (p.id == widget.patientId) return p;
-    }
-    return provider.selectedPatient;
-  }
+  /// Live: status, ward and bed update when a teammate discharges or
+  /// transfers the patient. Created once (not per build).
+  late final Stream<Patient?> _patientStream =
+      PatientService().watchPatient(widget.patientId);
 
   @override
   Widget build(BuildContext context) {
     context.watch<ThemeProvider>(); // rebuild on theme change
+    return StreamBuilder<Patient?>(
+      stream: _patientStream,
+      builder: (context, snap) {
+        if (snap.connectionState == ConnectionState.waiting && !snap.hasData) {
+          return Scaffold(
+            backgroundColor: AppColors.surface,
+            appBar: AppBar(title: const Text('Patient')),
+            body: const Center(child: CircularProgressIndicator.adaptive()),
+          );
+        }
+        final patient = snap.data;
+        if (patient == null) {
+          // Deleted, or transferred to a ward you don't belong to.
+          return Scaffold(
+            backgroundColor: AppColors.surface,
+            appBar: AppBar(title: const Text('Patient')),
+            body: const EmptyState(
+              icon: Icons.lock_outline,
+              title: 'Not available',
+              subtitle: 'This patient was moved to a ward you are not a '
+                  'member of, or removed.',
+            ),
+          );
+        }
+        return _detail(context, patient);
+      },
+    );
+  }
 
-    final patientProvider = context.watch<PatientProvider>();
-    final patient = _resolvePatient(patientProvider);
-
-    if (patient == null) {
-      return Scaffold(
-        backgroundColor: AppColors.surface,
-        appBar: AppBar(title: const Text('Patient')),
-        body: const Center(child: CircularProgressIndicator.adaptive()),
-      );
-    }
+  Widget _detail(BuildContext context, Patient patient) {
     return Scaffold(
       backgroundColor: AppColors.surface,
       // The patient's name is the large title — the most important
       // identifier on the screen — and folds into the bar on scroll.
       body: NestedScrollView(
         headerSliverBuilder: (context, _) => [
-          LargeTitleAppBar(title: patient.name, showBackButton: true),
+          LargeTitleAppBar(
+            title: patient.name,
+            showBackButton: true,
+            actions: [
+              PatientActionsButton(patient: patient),
+            ],
+          ),
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
             sliver: SliverList.list(
               children: [
-                const GroupedSectionHeader('Camera'),
-                patient.hlsStreamUrl.isNotEmpty
-                    ? (kIsWeb
-                          ? WebStreamCard(
-                              patientName: patient.name,
-                              hlsUrl: patient.hlsStreamUrl,
-                            )
-                          : RemoteVideoViewer(
-                              patientName: patient.name,
-                              hlsUrl: patient.hlsStreamUrl,
-                            ))
-                    : _SetStreamUrlCard(onTap: () => _setStreamUrl(patient)),
-                const SizedBox(height: 24),
+                if (patient.isDischarged) ...[
+                  _DischargedBanner(patient: patient),
+                  const SizedBox(height: 16),
+                ],
                 const GroupedSectionHeader('Patient info'),
                 _infoCard(patient),
                 const SizedBox(height: 16),
@@ -136,16 +147,18 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
           children: [_notesTab(patient), _historyTab()],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppColors.isDark
-            ? AppColors.darkPrimary
-            : AppColors.primary,
-        foregroundColor: AppColors.onPrimary,
-        icon: const Icon(Icons.add),
-        label: const Text('Add Note'),
-        onPressed: () =>
-            showAddNoteBottomSheet(context, preselectedPatient: patient),
-      ),
+      floatingActionButton: patient.isDischarged
+          ? null
+          : FloatingActionButton.extended(
+              backgroundColor: AppColors.isDark
+                  ? AppColors.darkPrimary
+                  : AppColors.primary,
+              foregroundColor: AppColors.onPrimary,
+              icon: const Icon(Icons.add),
+              label: const Text('Add Note'),
+              onPressed: () =>
+                  showAddNoteBottomSheet(context, preselectedPatient: patient),
+            ),
     );
   }
 
@@ -154,7 +167,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadii.card),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -199,11 +212,13 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
             ],
           ),
           const SizedBox(height: 14),
+          _PatientIds(patient: p),
+          const SizedBox(height: 14),
           const Divider(),
           const SizedBox(height: 14),
           Row(
             children: [
-              _infoChip('Age', '${p.age}'),
+              _infoChip('Age', p.ageLabel),
               _infoChip('Gender', p.gender),
               _infoChip('Bed', p.bedNumber),
               _infoChip('Blood', p.bloodGroup ?? '-'),
@@ -288,67 +303,6 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
     );
   }
 
-  Future<void> _setStreamUrl(Patient patient) async {
-    final ctrl = TextEditingController();
-    final url = await showAdaptiveDialog<String>(
-      context: context,
-      builder: (_) => AppAlertDialog(
-        title: Text(
-          'Set Live Stream URL',
-          style: appText(fontWeight: FontWeight.w700),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Paste the HLS URL from your Cloudflare tunnel.',
-              style: appText(color: AppColors.textSecondary, fontSize: 12),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: ctrl,
-              autofocus: true,
-              style: appText(fontSize: 13),
-              decoration: InputDecoration(
-                hintText: 'https://…/nicu/index.m3u8',
-                hintStyle: appText(color: AppColors.textSecondary),
-                border: const OutlineInputBorder(),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            onPressed: () => Navigator.pop(context, ctrl.text.trim()),
-            child: const Text('Save', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-    ctrl.dispose();
-    if (url == null || url.isEmpty) return;
-    try {
-      await PatientService().saveHlsUrl(patient.id, url);
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Stream URL saved.')));
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error: $e')));
-      }
-    }
-  }
-
   String _dateHeader(DateTime d) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -406,71 +360,124 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
   }
 }
 
-class _SetStreamUrlCard extends StatelessWidget {
-  final VoidCallback onTap;
-  const _SetStreamUrlCard({required this.onTap});
+/// FolioMed's unique patient ID (monospaced, copyable) and the optional
+/// hospital ID.
+class _PatientIds extends StatelessWidget {
+  const _PatientIds({required this.patient});
+
+  final Patient patient;
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.videocam_outlined,
-                color: AppColors.primary,
-                size: 22,
-              ),
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        if (patient.patientCode.isNotEmpty)
+          _IdChip(label: 'Patient ID', value: patient.patientCode),
+        if (patient.hospitalId != null)
+          _IdChip(label: 'Hospital ID', value: patient.hospitalId!),
+      ],
+    );
+  }
+}
+
+class _IdChip extends StatelessWidget {
+  const _IdChip({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: '$label $value. Double-tap to copy.',
+      excludeSemantics: true,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: () async {
+          await Clipboard.setData(ClipboardData(text: value));
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('$label $value copied')),
+            );
+          }
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text.rich(
+            TextSpan(
+              text: '$label  ',
+              style: AppTypography.caption1(color: AppColors.textSecondary),
+              children: [
+                TextSpan(
+                  text: value,
+                  style: appMonoText(
+                    color: AppColors.textPrimary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ).copyWith(fontFeatures: AppTypography.tabular),
+                ),
+              ],
             ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Set Live Stream URL',
-                    style: appText(
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.textPrimary,
-                      fontSize: 14,
-                    ),
-                  ),
-                  Text(
-                    'Tap to connect a remote camera feed',
-                    style: appText(
-                      color: AppColors.textSecondary,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              Icons.arrow_forward_ios,
-              size: 14,
-              color: AppColors.textSecondary,
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 }
 
-/// Keeps the Notes / History tabs pinned under the collapsed title.
+/// Shown on a discharged patient: when, and the discharge summary.
+class _DischargedBanner extends StatelessWidget {
+  const _DischargedBanner({required this.patient});
+
+  final Patient patient;
+
+  @override
+  Widget build(BuildContext context) {
+    final when = patient.dischargedAt == null
+        ? ''
+        : ' on ${DateFormat('d MMM y, HH:mm').format(patient.dischargedAt!)}';
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.quaternaryFill,
+        borderRadius: BorderRadius.circular(AppRadii.card),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.logout, color: AppColors.textSecondary),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Discharged$when',
+                    style: AppTypography.headline(color: AppColors.textPrimary)),
+                if (patient.dischargeSummary != null) ...[
+                  const SizedBox(height: 4),
+                  Text(patient.dischargeSummary!,
+                      style: AppTypography.subheadline(
+                          color: AppColors.textSecondary)),
+                ],
+                const SizedBox(height: 4),
+                Text('Readmit from the actions menu (•••) to add notes again.',
+                    style: AppTypography.footnote(color: AppColors.textSecondary)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _PinnedTabBar extends SliverPersistentHeaderDelegate {
   _PinnedTabBar(this.tabBar);
 

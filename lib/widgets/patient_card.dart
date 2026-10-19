@@ -93,14 +93,29 @@ class PatientCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    patient.diagnosis,
+                    [
+                      patient.ageLabel,
+                      if (patient.gender.isNotEmpty) patient.gender,
+                      if (patient.diagnosis.isNotEmpty) patient.diagnosis,
+                    ].join(' · '),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: appText(
-                      color: AppColors.textSecondary,
-                      fontSize: 12,
-                    ),
+                    style: AppTypography.footnote(color: AppColors.textSecondary),
                   ),
+                  if (patient.patientCode.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      patient.hospitalId == null
+                          ? patient.patientCode
+                          : '${patient.patientCode} · ${patient.hospitalId}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: appMonoText(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                      ).copyWith(fontFeatures: AppTypography.tabular),
+                    ),
+                  ],
                   // Hairline groups the metadata into its own zone.
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 8),
@@ -115,7 +130,9 @@ class PatientCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        DateFormat('dd MMM yyyy').format(patient.admittedAt),
+                        patient.isDischarged && patient.dischargedAt != null
+                            ? 'Discharged ${DateFormat('d MMM yyyy').format(patient.dischargedAt!)}'
+                            : DateFormat('d MMM yyyy').format(patient.admittedAt),
                         style: appText(
                           color: AppColors.textSecondary,
                           fontSize: 11,

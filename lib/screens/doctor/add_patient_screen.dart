@@ -1,3 +1,5 @@
+import 'package:flutter/services.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../../utils/app_typography.dart';
 import 'package:provider/provider.dart';
@@ -28,6 +30,8 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _ageController = TextEditingController();
+  final _hospitalIdController = TextEditingController();
+  AgeUnit _ageUnit = AgeUnit.years;
   final _bedController = TextEditingController();
   final _diagnosisController = TextEditingController();
 
@@ -57,6 +61,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
   void dispose() {
     _nameController.dispose();
     _ageController.dispose();
+    _hospitalIdController.dispose();
     _bedController.dispose();
     _diagnosisController.dispose();
     super.dispose();
@@ -78,6 +83,8 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
       id: const Uuid().v4(),
       name: _nameController.text.trim(),
       age: int.tryParse(_ageController.text.trim()) ?? 0,
+      ageUnit: _ageUnit,
+      hospitalId: _hospitalIdController.text.trim(),
       gender: _gender,
       wardId: wardId,
       bedNumber: _bedController.text.trim(),
@@ -145,12 +152,66 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
               ),
               const SizedBox(height: 12),
               TextFormField(
-                controller: _ageController,
-                keyboardType: TextInputType.number,
+                controller: _hospitalIdController,
+                textCapitalization: TextCapitalization.characters,
                 decoration: const InputDecoration(
-                  labelText: 'Age (optional)',
-                  prefixIcon: Icon(Icons.cake_outlined),
+                  labelText: 'Hospital ID / MRN (optional)',
+                  helperText:
+                      'FolioMed also assigns its own unique patient ID automatically.',
+                  prefixIcon: Icon(Icons.badge_outlined),
                 ),
+              ),
+              const SizedBox(height: 12),
+              // Age in days / months / years — neonates and infants need
+              // finer units than years.
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _ageController,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      decoration: const InputDecoration(
+                        labelText: 'Age (optional)',
+                        prefixIcon: Icon(Icons.cake_outlined),
+                      ),
+                      validator: (v) {
+                        final n = int.tryParse(v?.trim() ?? '');
+                        if (n == null) return null;
+                        final max = switch (_ageUnit) {
+                          AgeUnit.days => 365,
+                          AgeUnit.months => 60,
+                          AgeUnit.years => 130,
+                        };
+                        return n > max
+                            ? 'At most $max ${_ageUnit.label.toLowerCase()}'
+                            : null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: CupertinoSlidingSegmentedControl<AgeUnit>(
+                      groupValue: _ageUnit,
+                      onValueChanged: (u) {
+                        if (u != null) setState(() => _ageUnit = u);
+                      },
+                      children: {
+                        for (final u in AgeUnit.values)
+                          u: Padding(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 10),
+                            child: Text(u.label,
+                                style: AppTypography.footnote(
+                                    color: AppColors.textPrimary,
+                                    weight: FontWeight.w600)),
+                          ),
+                      },
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
               _label('Gender'),

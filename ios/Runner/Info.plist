@@ -66,6 +66,10 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>FolioMed uses the camera only when you tap Scan text, to photograph a document so its text can be added to your note. The photo is processed on this iPhone and is not uploaded.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>FolioMed opens your photo library only when you tap Scan text and choose a photo, so its text can be added to your note. The photo is not uploaded.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>FolioMed only records audio when you tap the mic to dictate a note. Recording stops the moment you save or cancel.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>

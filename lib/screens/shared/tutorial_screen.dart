@@ -117,7 +117,6 @@ class _TutorialScreenState extends State<TutorialScreen> {
         ('Wards', 'Your wards · share codes · join · create · view members'),
         ('Patients', 'Tabs per ward, full active patient list'),
         ('Notes', 'Every ward note — full feed'),
-        ('Monitor', 'Live ward dashboard — vitals, alerts, orders (FolioMed Pro)'),
         ('Profile', 'Your account, theme, daily chai toggle, sign out'),
       ],
     ),
@@ -131,19 +130,6 @@ class _TutorialScreenState extends State<TutorialScreen> {
         ('Members', 'Who else is in this ward'),
         ('Share', 'Send the join code'),
         ('Delete', 'Only the ward creator can delete it (cascades patients + notes)'),
-      ],
-    ),
-    _TutorialSlide(
-      icon: Icons.monitor_heart_outlined,
-      iconColor: AppColors.accent,
-      title: 'Monitor — your ward dashboard',
-      body:
-          "The Monitor tab is the FolioMed Pro live dashboard: every monitored patient's vitals in one place, read from the bedside monitor by AI.",
-      points: [
-        ('Patient cards', 'Live HR, SpO₂, RR and BP per bed — tap a card for the full detail view'),
-        ('Recent alerts', 'Threshold breaches across the ward, newest first'),
-        ('Orders & notes', 'Latest team activity, right under the vitals'),
-        ('Thresholds', 'Set per-patient alarm limits from the patient detail page'),
       ],
     ),
     _TutorialSlide(

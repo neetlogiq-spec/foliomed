@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../../utils/app_typography.dart';
 import 'package:intl/intl.dart';
@@ -6,7 +7,6 @@ import 'package:provider/provider.dart';
 import '../../models/patient.dart';
 import '../../models/ward.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/camera_provider.dart';
 import '../../providers/patient_provider.dart';
 import '../../services/patient_service.dart';
 import '../../services/ward_service.dart';
@@ -18,6 +18,7 @@ import 'patient_detail_screen.dart';
 import '../../providers/theme_provider.dart';
 import '../../utils/layout.dart';
 import '../../widgets/app_alert_dialog.dart';
+import '../../widgets/empty_state.dart';
 
 class PatientsListScreen extends StatefulWidget {
   const PatientsListScreen({super.key});
@@ -32,6 +33,9 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
 
   final _searchController = TextEditingController();
   String _query = '';
+
+  /// Admitted (default) or the Discharged list.
+  bool _showDischarged = false;
 
   @override
   void initState() {
@@ -94,7 +98,8 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
         final isSearching = _query.isNotEmpty;
 
         Widget body;
-        if (isSearching) {
+        if (isSearching || _showDischarged) {
+          // Discharged: one list across all your wards, newest first.
           body = _searchResults(wards, wardById);
         } else {
           body = DefaultTabController(
@@ -130,6 +135,22 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
           body: Column(
             children: [
               _searchBar(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 4, 14, 8),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: CupertinoSlidingSegmentedControl<bool>(
+                    groupValue: _showDischarged,
+                    onValueChanged: (v) {
+                      if (v != null) setState(() => _showDischarged = v);
+                    },
+                    children: {
+                      false: _segment('Admitted'),
+                      true: _segment('Discharged'),
+                    },
+                  ),
+                ),
+              ),
               Expanded(child: body),
             ],
           ),
@@ -161,6 +182,13 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
   }
 
   // ───────────────── Always-visible search bar ─────────────────
+
+  Widget _segment(String label) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 7),
+        child: Text(label,
+            style: AppTypography.subheadline(
+                color: AppColors.textPrimary, weight: FontWeight.w600)),
+      );
 
   Widget _searchBar() {
     return Padding(
@@ -283,8 +311,10 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
   Widget _searchResults(List<Ward> wards, Map<String, Ward> wardById) {
     final wardIds = wards.map((w) => w.id).toList();
     return StreamBuilder<List<Patient>>(
-      stream: _patientStreams.get('search:${wardIds.join(',')}',
-          () => PatientService().getActivePatientsForWards(wardIds)),
+      stream: _patientStreams.get('search:$_showDischarged:${wardIds.join(',')}',
+          () => _showDischarged
+              ? PatientService().getDischargedPatientsForWards(wardIds)
+              : PatientService().getActivePatientsForWards(wardIds)),
       builder: (context, snap) {
         if (snap.hasError) {
           return Center(
@@ -307,7 +337,9 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
         final results = all.where((p) {
           return p.name.toLowerCase().contains(q) ||
               p.bedNumber.toLowerCase().contains(q) ||
-              p.diagnosis.toLowerCase().contains(q);
+              p.diagnosis.toLowerCase().contains(q) ||
+              p.patientCode.toLowerCase().contains(q) ||
+              (p.hospitalId?.toLowerCase().contains(q) ?? false);
         }).toList()
           ..sort((a, b) {
             // Active patients first, then by recent admission.
@@ -315,6 +347,13 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
             return b.admittedAt.compareTo(a.admittedAt);
           });
 
+        if (results.isEmpty && _query.isEmpty && _showDischarged) {
+          return const EmptyState(
+            icon: Icons.logout,
+            title: 'No discharged patients',
+            subtitle: 'Patients you discharge appear here, newest first.',
+          );
+        }
         if (results.isEmpty) {
           return Center(
             child: Padding(
@@ -466,37 +505,6 @@ class _PatientsListScreenState extends State<PatientsListScreen> {
                             ),
                           ),
                         ),
-                      Builder(builder: (_) {
-                        final hasEdge = context.watch<CameraProvider>().cameras
-                            .any((c) => c.patientId == p.id && c.isEnabled);
-                        if (!hasEdge) return const SizedBox.shrink();
-                        return Padding(
-                          padding: const EdgeInsets.only(left: 6),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: Colors.teal.withOpacity(0.12),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.teal.withOpacity(0.4)),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.videocam, size: 10, color: Colors.teal.shade600),
-                                const SizedBox(width: 3),
-                                Text(
-                                  'EDGE',
-                                  style: appText(
-                                    color: Colors.teal.shade600,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }),
                     ],
                   ),
                   if (p.diagnosis.isNotEmpty) ...[

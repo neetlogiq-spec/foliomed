@@ -100,6 +100,12 @@ class Note {
         return Icons.visibility_outlined;
       case 'alert':
         return Icons.warning_amber_outlined;
+      case 'transfer':
+        return Icons.swap_horiz;
+      case 'discharge':
+        return Icons.logout;
+      case 'admission':
+        return Icons.login;
       case 'general':
       default:
         return Icons.notes_outlined;

@@ -3,8 +3,7 @@
 ## What is FolioMed
 A real-time clinical notes app for hospital ward teams. Flutter app on a
 Supabase backend. Targets Android (Play Store), iOS (App Store via
-Codemagic or `tools/ios_release.sh`), macOS desktop (FolioMed Edge
-station) and Web. **Free for everyone** — `SubscriptionProvider.freeForEveryone`.
+Codemagic or `tools/ios_release.sh`) and Web. **Free for everyone** — no paid tier.
 
 **Developer:** Kashyap Anand (kashyap2k007@gmail.com)
 **Landing page:** https://www.foliomed.app
@@ -18,11 +17,10 @@ station) and Web. **Free for everyone** — `SubscriptionProvider.freeForEveryon
 ---
 
 ## Tech Stack
-- **Flutter** (Dart) — Android, iOS, macOS, Web
-- **Supabase Auth** — email/password, Google (Supabase-hosted OAuth + `com.foliomed.app://login-callback` deep link), Apple (iOS/macOS, nonce flow)
+- **Flutter** (Dart) — Android, iOS, Web
+- **Supabase Auth** — Google (Supabase-hosted OAuth + `com.foliomed.app://login-callback` deep link) and Apple (iOS, nonce flow) only; no passwords. Admin role is granted only via `set_user_role` (or SQL); new users pick doctor/nurse once (`confirm_my_role`).
 - **Supabase Postgres** — data, row-level security, triggers, RPCs
 - **Supabase Realtime** — live lists (`.stream()`) + in-app note alerts (`PushService`)
-- **Supabase Storage** — bucket `monitor-snapshots`
 - **GitHub Pages** — landing + status + Flutter web app (see `.github/workflows/deploy.yml`)
 - **Provider** — state management
 - **Codemagic** — iOS CI/CD
@@ -53,9 +51,12 @@ Firestore → Postgres mapping: `users`→`profiles`, `wards`, `patients`,
 - Deleting a ward / patient / note cascades in Postgres; a trigger strips deleted ward codes from profiles.
 - `delete_my_account()` deletes the auth user and cascades everything they own.
 - `dashboard_counts()` is admin-only; `public_activity()` exposes type + time only (summaries can contain patient names).
-- RLS: ward members only for patients / notes / comments / vitals; profiles are readable by any signed-in user, writable only by their owner.
+- RLS: ward members only for patients / notes / comments; profiles are readable by any signed-in user, writable only by their owner.
 
-Test the schema locally without Docker: `supabase/tests/README.md`.
+- Patients: `patient_code` (FM000123) is assigned by the database, system-wide unique and immutable; `hospital_id` is optional free text; `age` + `age_unit` (days/months/years).
+- Lifecycle goes through RPCs only: `discharge_patient`, `readmit_patient`, `transfer_patient` (caller must be in both wards; notes and replies move with the patient). Each writes a timeline note (category Discharge / Admission / Transfer). `status` drives `is_active` via trigger.
+
+Test the schema locally without Docker: `supabase/tests/README.md` (suites 10, 20, 30).
 
 ## User Roles
 - **Doctor** — home, wards, patients, notes feed, profile
@@ -84,6 +85,10 @@ Test the schema locally without Docker: `supabase/tests/README.md`.
 - Tab screens: content scrolls under the frosted tab bar (`extendBody`). Vertical scroll views in a tab screen must use `withBottomBarInset(context, padding)` (`lib/utils/layout.dart`); `CustomScrollView`s need a bottom spacer sliver.
 - Taps on cards: `Pressable`. Haptics: `Haptics.selection/commit/success/destructive/error` only at meaningful moments.
 - Honour `AppMotion.reduced(context)` (Reduce Motion) in any new animation.
+
+## Removed / planned
+- **Monitoring** (Edge station, AI vitals, HLS camera streams, video calls) and the Pro paywall were removed. The last version with them is the git tag `monitor-v1`; the `monitor_vitals*` tables and `monitor-snapshots` bucket still exist in the database, unused.
+- **Photo text scan** (`lib/services/text_scan_service.dart`): image_picker + on-device ML Kit (Latin), Android/iOS only; photos are never uploaded.
 
 ## Known Gotchas
 - Realtime `.stream()` accepts **one** filter — extra filters (e.g. `is_active`) are applied client-side.

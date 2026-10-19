@@ -22,7 +22,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final _pageController = PageController();
   int _page = 0;
 
-  static const int _slideCount = 5;
+  static const int _slideCount = 4;
 
   @override
   void dispose() {
@@ -82,7 +82,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   _SlideProblem(),
                   _SlideSolution(),
                   _SlideHowItWorks(),
-                  _SlideMonitoring(),
                   _SlideGetStarted(),
                 ],
               ),
@@ -841,168 +840,7 @@ class _NumberedStep extends StatelessWidget {
   }
 }
 
-// ─────────────────────────── Slide 4 — FolioMed Pro monitoring ─────────────────
-
-class _SlideMonitoring extends StatelessWidget {
-  const _SlideMonitoring();
-
-  @override
-  Widget build(BuildContext context) {
-    context.watch<ThemeProvider>(); // rebuild on theme change
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(28, 36, 28, 28),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _SlideEyebrow(
-            icon: Icons.monitor_heart_outlined,
-            label: 'FOLIOMED PRO',
-            color: AppColors.accent,
-          ),
-          const SizedBox(height: 14),
-          Text(
-            'Add live patient monitoring. Powered by AI.',
-            style: appText(
-              color: AppColors.lightTextPrimary,
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-              height: 1.2,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Upgrade your ward to FolioMed Pro and every monitored bed streams live vitals into the Monitor tab — with instant alerts the moment a reading crosses your limits.',
-            style: appText(
-              color: AppColors.lightTextSecondary,
-              fontSize: 14.5,
-              height: 1.55,
-            ),
-          ),
-          const SizedBox(height: 18),
-          _vitalsMock(),
-          const SizedBox(height: 18),
-          const _BenefitTile(
-            icon: Icons.dashboard_outlined,
-            title: 'Ward vitals dashboard',
-            body:
-                'HR, SpO₂, RR and BP for every monitored patient — live, in one place.',
-          ),
-          const _BenefitTile(
-            icon: Icons.notifications_active_outlined,
-            title: 'Smart alerts',
-            body:
-                'Set thresholds per patient. Breaches alert the whole ward team instantly.',
-          ),
-          const _BenefitTile(
-            icon: Icons.videocam_outlined,
-            title: 'Works with your existing monitors',
-            body:
-                'A camera watches the monitor screen and our AI reads the numbers — no expensive integrations.',
-          ),
-          const _BenefitTile(
-            icon: Icons.desktop_windows_outlined,
-            title: 'FolioMed Edge',
-            body:
-                'The hospital desktop that runs the cameras and relays live vitals to the team.',
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'FolioMed core stays as it is — Pro is an optional upgrade per ward.',
-            style: appText(
-              color: AppColors.lightTextSecondary,
-              fontSize: 12.5,
-              fontStyle: FontStyle.italic,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _vitalsMock() {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.lightSurface,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.lightDivider),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                'Bed 12 · Mr. R. Kumar',
-                style: appText(
-                  color: AppColors.lightTextPrimary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 7,
-                  vertical: 3,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.danger.withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  'ALERT',
-                  style: appText(
-                    color: AppColors.danger,
-                    fontSize: 9,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              _miniVital('HR', '128', AppColors.danger),
-              _miniVital('SpO₂', '94', AppColors.lightTextPrimary),
-              _miniVital('RR', '22', AppColors.lightTextPrimary),
-              _miniVital('BP', '82/45', AppColors.danger),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _miniVital(String label, String value, Color color) {
-    return Expanded(
-      child: Column(
-        children: [
-          Text(
-            label,
-            style: appText(
-              color: AppColors.lightTextSecondary,
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          Text(
-            value,
-            style: appText(
-              color: color,
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─────────────────────────── Slide 5 — Get started ───────────────────────────
+// ─────────────────────────── Slide 4 — Get started ───────────────────────────
 
 class _SlideGetStarted extends StatelessWidget {
   const _SlideGetStarted();

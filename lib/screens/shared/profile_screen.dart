@@ -23,8 +23,6 @@ import '../../providers/theme_provider.dart';
 import '../../utils/friendly_error.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/app_utils.dart';
-import '../monitor/edge_setup_screen.dart';
-import '../monitor/foliomed_edge_screen.dart';
 import '../../widgets/app_sheet.dart';
 import '../../utils/layout.dart';
 import '../../widgets/app_alert_dialog.dart';
@@ -68,15 +66,6 @@ class ProfileScreen extends StatelessWidget {
                 _sectionLabel('Preferences'),
 
                 _preferencesCard(context),
-                if (!kIsWeb &&
-                    (defaultTargetPlatform == TargetPlatform.macOS ||
-                        defaultTargetPlatform == TargetPlatform.windows ||
-                        defaultTargetPlatform == TargetPlatform.linux)) ...[
-                  const SizedBox(height: 20),
-                  _sectionLabel('FolioMed Edge'),
-                  const SizedBox(height: 8),
-                  _edgeCard(context),
-                ],
                 const SizedBox(height: 20),
                 _sectionLabel('About'),
 
@@ -471,64 +460,6 @@ class ProfileScreen extends StatelessWidget {
         // Note: weekly rating reminder is always-on by default and not
         // user-toggleable. Google Play rate-limits the dialog itself,
         // so it appears at most a few times a year regardless.
-      ],
-    );
-  }
-
-  Widget _edgeCard(BuildContext context) {
-    return _cardWrapper(
-      children: [
-        ListTile(
-          leading: const Icon(
-            Icons.settings_input_antenna,
-            color: AppColors.primary,
-          ),
-          title: Text(
-            'Manage Cameras',
-            style: appText(fontWeight: FontWeight.w600),
-          ),
-          subtitle: Text(
-            'View, edit, or add CCTV cameras',
-            style: appText(fontSize: 12, color: AppColors.textSecondary),
-          ),
-          trailing: const Icon(Icons.arrow_forward_ios, size: 14),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const FolioMedEdgeScreen()),
-          ),
-        ),
-        const Divider(height: 1, indent: 56),
-        ListTile(
-          leading: const Icon(
-            Icons.add_a_photo_outlined,
-            color: AppColors.primary,
-          ),
-          title: Text(
-            'Set Up a New Camera',
-            style: appText(fontWeight: FontWeight.w600),
-          ),
-          subtitle: Text(
-            'Step-by-step connection wizard',
-            style: appText(fontSize: 12, color: AppColors.textSecondary),
-          ),
-          trailing: const Icon(Icons.arrow_forward_ios, size: 14),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const EdgeSetupScreen()),
-          ),
-        ),
-        const Divider(height: 1, indent: 56),
-        ListTile(
-          leading: const Icon(Icons.info_outline, color: AppColors.primary),
-          title: Text(
-            'What is FolioMed Edge?',
-            style: appText(fontWeight: FontWeight.w600),
-          ),
-          subtitle: Text(
-            'Connects CCTV cameras → auto-reads vitals → no manual charting',
-            style: appText(fontSize: 12, color: AppColors.textSecondary),
-          ),
-        ),
       ],
     );
   }
