@@ -29,6 +29,9 @@ import '../../providers/theme_provider.dart';
 import '../../utils/layout.dart';
 import '../../widgets/app_alert_dialog.dart';
 import '../../services/accessibility_settings.dart';
+import '../../providers/reminder_provider.dart';
+import '../../services/reminder_notifications.dart';
+import '../../widgets/reminder_widgets.dart';
 
 class MainScaffold extends StatefulWidget {
   final UserRole role;
@@ -58,6 +61,13 @@ class _MainScaffoldState extends State<MainScaffold>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    final reminders = context.read<ReminderProvider>();
+    reminders.onDue = (r) async {
+      if (mounted) await showReminderDuePrompt(context, r);
+    };
+    ReminderNotifications.instance.onTap = (id) {
+      if (mounted) reminders.checkDue();
+    };
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
       if (!await TutorialScreen.isDone()) {
@@ -105,6 +115,7 @@ class _MainScaffoldState extends State<MainScaffold>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    ReminderNotifications.instance.onTap = null;
     super.dispose();
   }
 
@@ -121,6 +132,7 @@ class _MainScaffoldState extends State<MainScaffold>
           context.read<AuthProvider>().currentUser?.wardIds ?? const <String>[];
       context.read<NoteProvider>().subscribeForWards(wardIds);
       context.read<PatientProvider>().subscribeForWards(wardIds);
+      context.read<ReminderProvider>().checkDue();
     }
   }
 
@@ -392,6 +404,12 @@ class _MainScaffoldState extends State<MainScaffold>
   }
 
   Widget _buildScaffold(BuildContext context, bool solidChrome) {
+    // Keep reminders (and their notifications) in step with the wards.
+    final wardIds = context.select<AuthProvider, List<String>>(
+        (a) => a.currentUser?.wardIds ?? const <String>[]);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.read<ReminderProvider>().subscribe(wardIds);
+    });
     return Scaffold(
       // Content scrolls under the translucent tab bar; tab screens add the
       // bar's height to their own scroll padding (withBottomBarInset).

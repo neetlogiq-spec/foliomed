@@ -77,16 +77,17 @@ class PatientProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> addPatient(Patient patient) async {
+  /// Returns the new patient's id, or null on failure.
+  Future<String?> addPatient(Patient patient) async {
     try {
-      await _patientService.addPatient(patient);
+      final id = await _patientService.addPatient(patient);
       Haptics.success();
-      return true;
+      return id;
     } catch (e) {
       Haptics.error();
       _error = e.toString();
       notifyListeners();
-      return false;
+      return null;
     }
   }
 

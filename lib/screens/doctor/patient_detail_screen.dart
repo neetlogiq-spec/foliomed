@@ -17,6 +17,8 @@ import '../../providers/theme_provider.dart';
 import '../../widgets/large_title_app_bar.dart';
 import '../../widgets/empty_state.dart';
 import '../../utils/layout.dart';
+import '../../widgets/reminder_widgets.dart';
+import '../../utils/app_utils.dart';
 
 class PatientDetailScreen extends StatefulWidget {
   final String patientId;
@@ -115,6 +117,8 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
                 ],
                 const GroupedSectionHeader('Patient info'),
                 _infoCard(patient),
+                const SizedBox(height: 16),
+                PatientRemindersSection(patient: patient),
                 const SizedBox(height: 16),
               ],
             ),
@@ -239,6 +243,23 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
               ),
             ],
           ),
+          if (p.bornAt != null) ...[
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Icon(Icons.child_friendly_outlined,
+                    size: 14, color: AppColors.textSecondary),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'Born ${formatDueTime(p.bornAt!)} · ${p.hoursSinceBirth()} h of life',
+                    style:
+                        appText(color: AppColors.textSecondary, fontSize: 12),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );

@@ -59,6 +59,8 @@ dependencies:
   # FolioMed Pro: camera + on-device OCR for bedside vital-sign recognition.
   image_picker: ^1.1.2
   google_mlkit_text_recognition: ^0.14.0
+  flutter_local_notifications: ^22.3.2
+  timezone: ^0.11.2
   # Payments (Razorpay for India)
   # Live video streaming
   # Vital trend charts

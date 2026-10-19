@@ -49,6 +49,10 @@ class Patient {
   final String? dischargedBy;
   final String? dischargeSummary;
 
+  /// Exact date and time of birth (newborns / PNC). When set, the age is
+  /// derived from it instead of [age] / [ageUnit].
+  final DateTime? bornAt;
+
   const Patient({
     required this.id,
     this.patientCode = '',
@@ -66,13 +70,21 @@ class Patient {
     this.dischargedAt,
     this.dischargedBy,
     this.dischargeSummary,
+    this.bornAt,
   });
 
   bool get isActive => status == PatientStatus.admitted;
   bool get isDischarged => status == PatientStatus.discharged;
 
-  /// "12 d", "5 mo", "61 y".
-  String get ageLabel => '$age ${ageUnit.short}';
+  /// "38 h", "12 d", "5 mo", "61 y". From the birth time when known.
+  String get ageLabel => bornAt == null
+      ? '$age ${ageUnit.short}'
+      : ageSinceBirthLabel(bornAt!, DateTime.now());
+
+  /// Whole hours since birth, or null when the birth time isn't recorded.
+  int? hoursSinceBirth([DateTime? now]) => bornAt == null
+      ? null
+      : (now ?? DateTime.now()).difference(bornAt!).inHours;
 
   /// Builds a patient from a `patients` row.
   factory Patient.fromRow(DbRow row) {
@@ -98,6 +110,7 @@ class Patient {
       dischargedAt: parseTimestampOrNull(row['discharged_at']),
       dischargedBy: row['discharged_by'] as String?,
       dischargeSummary: row['discharge_summary'] as String?,
+      bornAt: parseTimestampOrNull(row['born_at']),
     );
   }
 
@@ -117,6 +130,7 @@ class Patient {
       'blood_group': bloodGroup,
       'hospital_id': mrn == null || mrn.isEmpty ? null : mrn,
       'admitted_at': toTimestamp(admittedAt),
+      'born_at': toTimestampOrNull(bornAt),
     };
   }
 
@@ -147,6 +161,7 @@ class Patient {
       dischargedAt: dischargedAt,
       dischargedBy: dischargedBy,
       dischargeSummary: dischargeSummary,
+      bornAt: bornAt,
     );
   }
 
@@ -160,4 +175,17 @@ class Patient {
         : (parts.first.length > 1 ? parts.first[1] : '');
     return (first + second).toUpperCase();
   }
+}
+
+/// Age since an exact birth time, at the precision clinicians use:
+/// hours for the first week, then days, months, years.
+String ageSinceBirthLabel(DateTime bornAt, DateTime now) {
+  final diff = now.difference(bornAt);
+  if (diff.isNegative) return '0 h';
+  if (diff.inHours < 24 * 7) return '${diff.inHours} h';
+  if (diff.inDays < 31) return '${diff.inDays} d';
+  var months = (now.year - bornAt.year) * 12 + now.month - bornAt.month;
+  if (now.day < bornAt.day) months--;
+  if (months < 24) return '$months mo';
+  return '${months ~/ 12} y';
 }

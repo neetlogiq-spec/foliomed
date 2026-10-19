@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'config/supabase_config.dart';
 import 'services/accessibility_settings.dart';
+import 'services/reminder_notifications.dart';
 import 'utils/app_theme.dart';
 import 'utils/app_routes.dart';
 import 'providers/providers.dart';
@@ -14,6 +15,7 @@ final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AccessibilitySettings.init();
+  await ReminderNotifications.instance.init();
   if (!SupabaseConfig.isConfigured) {
     runApp(const _MissingConfigApp());
     return;
@@ -63,6 +65,7 @@ class FolioMedApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ThemeProvider()..load()),
         ChangeNotifierProvider(create: (_) => TextScaleProvider()..load()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => ReminderProvider()),
       ],
       child: Consumer2<ThemeProvider, TextScaleProvider>(
         builder: (context, themeProvider, textScale, _) {

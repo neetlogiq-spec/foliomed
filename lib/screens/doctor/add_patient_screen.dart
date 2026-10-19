@@ -14,6 +14,11 @@ import '../../utils/stream_cache.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/friendly_error.dart';
 import '../../providers/theme_provider.dart';
+import '../../models/patient_reminder.dart';
+import '../../providers/reminder_provider.dart';
+import '../../services/reminder_notifications.dart';
+import '../../widgets/birth_time_field.dart';
+import '../../utils/app_utils.dart';
 
 class AddPatientScreen extends StatefulWidget {
   final String? initialWardId;
@@ -32,6 +37,12 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
   final _ageController = TextEditingController();
   final _hospitalIdController = TextEditingController();
   AgeUnit _ageUnit = AgeUnit.years;
+
+  /// Newborns: exact date and time of birth, plus investigation reminders.
+  DateTime? _bornAt;
+  final Set<int> _reminderHours = {
+    for (final p in NewbornReminderPreset.all) p.hours,
+  };
   final _bedController = TextEditingController();
   final _diagnosisController = TextEditingController();
 
@@ -91,15 +102,38 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
       diagnosis: _diagnosisController.text.trim(),
       bloodGroup: _bloodGroup,
       admittedAt: DateTime.now(),
+      bornAt: _bornAt,
     );
 
-    final ok = await patientProvider.addPatient(patient);
+    final reminders = context.read<ReminderProvider>();
+    final newId = await patientProvider.addPatient(patient);
+    var remindersOk = true;
+    if (newId != null && _bornAt != null) {
+      for (final preset in NewbornReminderPreset.all) {
+        if (!_reminderHours.contains(preset.hours)) continue;
+        remindersOk &= await reminders.add(
+          patientId: newId,
+          wardId: wardId,
+          patientName: patient.name,
+          title: preset.title,
+          dueAt: _bornAt!.add(Duration(hours: preset.hours)),
+        );
+      }
+      if (_reminderHours.isNotEmpty) {
+        await ReminderNotifications.instance.requestPermission();
+      }
+    }
     if (!mounted) return;
     setState(() => _saving = false);
-    if (ok) {
+    if (newId != null) {
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Patient added successfully')),
+        SnackBar(
+          content: Text(remindersOk
+              ? 'Patient added successfully'
+              : "Patient added, but the reminders couldn't be saved — "
+                  'add them from the patient page.'),
+        ),
       );
     } else {
       final err = patientProvider.error;
@@ -176,6 +210,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                         labelText: 'Age (optional)',
                         prefixIcon: Icon(Icons.cake_outlined),
                       ),
+                      enabled: _bornAt == null,
                       validator: (v) {
                         final n = int.tryParse(v?.trim() ?? '');
                         if (n == null) return null;
@@ -213,6 +248,27 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                   ),
                 ],
               ),
+              const SizedBox(height: 12),
+              BirthTimeField(
+                bornAt: _bornAt,
+                onChanged: (v) => setState(() => _bornAt = v),
+              ),
+              if (_bornAt != null) ...[
+                const SizedBox(height: 8),
+                for (final preset in NewbornReminderPreset.all)
+                  CheckboxListTile.adaptive(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    value: _reminderHours.contains(preset.hours),
+                    onChanged: (v) => setState(() => v == true
+                        ? _reminderHours.add(preset.hours)
+                        : _reminderHours.remove(preset.hours)),
+                    title: Text('Remind at ${preset.hours} h of life'),
+                    subtitle: Text(
+                      '${preset.title} · ${formatDueTime(_bornAt!.add(Duration(hours: preset.hours)))}',
+                    ),
+                  ),
+              ],
               const SizedBox(height: 16),
               _label('Gender'),
               const SizedBox(height: 8),

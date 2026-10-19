@@ -56,7 +56,11 @@ Firestore → Postgres mapping: `users`→`profiles`, `wards`, `patients`,
 - Patients: `patient_code` (FM000123) is assigned by the database, system-wide unique and immutable; `hospital_id` is optional free text; `age` + `age_unit` (days/months/years).
 - Lifecycle goes through RPCs only: `discharge_patient`, `readmit_patient`, `transfer_patient` (caller must be in both wards; notes and replies move with the patient). Each writes a timeline note (category Discharge / Admission / Transfer). `status` drives `is_active` via trigger.
 
-Test the schema locally without Docker: `supabase/tests/README.md` (suites 10, 20, 30).
+- Newborns: `patients.born_at` (date + time of birth) overrides `age` for display (hours in week one).
+- `patient_reminders`: ward-shared due-at reminders (RLS = ward members; `ward_id` must match the patient's). `done_by`/`done_by_name`/`created_by` are stamped by triggers; snooze = `snoozed_until`. They move with the patient on transfer.
+- Reminder alerts are **local** notifications (`ReminderNotifications`, flutter_local_notifications): each phone schedules its wards' open reminders whenever the list changes; the in-app "has this been done?" prompt comes from `ReminderProvider.onDue`. A phone that hasn't opened the app since a reminder was added won't alert — server push is still TODO.
+
+Test the schema locally without Docker: `supabase/tests/README.md` (suites 10–40).
 
 ## User Roles
 - **Doctor** — home, wards, patients, notes feed, profile

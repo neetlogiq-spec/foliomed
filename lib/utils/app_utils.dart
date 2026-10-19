@@ -39,3 +39,7 @@ String truncate(String text, int maxLength) {
   if (text.length <= maxLength) return text;
   return '${text.substring(0, maxLength)}...';
 }
+
+/// "Tue 21 Oct, 09:40 AM" — for reminders and birth times.
+String formatDueTime(DateTime date) =>
+    DateFormat('EEE dd MMM, hh:mm a').format(date.toLocal());
