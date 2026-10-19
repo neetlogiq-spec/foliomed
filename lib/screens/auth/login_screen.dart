@@ -14,6 +14,7 @@ import 'background_setup_screen.dart';
 import 'onboarding_screen.dart';
 import '../../providers/theme_provider.dart';
 import '../../widgets/app_alert_dialog.dart';
+import '../../utils/oauth_error.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -38,6 +39,24 @@ class _LoginScreenState extends State<LoginScreen> {
   void initState() {
     super.initState();
     _loadSavedEmail();
+    if (kIsWeb) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _showOAuthError());
+    }
+  }
+
+  /// Web: Supabase returns OAuth failures as URL parameters
+  /// (e.g. `?error=server_error&error_description=…`). Surface them.
+  void _showOAuthError() {
+    final message = oauthErrorMessage(Uri.base);
+    if (message == null || !mounted) return;
+    debugPrint('OAuth error on return: ${Uri.base}');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: AppColors.danger,
+        duration: const Duration(seconds: 8),
+        content: Text(message),
+      ),
+    );
   }
 
   Future<void> _loadSavedEmail() async {
