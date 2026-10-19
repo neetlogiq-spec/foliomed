@@ -92,9 +92,7 @@ class ReminderNotifications {
         await _plugin.zonedSchedule(
           id: notificationId(r.id),
           title: r.title,
-          body: r.patientName.isEmpty
-              ? 'Has this been done? Open FolioMed to confirm.'
-              : '${r.patientName} — has this been done?',
+          body: notificationBody(r),
           scheduledDate: tz.TZDateTime.from(r.nextAlertAt.toUtc(), tz.UTC),
           notificationDetails: const NotificationDetails(
             android: _channel,
@@ -116,6 +114,19 @@ class ReminderNotifications {
     if (!isSupported || !_ready) return;
     await _plugin.cancelAllPendingNotifications();
   }
+}
+
+/// What the phone notification says for each kind of reminder.
+@visibleForTesting
+String notificationBody(PatientReminder r) {
+  final who = r.patientName.isEmpty ? 'Patient' : r.patientName;
+  return switch (r.kind) {
+    'newborn_prep' =>
+      '$who — get ready: CBC, TSH, blood grouping, TSB, RFT and OAE.',
+    'newborn_send' => '$who — have the investigations been sent?',
+    'newborn_results' => '$who — are the investigation results back?',
+    _ => '$who — has this been done?',
+  };
 }
 
 /// Stable 31-bit notification id for a reminder uuid.

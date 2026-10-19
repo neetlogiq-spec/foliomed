@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../utils/app_theme.dart';
 import '../utils/app_typography.dart';
@@ -164,4 +166,168 @@ class SettingsRow extends StatelessWidget {
       child: InkWell(onTap: onTap, child: row),
     );
   }
+}
+
+/// A text-entry row for an [InsetGroup] form: label on the left, value on
+/// the right (iOS Settings / Contacts style). Multiline fields stack the
+/// label above the input.
+class InsetTextRow extends StatelessWidget {
+  const InsetTextRow({
+    super.key,
+    required this.label,
+    required this.controller,
+    this.placeholder,
+    this.keyboardType,
+    this.inputFormatters,
+    this.validator,
+    this.enabled = true,
+    this.maxLines = 1,
+    this.suffix,
+    this.textCapitalization = TextCapitalization.none,
+    this.onChanged,
+    this.autofocus = false,
+  });
+
+  final String label;
+  final TextEditingController controller;
+  final String? placeholder;
+  final TextInputType? keyboardType;
+  final List<TextInputFormatter>? inputFormatters;
+  final FormFieldValidator<String>? validator;
+  final bool enabled;
+  final int maxLines;
+
+  /// Unit shown after the value, e.g. "mg/dL".
+  final String? suffix;
+  final TextCapitalization textCapitalization;
+  final ValueChanged<String>? onChanged;
+  final bool autofocus;
+
+  @override
+  Widget build(BuildContext context) {
+    final field = TextFormField(
+      controller: controller,
+      enabled: enabled,
+      autofocus: autofocus,
+      keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
+      validator: validator,
+      onChanged: onChanged,
+      textCapitalization: textCapitalization,
+      minLines: maxLines > 1 ? 2 : 1,
+      maxLines: maxLines,
+      textAlign: maxLines > 1 ? TextAlign.start : TextAlign.end,
+      style: AppTypography.body(
+          color: enabled ? AppColors.textPrimary : AppColors.textSecondary),
+      decoration: InputDecoration(
+        isDense: true,
+        filled: false,
+        border: InputBorder.none,
+        enabledBorder: InputBorder.none,
+        focusedBorder: InputBorder.none,
+        disabledBorder: InputBorder.none,
+        errorBorder: InputBorder.none,
+        focusedErrorBorder: InputBorder.none,
+        contentPadding: const EdgeInsets.symmetric(vertical: 4),
+        hintText: placeholder,
+        hintStyle: AppTypography.body(color: AppColors.tertiaryLabel),
+        suffixText: suffix,
+        suffixStyle: AppTypography.body(color: AppColors.textSecondary),
+      ),
+    );
+    final labelText = Text(label,
+        style: AppTypography.body(
+            color: enabled ? AppColors.textPrimary : AppColors.textSecondary));
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: maxLines > 1
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [labelText, field],
+            )
+          : Row(
+              children: [
+                ConstrainedBox(
+                  constraints: const BoxConstraints(minWidth: 96),
+                  child: labelText,
+                ),
+                const SizedBox(width: 12),
+                Expanded(child: field),
+              ],
+            ),
+    );
+  }
+}
+
+/// A row holding a segmented control (iOS: Settings → choice rows).
+class InsetSegmentedRow<T extends Object> extends StatelessWidget {
+  const InsetSegmentedRow({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.options,
+    required this.onChanged,
+  });
+
+  final String label;
+  final T? value;
+  final Map<T, String> options;
+  final ValueChanged<T> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(label, style: AppTypography.body(color: AppColors.textPrimary)),
+          const SizedBox(height: 8),
+          CupertinoSlidingSegmentedControl<T>(
+            groupValue: value,
+            onValueChanged: (v) {
+              if (v != null) onChanged(v);
+            },
+            children: {
+              for (final e in options.entries)
+                e.key: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: Text(e.value,
+                      style: AppTypography.subheadline(
+                          color: AppColors.textPrimary, weight: FontWeight.w600)),
+                ),
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Picks one of [options] from an action sheet — the iOS pop-up button
+/// pattern for short lists (blood group, ward, OAE result).
+Future<T?> showOptionSheet<T>(
+  BuildContext context, {
+  required String title,
+  required Map<T, String> options,
+  T? selected,
+}) {
+  return showCupertinoModalPopup<T>(
+    context: context,
+    builder: (ctx) => CupertinoActionSheet(
+      title: Text(title),
+      actions: [
+        for (final e in options.entries)
+          CupertinoActionSheetAction(
+            isDefaultAction: e.key == selected,
+            onPressed: () => Navigator.pop(ctx, e.key),
+            child: Text(e.value),
+          ),
+      ],
+      cancelButton: CupertinoActionSheetAction(
+        onPressed: () => Navigator.pop(ctx),
+        child: const Text('Cancel'),
+      ),
+    ),
+  );
 }

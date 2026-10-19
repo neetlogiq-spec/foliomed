@@ -14,6 +14,11 @@ class PatientReminder {
   final String? doneByName;
   final DateTime createdAt;
 
+  /// 'general', or a step of a newborn investigation plan:
+  /// 'newborn_prep' (heads-up), 'newborn_send' (sent?), 'newborn_results'.
+  final String kind;
+  final String? screenId;
+
   const PatientReminder({
     required this.id,
     required this.patientId,
@@ -25,7 +30,11 @@ class PatientReminder {
     this.doneAt,
     this.doneByName,
     required this.createdAt,
+    this.kind = 'general',
+    this.screenId,
   });
+
+  bool get isNewbornStep => screenId != null && kind.startsWith('newborn_');
 
   bool get isDone => doneAt != null;
 
@@ -52,6 +61,8 @@ class PatientReminder {
         doneAt: parseTimestampOrNull(row['done_at']),
         doneByName: row['done_by_name'] as String?,
         createdAt: parseTimestamp(row['created_at']),
+        kind: row['kind'] as String? ?? 'general',
+        screenId: row['screen_id'] as String?,
       );
 
   /// Columns for a new reminder (creator is stamped by the database).
@@ -69,16 +80,4 @@ class PatientReminder {
         'title': title.trim(),
         'due_at': toTimestamp(dueAt),
       };
-}
-
-/// Standard newborn investigation reminders, relative to the birth time.
-class NewbornReminderPreset {
-  const NewbornReminderPreset(this.hours, this.title);
-  final int hours;
-  final String title;
-
-  static const all = [
-    NewbornReminderPreset(48, 'Send 48-hour investigations'),
-    NewbornReminderPreset(72, 'Send 72-hour investigations'),
-  ];
 }

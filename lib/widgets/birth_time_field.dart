@@ -67,64 +67,140 @@ class _BirthTimeFieldState extends State<BirthTimeField> {
   }
 
   Future<void> _pick(BuildContext context) async {
-    final now = DateTime.now();
-    final initial = widget.bornAt ?? now;
-    final first = now.subtract(const Duration(days: 365));
-    final platform = Theme.of(context).platform;
-    if (platform == TargetPlatform.iOS || platform == TargetPlatform.macOS) {
-      var picked = initial;
-      final ok = await showAppSheet<bool>(
-        context: context,
-        builder: (ctx) => SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(ctx, false),
-                    child: const Text('Cancel'),
-                  ),
-                  const Spacer(),
-                  TextButton(
-                    onPressed: () => Navigator.pop(ctx, true),
-                    child: const Text('Done'),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: 216,
-                child: CupertinoDatePicker(
-                  mode: CupertinoDatePickerMode.dateAndTime,
-                  initialDateTime: initial,
-                  minimumDate: first,
-                  maximumDate: now,
-                  onDateTimeChanged: (d) => picked = d,
+    final picked = await pickBirthDateTime(context, widget.bornAt);
+    if (picked != null) widget.onChanged(picked);
+  }
+}
+
+/// Date + time of birth picker: a wheel in a sheet on iOS/macOS, the
+/// platform date then time pickers elsewhere. Never in the future.
+Future<DateTime?> pickBirthDateTime(BuildContext context, DateTime? current,
+    {String title = 'Date & time of birth'}) async {
+  final now = DateTime.now();
+  final initial = current ?? now;
+  final first = now.subtract(const Duration(days: 365));
+  final platform = Theme.of(context).platform;
+  if (platform == TargetPlatform.iOS || platform == TargetPlatform.macOS) {
+    var picked = initial.isAfter(now) ? now : initial;
+    final ok = await showAppSheet<bool>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                CupertinoButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: const Text('Cancel'),
                 ),
+                Expanded(
+                  child: Text(title,
+                      textAlign: TextAlign.center,
+                      style: AppTypography.headline(color: AppColors.textPrimary)),
+                ),
+                CupertinoButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: const Text('Done',
+                      style: TextStyle(fontWeight: FontWeight.w600)),
+                ),
+              ],
+            ),
+            SizedBox(
+              height: 216,
+              child: CupertinoDatePicker(
+                mode: CupertinoDatePickerMode.dateAndTime,
+                initialDateTime: picked,
+                minimumDate: first,
+                maximumDate: now,
+                onDateTimeChanged: (d) => picked = d,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    return ok == true ? picked : null;
+  }
+  final date = await showDatePicker(
+    context: context,
+    initialDate: initial.isAfter(now) ? now : initial,
+    firstDate: first,
+    lastDate: now,
+    helpText: title,
+  );
+  if (date == null || !context.mounted) return null;
+  final time = await showTimePicker(
+    context: context,
+    initialTime: TimeOfDay.fromDateTime(initial),
+    helpText: 'Time of birth',
+  );
+  if (time == null) return null;
+  final chosen = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+  return chosen.isAfter(now) ? now : chosen;
+}
+
+/// Gestational age picker (completed weeks + days). Returns (weeks, days).
+Future<(int, int)?> pickGestation(BuildContext context, int? weeks, int? days) async {
+  var w = weeks ?? 39;
+  var d = days ?? 0;
+  final ok = await showAppSheet<bool>(
+    context: context,
+    builder: (ctx) => SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              CupertinoButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('Cancel'),
+              ),
+              Expanded(
+                child: Text('Gestational age',
+                    textAlign: TextAlign.center,
+                    style: AppTypography.headline(color: AppColors.textPrimary)),
+              ),
+              CupertinoButton(
+                onPressed: () => Navigator.pop(ctx, true),
+                child: const Text('Done',
+                    style: TextStyle(fontWeight: FontWeight.w600)),
               ),
             ],
           ),
-        ),
-      );
-      if (ok == true) widget.onChanged(picked);
-      return;
-    }
-    final date = await showDatePicker(
-      context: context,
-      initialDate: initial,
-      firstDate: first,
-      lastDate: now,
-      helpText: 'Date of birth',
-    );
-    if (date == null || !context.mounted) return;
-    final time = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(initial),
-      helpText: 'Time of birth',
-    );
-    if (time == null) return;
-    final chosen =
-        DateTime(date.year, date.month, date.day, time.hour, time.minute);
-    widget.onChanged(chosen.isAfter(now) ? now : chosen);
-  }
+          SizedBox(
+            height: 200,
+            child: Row(
+              children: [
+                Expanded(
+                  child: CupertinoPicker(
+                    itemExtent: 36,
+                    scrollController:
+                        FixedExtentScrollController(initialItem: w - 22),
+                    onSelectedItemChanged: (i) => w = 22 + i,
+                    children: [
+                      for (var i = 22; i <= 44; i++)
+                        Center(child: Text('$i weeks')),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: CupertinoPicker(
+                    itemExtent: 36,
+                    scrollController: FixedExtentScrollController(initialItem: d),
+                    onSelectedItemChanged: (i) => d = i,
+                    children: [
+                      for (var i = 0; i <= 6; i++)
+                        Center(child: Text('$i day${i == 1 ? '' : 's'}')),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+  return ok == true ? (w, d) : null;
 }

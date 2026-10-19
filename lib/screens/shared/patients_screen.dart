@@ -17,6 +17,7 @@ import '../../utils/haptics.dart';
 import '../../utils/layout.dart';
 import '../../utils/stream_cache.dart';
 import '../../widgets/empty_state.dart';
+import '../../widgets/inset_group.dart';
 import '../../widgets/large_title_app_bar.dart';
 import '../doctor/add_patient_screen.dart';
 import '../doctor/patient_detail_screen.dart';
@@ -154,15 +155,39 @@ class _PatientsScreenState extends State<PatientsScreen> {
             },
           ),
           if (wards.length > 1) ...[
-            const SizedBox(height: 10),
-            SizedBox(
-              height: 36,
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                children: [
-                  _wardChip(null, 'All wards'),
-                  for (final w in wards) _wardChip(w.id, w.name),
-                ],
+            const SizedBox(height: 6),
+            // iOS pull-down button for the ward filter.
+            Align(
+              alignment: Alignment.centerLeft,
+              child: CupertinoButton(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                minimumSize: Size.zero,
+                onPressed: () async {
+                  final id = await showOptionSheet<String>(
+                    context,
+                    title: 'Show patients from',
+                    selected: _wardFilter ?? '',
+                    options: {'': 'All wards', for (final w in wards) w.id: w.name},
+                  );
+                  if (id == null) return;
+                  Haptics.selection();
+                  setState(() => _wardFilter = id.isEmpty ? null : id);
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.filter_list, size: 18, color: AppColors.primary),
+                    const SizedBox(width: 6),
+                    Text(
+                      _wardFilter == null
+                          ? 'All wards'
+                          : wards.firstWhere((w) => w.id == _wardFilter).name,
+                      style: AppTypography.subheadline(
+                          color: AppColors.primary, weight: FontWeight.w600),
+                    ),
+                    Icon(Icons.expand_more, size: 18, color: AppColors.primary),
+                  ],
+                ),
               ),
             ),
           ],
@@ -177,22 +202,6 @@ class _PatientsScreenState extends State<PatientsScreen> {
             style: AppTypography.subheadline(
                 color: AppColors.textPrimary, weight: FontWeight.w600)),
       );
-
-  Widget _wardChip(String? id, String label) {
-    final selected = _wardFilter == id;
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: ChoiceChip(
-        label: Text(label),
-        selected: selected,
-        showCheckmark: false,
-        onSelected: (_) {
-          Haptics.selection();
-          setState(() => _wardFilter = id);
-        },
-      ),
-    );
-  }
 
   Widget _list(List<Ward> wards) {
     final wardIds = wards.map((w) => w.id).toList();

@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../../utils/app_typography.dart';
 import 'package:intl/intl.dart';
@@ -6,7 +7,6 @@ import 'package:provider/provider.dart';
 
 import '../../models/note.dart';
 import '../../models/patient.dart';
-import '../../providers/auth_provider.dart';
 import '../../providers/note_provider.dart';
 import '../../utils/app_theme.dart';
 import '../../services/patient_service.dart';
@@ -18,6 +18,8 @@ import '../../widgets/large_title_app_bar.dart';
 import '../../widgets/empty_state.dart';
 import '../../utils/layout.dart';
 import '../../widgets/reminder_widgets.dart';
+import '../../widgets/newborn_section.dart';
+import '../../widgets/note_list_items.dart';
 import '../../utils/app_utils.dart';
 
 class PatientDetailScreen extends StatefulWidget {
@@ -104,6 +106,13 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
             title: patient.name,
             showBackButton: true,
             actions: [
+              if (patient.isActive)
+                ChromeIconButton(
+                  icon: Icons.edit_square,
+                  tooltip: 'New note',
+                  onPressed: () => showAddNoteBottomSheet(context,
+                      preselectedPatient: patient),
+                ),
               PatientActionsButton(patient: patient),
             ],
           ),
@@ -118,6 +127,10 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
                 const GroupedSectionHeader('Patient info'),
                 _infoCard(patient),
                 const SizedBox(height: 16),
+                if (patient.bornAt != null) ...[
+                  NewbornSection(patient: patient),
+                  const SizedBox(height: 16),
+                ],
                 PatientRemindersSection(patient: patient),
                 const SizedBox(height: 16),
               ],
@@ -125,24 +138,9 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
           ),
           SliverPersistentHeader(
             pinned: true,
-            delegate: _PinnedTabBar(
-              TabBar(
-                controller: _tabController,
-                labelColor: AppColors.isDark
-                    ? AppColors.darkPrimary
-                    : AppColors.primary,
-                unselectedLabelColor: AppColors.textSecondary,
-                indicatorColor: AppColors.isDark
-                    ? AppColors.darkPrimary
-                    : AppColors.primary,
-                indicatorSize: TabBarIndicatorSize.label,
-                dividerColor: AppColors.divider,
-                labelStyle: AppTypography.subheadline(weight: FontWeight.w600),
-                tabs: const [
-                  Tab(text: 'Notes'),
-                  Tab(text: 'History'),
-                ],
-              ),
+            delegate: _PinnedSegments(
+              controller: _tabController,
+              labels: const ['Notes', 'History'],
             ),
           ),
         ],
@@ -151,18 +149,6 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
           children: [_notesTab(patient), _historyTab()],
         ),
       ),
-      floatingActionButton: patient.isDischarged
-          ? null
-          : FloatingActionButton.extended(
-              backgroundColor: AppColors.isDark
-                  ? AppColors.darkPrimary
-                  : AppColors.primary,
-              foregroundColor: AppColors.onPrimary,
-              icon: const Icon(Icons.add),
-              label: const Text('Add Note'),
-              onPressed: () =>
-                  showAddNoteBottomSheet(context, preselectedPatient: patient),
-            ),
     );
   }
 
@@ -297,9 +283,10 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
             icon: Icons.notes_outlined,
             title: 'No notes yet',
             subtitle: 'Notes about ${patient.name} will appear here.',
-            buttonLabel: 'Add Note',
-            onButtonTap: () =>
-                showAddNoteBottomSheet(context, preselectedPatient: patient),
+            buttonLabel: patient.isActive ? 'New note' : null,
+            onButtonTap: patient.isActive
+                ? () => showAddNoteBottomSheet(context, preselectedPatient: patient)
+                : null,
           );
         }
         return ListView.separated(
@@ -309,16 +296,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
           ),
           itemCount: notes.length,
           separatorBuilder: (_, __) => const SizedBox(height: 10),
-          itemBuilder: (_, i) => NoteCard(
-            note: notes[i],
-            onAcknowledge: () {
-              final name =
-                  context.read<AuthProvider>().currentUser?.name ?? 'Staff';
-              context.read<NoteProvider>().acknowledgeNote(notes[i].id, name);
-            },
-            onUnacknowledge: () =>
-                context.read<NoteProvider>().unacknowledgeNote(notes[i].id),
-          ),
+          itemBuilder: (_, i) => WiredNoteCard(note: notes[i]),
         );
       },
     );
@@ -499,21 +477,47 @@ class _DischargedBanner extends StatelessWidget {
   }
 }
 
-class _PinnedTabBar extends SliverPersistentHeaderDelegate {
-  _PinnedTabBar(this.tabBar);
+/// iOS segmented control pinned under the navigation bar, driving the
+/// Notes / History pages (which still swipe).
+class _PinnedSegments extends SliverPersistentHeaderDelegate {
+  _PinnedSegments({required this.controller, required this.labels});
 
-  final TabBar tabBar;
+  final TabController controller;
+  final List<String> labels;
 
   @override
-  double get minExtent => tabBar.preferredSize.height;
+  double get minExtent => 52;
   @override
-  double get maxExtent => tabBar.preferredSize.height;
+  double get maxExtent => 52;
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlaps) =>
-      ColoredBox(color: AppColors.surface, child: tabBar);
+      ColoredBox(
+        color: AppColors.surface,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+          child: AnimatedBuilder(
+            animation: controller,
+            builder: (context, _) => CupertinoSlidingSegmentedControl<int>(
+              groupValue: controller.index,
+              onValueChanged: (i) {
+                if (i != null) controller.animateTo(i);
+              },
+              children: {
+                for (final (i, l) in labels.indexed)
+                  i: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: Text(l,
+                        style: AppTypography.subheadline(
+                            color: AppColors.textPrimary, weight: FontWeight.w600)),
+                  ),
+              },
+            ),
+          ),
+        ),
+      );
 
   @override
-  bool shouldRebuild(covariant _PinnedTabBar oldDelegate) =>
-      oldDelegate.tabBar != tabBar;
+  bool shouldRebuild(covariant _PinnedSegments oldDelegate) =>
+      oldDelegate.controller != controller;
 }

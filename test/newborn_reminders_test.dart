@@ -82,13 +82,23 @@ void main() {
       final until = now.add(const Duration(hours: 1));
       expect(_reminder(due: due, snoozedUntil: until).nextAlertAt, until);
     });
-    test('presets are 48 h and 72 h; new rows carry patient name', () {
-      expect(NewbornReminderPreset.all.map((p) => p.hours), [48, 72]);
+    test('new rows carry patient name; newborn steps are recognised', () {
+      expect(PatientReminder.fromRow({'kind': 'newborn_send', 'screen_id': 's1'}).isNewbornStep, isTrue);
+      expect(PatientReminder.fromRow({'kind': 'general'}).isNewbornStep, isFalse);
       final row = PatientReminder.newRow(patientId: 'p1', wardId: 'w1', patientName: 'Baby', title: '  Send  ', dueAt: _born);
       expect(row['title'], 'Send');
       expect(row['patient_name'], 'Baby');
       expect(row.containsKey('done_by'), isFalse, reason: 'server stamps it');
     });
+    test('notification text follows the newborn step', () {
+      PatientReminder k(String kind) => PatientReminder.fromRow(
+          {'kind': kind, 'screen_id': 's', 'patient_name': 'Baby Anaya'});
+      expect(notificationBody(k('newborn_prep')), contains('get ready'));
+      expect(notificationBody(k('newborn_send')), contains('been sent'));
+      expect(notificationBody(k('newborn_results')), contains('results back'));
+      expect(notificationBody(k('general')), contains('has this been done'));
+    });
+
     test('notification ids are stable and non-negative', () {
       const id = '7f0c2c4e-1b2a-4c55-9f0e-0b8f6f1a2d33';
       expect(notificationId(id), notificationId(id));

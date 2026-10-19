@@ -60,7 +60,10 @@ Firestore → Postgres mapping: `users`→`profiles`, `wards`, `patients`,
 - `patient_reminders`: ward-shared due-at reminders (RLS = ward members; `ward_id` must match the patient's). `done_by`/`done_by_name`/`created_by` are stamped by triggers; snooze = `snoozed_until`. They move with the patient on transfer.
 - Reminder alerts are **local** notifications (`ReminderNotifications`, flutter_local_notifications): each phone schedules its wards' open reminders whenever the list changes; the in-app "has this been done?" prompt comes from `ReminderProvider.onDue`. A phone that hasn't opened the app since a reminder was added won't alert — server push is still TODO.
 
-Test the schema locally without Docker: `supabase/tests/README.md` (suites 10–40).
+- Newborn investigations (`newborn_screens`, migration `20261020000000`): planned at 48/72 h of life with an 8/12 h heads-up. RPC-only writes: `plan_newborn_screen`, `mark_newborn_screen_sent`, `remind_newborn_results`, `save_newborn_results` (each also writes reminders with `kind` newborn_prep/send/results and a timeline note, category Investigation). Results are JSON owned by `NewbornResults` (`lib/models/newborn_screen.dart`). UI: `NewbornFlow`, `NewbornSection`, `NewbornResultsScreen`.
+- Bilirubin decision support: `lib/clinical/bilirubin.dart` — NICE CG98 Table 1 (≥38 wk, linear interpolation, flat from 96 h). AAP 2022 is a stub that reports "not built in" until its tables are supplied and verified. Never present as diagnosis; UI always shows the disclaimer.
+
+Test the schema locally without Docker: `supabase/tests/README.md` (suites 10–50).
 
 ## User Roles & tabs
 - **Doctor / Nurse** — Today (`today_screen.dart`: tiles, reminders, collapsible Pending/All/Urgent note feed), Patients (`patients_screen.dart`, grouped by ward), Wards (`wards_screen.dart` → `ward_page.dart`), Profile. Doctors get the New note FAB; nurses acknowledge through the acknowledge sheet (`WiredNoteCard`).

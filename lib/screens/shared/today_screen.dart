@@ -23,6 +23,7 @@ import '../../widgets/large_title_app_bar.dart';
 import '../../widgets/note_list_items.dart';
 import '../../widgets/notifications_panel.dart';
 import '../../widgets/pressable.dart';
+import '../../widgets/reminder_widgets.dart';
 import '../doctor/add_note_screen.dart';
 import '../doctor/add_patient_screen.dart';
 import '../doctor/patient_detail_screen.dart';
@@ -141,6 +142,14 @@ class _TodayScreenState extends State<TodayScreen> {
                   tooltip: 'Add patient',
                   onPressed: _addPatient,
                 ),
+                // Compose lives in the navigation bar (iOS Mail/Notes), not a
+                // floating action button.
+                if (isDoctor)
+                  ChromeIconButton(
+                    icon: Icons.edit_square,
+                    tooltip: 'New note',
+                    onPressed: () => showAddNoteBottomSheet(context),
+                  ),
               ],
             ),
             SliverPadding(
@@ -162,17 +171,6 @@ class _TodayScreenState extends State<TodayScreen> {
           ],
         ),
       ),
-      floatingActionButton: isDoctor
-          ? FloatingActionButton.extended(
-              heroTag: 'today_new_note',
-              backgroundColor:
-                  AppColors.isDark ? AppColors.darkPrimary : AppColors.primary,
-              foregroundColor: AppColors.onPrimary,
-              icon: const Icon(Icons.edit_note),
-              label: const Text('New note'),
-              onPressed: () => showAddNoteBottomSheet(context),
-            )
-          : null,
     );
   }
 
@@ -484,7 +482,9 @@ class _ReminderRow extends StatelessWidget {
                 tooltip: 'Mark done',
                 icon: const Icon(Icons.check_circle_outline),
                 color: AppColors.accent,
-                onPressed: () => rp.markDone(r),
+                onPressed: () => r.isNewbornStep
+                    ? showReminderDuePrompt(context, r)
+                    : rp.markDone(r),
               ),
             ],
           ],

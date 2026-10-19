@@ -12,12 +12,20 @@ import '../utils/app_utils.dart';
 import '../utils/friendly_error.dart';
 import 'app_alert_dialog.dart';
 import 'app_sheet.dart';
+import 'newborn_flow.dart';
 
 /// "Has this been done?" — shown when a reminder falls due. Yes marks it
 /// done for the whole ward; Not yet asks everyone again in an hour.
 Future<void> showReminderDuePrompt(
     BuildContext context, PatientReminder r) async {
   final provider = context.read<ReminderProvider>();
+  if (r.isNewbornStep &&
+      await NewbornFlow.handleDue(context, r,
+          markDone: () => provider.markDone(r),
+          snooze: () => provider.snooze(r))) {
+    return;
+  }
+  if (!context.mounted) return;
   final answer = await showAdaptiveDialog<_Answer>(
     context: context,
     builder: (ctx) => AppAlertDialog(
@@ -70,7 +78,10 @@ class _PatientRemindersSectionState extends State<PatientRemindersSection> {
     return StreamBuilder<List<PatientReminder>>(
       stream: _stream,
       builder: (context, snap) {
-        final items = snap.data ?? const <PatientReminder>[];
+        // Newborn plan steps live in the Newborn section.
+        final items = (snap.data ?? const <PatientReminder>[])
+            .where((r) => !r.isNewbornStep)
+            .toList();
         return Card(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
@@ -99,9 +110,7 @@ class _PatientRemindersSectionState extends State<PatientRemindersSection> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Text(
-                      widget.patient.bornAt != null
-                          ? 'No reminders. Add one for the 48 h or 72 h investigations.'
-                          : 'No reminders.',
+                      'No reminders.',
                       style: AppTypography.footnote(
                           color: AppColors.textSecondary),
                     ),
@@ -213,13 +222,6 @@ class _AddReminderSheetState extends State<_AddReminderSheet> {
     super.dispose();
   }
 
-  void _usePreset(NewbornReminderPreset preset) {
-    setState(() {
-      _title.text = preset.title;
-      _due = widget.patient.bornAt!.add(Duration(hours: preset.hours));
-    });
-  }
-
   Future<void> _pickDue() async {
     final now = DateTime.now();
     final initial = _due ?? now.add(const Duration(hours: 1));
@@ -254,19 +256,6 @@ class _AddReminderSheetState extends State<_AddReminderSheet> {
             Text('New reminder',
                 style: AppTypography.title3(color: AppColors.textPrimary)),
             const SizedBox(height: 12),
-            if (bornAt != null) ...[
-              Wrap(
-                spacing: 8,
-                children: [
-                  for (final preset in NewbornReminderPreset.all)
-                    ActionChip(
-                      label: Text('${preset.hours} h investigations'),
-                      onPressed: () => _usePreset(preset),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 12),
-            ],
             TextField(
               controller: _title,
               maxLength: 200,

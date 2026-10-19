@@ -1,27 +1,30 @@
-import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '../../utils/app_typography.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../models/newborn_screen.dart';
 import '../../models/patient.dart';
 import '../../models/ward.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/patient_provider.dart';
-import '../../services/ward_service.dart';
-import '../../utils/stream_cache.dart';
-import '../../utils/app_theme.dart';
-import '../../utils/friendly_error.dart';
 import '../../providers/theme_provider.dart';
-import '../../models/patient_reminder.dart';
-import '../../providers/reminder_provider.dart';
+import '../../services/newborn_screen_service.dart';
 import '../../services/reminder_notifications.dart';
-import '../../widgets/birth_time_field.dart';
+import '../../services/ward_service.dart';
+import '../../utils/app_theme.dart';
+import '../../utils/app_typography.dart';
 import '../../utils/app_utils.dart';
+import '../../utils/friendly_error.dart';
+import '../../utils/stream_cache.dart';
+import '../../widgets/birth_time_field.dart';
+import '../../widgets/inset_group.dart';
 
-/// Admits a new patient, or edits [existing] when given. Ward changes go
-/// through Transfer (patient ••• menu), so the ward is fixed when editing.
+/// Admits a new patient, or edits [existing]. An iOS modal form: Cancel and
+/// Add/Save in the navigation bar, inset grouped sections. Setting a birth
+/// time reveals the newborn investigation plan (48 h or 72 h, with an 8 h
+/// or 12 h heads-up). The ward is changed only via Transfer.
 class AddPatientScreen extends StatefulWidget {
   final String? initialWardId;
   final Patient? existing;
@@ -32,29 +35,39 @@ class AddPatientScreen extends StatefulWidget {
   State<AddPatientScreen> createState() => _AddPatientScreenState();
 }
 
+/// When to send the newborn investigations.
+enum _Plan { h48, h72, none }
+
 class _AddPatientScreenState extends State<AddPatientScreen> {
+  static const _bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+
   final _wardStreams = StreamCache<List<Ward>>();
-
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _ageController = TextEditingController();
-  final _hospitalIdController = TextEditingController();
+  final _name = TextEditingController();
+  final _age = TextEditingController();
+  final _hospitalId = TextEditingController();
+  final _bed = TextEditingController();
+  final _diagnosis = TextEditingController();
+
   AgeUnit _ageUnit = AgeUnit.years;
-
-  /// Newborns: exact date and time of birth, plus investigation reminders.
-  DateTime? _bornAt;
-  final Set<int> _reminderHours = {
-    for (final p in NewbornReminderPreset.all) p.hours,
-  };
-  final _bedController = TextEditingController();
-  final _diagnosisController = TextEditingController();
-
   String _gender = 'Male';
   String? _bloodGroup;
   String? _wardId;
+  DateTime? _bornAt;
+  int? _gaWeeks;
+  int? _gaDays;
+  _Plan _plan = _Plan.h48;
+  int _leadHours = 12;
   bool _saving = false;
 
   bool get _editing => widget.existing != null;
+
+  /// The plan question appears for a new birth time (new patient, or one
+  /// added/changed while editing). Existing plans are managed on the
+  /// patient page.
+  bool get _askPlan =>
+      _bornAt != null &&
+      (widget.existing == null || widget.existing!.bornAt != _bornAt);
 
   @override
   void initState() {
@@ -63,450 +76,384 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
     final p = widget.existing;
     if (p != null) {
       _wardId = p.wardId;
-      _nameController.text = p.name;
-      _ageController.text = p.age > 0 ? '${p.age}' : '';
+      _name.text = p.name;
+      _age.text = p.age > 0 ? '${p.age}' : '';
       _ageUnit = p.ageUnit;
-      _hospitalIdController.text = p.hospitalId ?? '';
+      _hospitalId.text = p.hospitalId ?? '';
       _bornAt = p.bornAt;
-      _bedController.text = p.bedNumber;
-      _diagnosisController.text = p.diagnosis;
+      _gaWeeks = p.gestationWeeks;
+      _gaDays = p.gestationDays;
+      _bed.text = p.bedNumber;
+      _diagnosis.text = p.diagnosis;
       _gender = p.gender.isEmpty ? 'Male' : p.gender;
       _bloodGroup = _bloodGroups.contains(p.bloodGroup) ? p.bloodGroup : null;
     }
   }
 
-  /// Reminder presets are offered when the birth time is new or changed.
-  bool get _offerReminders =>
-      _bornAt != null &&
-      (widget.existing == null || widget.existing!.bornAt != _bornAt);
-
-  static const List<String> _bloodGroups = [
-    'A+',
-    'A-',
-    'B+',
-    'B-',
-    'AB+',
-    'AB-',
-    'O+',
-    'O-',
-  ];
-
   @override
   void dispose() {
-    _nameController.dispose();
-    _ageController.dispose();
-    _hospitalIdController.dispose();
-    _bedController.dispose();
-    _diagnosisController.dispose();
+    for (final c in [_name, _age, _hospitalId, _bed, _diagnosis]) {
+      c.dispose();
+    }
     super.dispose();
   }
 
-  Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
-    final patientProvider = context.read<PatientProvider>();
-    final wardId = _wardId ?? context.read<AuthProvider>().currentUser?.wardId ?? '';
-    if (wardId.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Pick a ward first')),
-      );
-      return;
-    }
+  bool get _canSave =>
+      !_saving && _name.text.trim().isNotEmpty && (_editing || _wardId != null);
 
-    setState(() => _saving = true);
-    if (_editing) {
-      await _saveEdits();
-      return;
-    }
-    final patient = Patient(
-      id: const Uuid().v4(),
-      name: _nameController.text.trim(),
-      age: int.tryParse(_ageController.text.trim()) ?? 0,
+  Patient _build({required String id, required String wardId}) {
+    final old = widget.existing;
+    return Patient(
+      id: id,
+      patientCode: old?.patientCode ?? '',
+      name: _name.text.trim(),
+      age: int.tryParse(_age.text.trim()) ?? 0,
       ageUnit: _ageUnit,
-      hospitalId: _hospitalIdController.text.trim(),
+      hospitalId: _hospitalId.text.trim(),
       gender: _gender,
       wardId: wardId,
-      bedNumber: _bedController.text.trim(),
-      diagnosis: _diagnosisController.text.trim(),
+      bedNumber: _bed.text.trim(),
+      diagnosis: _diagnosis.text.trim(),
       bloodGroup: _bloodGroup,
-      admittedAt: DateTime.now(),
+      admittedAt: old?.admittedAt ?? DateTime.now(),
+      status: old?.status ?? PatientStatus.admitted,
+      dischargedAt: old?.dischargedAt,
+      dischargedBy: old?.dischargedBy,
+      dischargeSummary: old?.dischargeSummary,
       bornAt: _bornAt,
+      gestationWeeks: _gaWeeks,
+      gestationDays: _gaWeeks == null ? null : _gaDays,
     );
-
-    final reminders = context.read<ReminderProvider>();
-    final newId = await patientProvider.addPatient(patient);
-    var remindersOk = true;
-    if (newId != null && _bornAt != null) {
-      for (final preset in NewbornReminderPreset.all) {
-        if (!_reminderHours.contains(preset.hours)) continue;
-        remindersOk &= await reminders.add(
-          patientId: newId,
-          wardId: wardId,
-          patientName: patient.name,
-          title: preset.title,
-          dueAt: _bornAt!.add(Duration(hours: preset.hours)),
-        );
-      }
-      if (_reminderHours.isNotEmpty) {
-        await ReminderNotifications.instance.requestPermission();
-      }
-    }
-    if (!mounted) return;
-    setState(() => _saving = false);
-    if (newId != null) {
-      Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(remindersOk
-              ? 'Patient added successfully'
-              : "Patient added, but the reminders couldn't be saved — "
-                  'add them from the patient page.'),
-        ),
-      );
-    } else {
-      final err = patientProvider.error;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: AppColors.danger,
-          content: Text(
-            err == null
-                ? "Couldn't add patient — please try again."
-                : 'Could not add patient — ${friendlyError(err)}',
-          ),
-        ),
-      );
-    }
   }
 
-  Future<void> _saveEdits() async {
-    final old = widget.existing!;
-    final updated = Patient(
-      id: old.id,
-      patientCode: old.patientCode,
-      name: _nameController.text.trim(),
-      age: int.tryParse(_ageController.text.trim()) ?? 0,
-      ageUnit: _ageUnit,
-      hospitalId: _hospitalIdController.text.trim(),
-      gender: _gender,
-      wardId: old.wardId,
-      bedNumber: _bedController.text.trim(),
-      diagnosis: _diagnosisController.text.trim(),
-      bloodGroup: _bloodGroup,
-      admittedAt: old.admittedAt,
-      status: old.status,
-      dischargedAt: old.dischargedAt,
-      dischargedBy: old.dischargedBy,
-      dischargeSummary: old.dischargeSummary,
-      bornAt: _bornAt,
-    );
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+    final wardId = _wardId ?? '';
+    if (!_editing && wardId.isEmpty) return;
+    setState(() => _saving = true);
     final provider = context.read<PatientProvider>();
-    final reminders = context.read<ReminderProvider>();
-    final offer = _offerReminders;
-    final ok = await provider.updatePatient(updated);
-    var remindersOk = true;
-    if (ok && offer) {
-      for (final preset in NewbornReminderPreset.all) {
-        if (!_reminderHours.contains(preset.hours)) continue;
-        remindersOk &= await reminders.add(
-          patientId: old.id,
-          wardId: old.wardId,
-          patientName: updated.name,
-          title: preset.title,
-          dueAt: _bornAt!.add(Duration(hours: preset.hours)),
-        );
-      }
-    }
-    if (!mounted) return;
-    setState(() => _saving = false);
     final messenger = ScaffoldMessenger.of(context);
-    if (ok) {
-      Navigator.of(context).pop();
-      messenger.showSnackBar(SnackBar(
-        content: Text(remindersOk
-            ? 'Changes saved'
-            : "Changes saved, but the reminders couldn't be added."),
-      ));
+    final navigator = Navigator.of(context);
+    final askPlan = _askPlan;
+
+    String? patientId;
+    if (_editing) {
+      final ok = await provider.updatePatient(
+          _build(id: widget.existing!.id, wardId: widget.existing!.wardId));
+      if (ok) patientId = widget.existing!.id;
     } else {
+      patientId =
+          await provider.addPatient(_build(id: const Uuid().v4(), wardId: wardId));
+    }
+    if (patientId == null) {
+      if (!mounted) return;
+      setState(() => _saving = false);
       messenger.showSnackBar(SnackBar(
         backgroundColor: AppColors.danger,
         content: Text(
-            'Could not save — ${friendlyError(provider.error ?? 'unknown error')}'),
+            "Couldn't save — ${friendlyError(provider.error ?? 'unknown error')}"),
       ));
+      return;
     }
+
+    var planNote = '';
+    if (askPlan && _plan != _Plan.none) {
+      try {
+        await NewbornScreenService().plan(patientId,
+            hours: _plan == _Plan.h48 ? 48 : 72, leadHours: _leadHours);
+        await ReminderNotifications.instance.requestPermission();
+        planNote = ' · investigations planned';
+      } catch (e) {
+        planNote = " · couldn't plan investigations (${friendlyError(e)})";
+      }
+    }
+    if (!mounted) return;
+    navigator.pop();
+    messenger.showSnackBar(SnackBar(
+      content: Text('${_editing ? 'Changes saved' : 'Patient added'}$planNote'),
+    ));
   }
 
   @override
   Widget build(BuildContext context) {
-    context.watch<ThemeProvider>(); // rebuild on theme change
-
+    context.watch<ThemeProvider>();
     return Scaffold(
       backgroundColor: AppColors.surface,
       appBar: AppBar(
-        title: Text(_editing ? 'Edit Patient' : 'Add Patient'),
-        leading: IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () => Navigator.of(context).pop(),
+        backgroundColor: AppColors.surface,
+        surfaceTintColor: Colors.transparent,
+        scrolledUnderElevation: 0.5,
+        centerTitle: true,
+        automaticallyImplyLeading: false,
+        leadingWidth: 96,
+        leading: CupertinoButton(
+          padding: const EdgeInsets.only(left: 16),
+          onPressed: _saving ? null : () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
         ),
+        title: Text(_editing ? 'Edit Patient' : 'New Patient',
+            style: AppTypography.headline(color: AppColors.textPrimary)),
+        actions: [
+          _saving
+              ? const Padding(
+                  padding: EdgeInsets.only(right: 20),
+                  child: CupertinoActivityIndicator(),
+                )
+              : CupertinoButton(
+                  padding: const EdgeInsets.only(right: 16),
+                  onPressed: _canSave ? _save : null,
+                  child: Text(_editing ? 'Save' : 'Add',
+                      style: const TextStyle(fontWeight: FontWeight.w600)),
+                ),
+        ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (_editing)
-                _label('Ward is changed with Transfer, from the patient’s ••• menu.')
-              else ...[
-                _label('Ward (required)'),
-                const SizedBox(height: 8),
-                _wardPicker(),
-              ],
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _nameController,
-                textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(
-                  labelText: 'Full name (required)',
-                  prefixIcon: Icon(Icons.person_outline),
-                ),
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Required' : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _hospitalIdController,
-                textCapitalization: TextCapitalization.characters,
-                decoration: const InputDecoration(
-                  labelText: 'Hospital ID / MRN (optional)',
-                  helperText:
-                      'FolioMed also assigns its own unique patient ID automatically.',
-                  prefixIcon: Icon(Icons.badge_outlined),
-                ),
-              ),
-              const SizedBox(height: 12),
-              // Age in days / months / years — neonates and infants need
-              // finer units than years. Ignored once a birth time is set.
-              _label('Age'),
-              const SizedBox(height: 8),
-              SizedBox(
-                width: double.infinity,
-                child: CupertinoSlidingSegmentedControl<AgeUnit>(
-                  groupValue: _ageUnit,
-                  onValueChanged: (u) {
-                    if (u != null && _bornAt == null) setState(() => _ageUnit = u);
-                  },
-                  children: {
-                    for (final u in AgeUnit.values)
-                      u: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Text(u.label,
-                            style: AppTypography.footnote(
-                                color: AppColors.textPrimary,
-                                weight: FontWeight.w600)),
-                      ),
-                  },
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _ageController,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                enabled: _bornAt == null,
-                decoration: InputDecoration(
-                  labelText: 'Age in ${_ageUnit.label.toLowerCase()} (optional)',
-                  helperText: _bornAt == null
-                      ? null
-                      : 'Worked out from the birth time below.',
-                  prefixIcon: const Icon(Icons.cake_outlined),
-                ),
-                validator: (v) {
-                  final n = int.tryParse(v?.trim() ?? '');
-                  if (n == null) return null;
-                  final max = switch (_ageUnit) {
-                    AgeUnit.days => 365,
-                    AgeUnit.months => 60,
-                    AgeUnit.years => 130,
-                  };
-                  return n > max
-                      ? 'At most $max ${_ageUnit.label.toLowerCase()}'
-                      : null;
-                },
-              ),
-              const SizedBox(height: 12),
-              BirthTimeField(
-                bornAt: _bornAt,
-                onChanged: (v) => setState(() => _bornAt = v),
-              ),
-              if (_offerReminders) ...[
-                const SizedBox(height: 8),
-                for (final preset in NewbornReminderPreset.all)
-                  CheckboxListTile.adaptive(
-                    contentPadding: EdgeInsets.zero,
-                    dense: true,
-                    value: _reminderHours.contains(preset.hours),
-                    onChanged: (v) => setState(() => v == true
-                        ? _reminderHours.add(preset.hours)
-                        : _reminderHours.remove(preset.hours)),
-                    title: Text('Remind at ${preset.hours} h of life'),
-                    subtitle: Text(
-                      '${preset.title} · ${formatDueTime(_bornAt!.add(Duration(hours: preset.hours)))}',
-                    ),
-                  ),
-              ],
-              const SizedBox(height: 16),
-              _label('Gender'),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  for (final g in ['Male', 'Female', 'Other'])
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: _toggleChip(g, _gender == g, () {
-                        setState(() => _gender = g);
-                      }),
-                    ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _bedController,
-                decoration: const InputDecoration(
-                  labelText: 'Bed number (optional)',
-                  prefixIcon: Icon(Icons.bed_outlined),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _diagnosisController,
-                maxLines: 3,
-                decoration: const InputDecoration(
-                  labelText: 'Diagnosis (optional)',
-                  alignLabelWithHint: true,
-                ),
-              ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                initialValue: _bloodGroup,
-                decoration: const InputDecoration(
-                  labelText: 'Blood group (optional)',
-                  prefixIcon: Icon(Icons.bloodtype_outlined),
-                ),
-                items: _bloodGroups
-                    .map((g) => DropdownMenuItem(value: g, child: Text(g)))
-                    .toList(),
-                onChanged: (v) => setState(() => _bloodGroup = v),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _saving ? null : _submit,
-                child: _saving
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator.adaptive(
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Text(_editing ? 'Save Changes' : 'Add Patient'),
-                      ),
-              ),
-            ],
-          ),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 40),
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          children: [
+            if (!_editing) ...[_wardGroup(), const SizedBox(height: 24)],
+            _patientGroup(),
+            const SizedBox(height: 24),
+            _ageGroup(),
+            const SizedBox(height: 24),
+            _newbornGroup(),
+            if (_askPlan) ...[const SizedBox(height: 24), _planGroup()],
+            const SizedBox(height: 24),
+            _admissionGroup(),
+          ],
         ),
       ),
     );
   }
 
-  Widget _label(String text) {
-    return Text(
-      text,
-      style: appText(
-        color: AppColors.textSecondary,
-        fontSize: 13,
-        fontWeight: FontWeight.w600,
-      ),
-    );
-  }
-
-  Widget _wardPicker() {
-    final me = context.watch<AuthProvider>().currentUser;
-    final myWardIds = me?.wardIds ?? const <String>[];
-    if (myWardIds.isEmpty) {
-      return Text(
-        'Join a ward first from the Wards tab.',
-        style: appText(color: AppColors.textSecondary),
-      );
-    }
-    final ids = myWardIds;
+  Widget _wardGroup() {
+    final ids =
+        context.watch<AuthProvider>().currentUser?.wardIds ?? const <String>[];
     return StreamBuilder<List<Ward>>(
-      stream: _wardStreams.get(
-          ids.join(','), () => WardService().wardsForUser(ids)),
+      stream: ids.isEmpty
+          ? Stream.value(const <Ward>[])
+          : _wardStreams.get(
+              ids.join(','), () => WardService().wardsForUser(ids)),
       builder: (context, snap) {
-        if (snap.hasError) {
-          return Text(
-            "Couldn't load wards. Pull down and try again.",
-            style: appText(color: AppColors.danger),
-          );
+        final wards = snap.data ?? const <Ward>[];
+        if (_wardId == null && wards.length == 1) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) setState(() => _wardId = wards.first.id);
+          });
         }
-        if (!snap.hasData) {
-          return Text(
-            'Loading wards...',
-            style: appText(color: AppColors.textSecondary),
-          );
-        }
-        final wards = snap.data!;
-        if (wards.isEmpty) {
-          return Text(
-            'No wards yet. Create or join one from the Wards tab.',
-            style: appText(color: AppColors.textSecondary),
-          );
-        }
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              for (final w in wards)
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: _toggleChip(
-                    w.name,
-                    _wardId == w.id,
-                    () => setState(() => _wardId = w.id),
-                  ),
-                ),
-            ],
-          ),
+        final current = wards.where((w) => w.id == _wardId).firstOrNull;
+        return InsetGroup(
+          footer: wards.isEmpty && snap.hasData
+              ? 'Create or join a ward in the Wards tab first.'
+              : null,
+          children: [
+            SettingsRow(
+              title: 'Ward',
+              value: current?.name ?? (snap.hasData ? 'Choose' : 'Loading…'),
+              onTap: wards.isEmpty
+                  ? null
+                  : () async {
+                      final id = await showOptionSheet<String>(
+                        context,
+                        title: 'Admit to ward',
+                        selected: _wardId,
+                        options: {for (final w in wards) w.id: w.name},
+                      );
+                      if (id != null) setState(() => _wardId = id);
+                    },
+            ),
+          ],
         );
       },
     );
   }
 
-  Widget _toggleChip(String label, bool selected, VoidCallback onTap) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(20),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: selected ? AppColors.primary : AppColors.card,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: selected ? AppColors.primary : AppColors.divider,
-          ),
+  Widget _patientGroup() {
+    return InsetGroup(
+      header: 'Patient',
+      dividerIndent: 16,
+      children: [
+        InsetTextRow(
+          label: 'Name',
+          controller: _name,
+          placeholder: 'Required',
+          textCapitalization: TextCapitalization.words,
+          onChanged: (_) => setState(() {}),
+          validator: (v) =>
+              (v == null || v.trim().isEmpty) ? 'Required' : null,
         ),
-        child: Text(
-          label,
-          style: appText(
-            color: selected ? Colors.white : AppColors.textPrimary,
-            fontWeight: FontWeight.w600,
-            fontSize: 13,
-          ),
+        InsetSegmentedRow<String>(
+          label: 'Sex',
+          value: _gender,
+          options: const {'Male': 'Male', 'Female': 'Female', 'Other': 'Other'},
+          onChanged: (g) => setState(() => _gender = g),
         ),
-      ),
+        InsetTextRow(
+          label: 'Hospital ID',
+          controller: _hospitalId,
+          placeholder: 'MRN / IP no.',
+          textCapitalization: TextCapitalization.characters,
+        ),
+      ],
+    );
+  }
+
+  Widget _ageGroup() {
+    final fromBirth = _bornAt != null;
+    return InsetGroup(
+      header: 'Age',
+      dividerIndent: 16,
+      footer: fromBirth ? 'Worked out from the birth time.' : null,
+      children: [
+        if (fromBirth)
+          SettingsRow(
+            title: 'Age',
+            value: ageSinceBirthLabel(_bornAt!, DateTime.now()),
+          )
+        else ...[
+          InsetSegmentedRow<AgeUnit>(
+            label: 'Unit',
+            value: _ageUnit,
+            options: {for (final u in AgeUnit.values) u: u.label},
+            onChanged: (u) => setState(() => _ageUnit = u),
+          ),
+          InsetTextRow(
+            label: 'Age',
+            controller: _age,
+            placeholder: 'Optional',
+            suffix: _ageUnit.label.toLowerCase(),
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            validator: (v) {
+              final n = int.tryParse(v?.trim() ?? '');
+              if (n == null) return null;
+              final max = switch (_ageUnit) {
+                AgeUnit.days => 365,
+                AgeUnit.months => 60,
+                AgeUnit.years => 130,
+              };
+              return n > max
+                  ? 'At most $max ${_ageUnit.label.toLowerCase()}'
+                  : null;
+            },
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _newbornGroup() {
+    return InsetGroup(
+      header: 'Newborn',
+      dividerIndent: 16,
+      footer: _bornAt == null
+          ? 'For PNC and NICU babies: the birth time gives hours of life and '
+              'plans the 48 h / 72 h investigations.'
+          : null,
+      children: [
+        SettingsRow(
+          title: 'Birth date & time',
+          value: _bornAt == null ? 'Not set' : formatDueTime(_bornAt!),
+          onTap: () async {
+            final picked = await pickBirthDateTime(context, _bornAt);
+            if (picked != null) setState(() => _bornAt = picked);
+          },
+        ),
+        if (_bornAt != null) ...[
+          SettingsRow(
+            title: 'Gestational age',
+            value: _gaWeeks == null
+                ? 'Not set'
+                : '$_gaWeeks+${_gaDays ?? 0} weeks',
+            onTap: () async {
+              final ga = await pickGestation(context, _gaWeeks, _gaDays);
+              if (ga != null) {
+                setState(() {
+                  _gaWeeks = ga.$1;
+                  _gaDays = ga.$2;
+                });
+              }
+            },
+          ),
+          SettingsRow(
+            title: 'Clear birth time',
+            destructive: true,
+            onTap: () => setState(() {
+              _bornAt = null;
+              _gaWeeks = null;
+              _gaDays = null;
+            }),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _planGroup() {
+    final born = _bornAt!;
+    final hours = _plan == _Plan.h72 ? 72 : 48;
+    final due = born.add(Duration(hours: hours));
+    final heads = due.subtract(Duration(hours: _leadHours));
+    final footer = _plan == _Plan.none
+        ? 'You can plan them later from the patient page.'
+        : 'Heads-up ${formatDueTime(heads)}. At ${formatDueTime(due)} FolioMed '
+            'asks if they were sent, then for the results.\n'
+            '${kNewbornInvestigations.join(' · ')}';
+    return InsetGroup(
+      header: 'Newborn investigations',
+      dividerIndent: 16,
+      footer: footer,
+      children: [
+        InsetSegmentedRow<_Plan>(
+          label: 'When will you send them?',
+          value: _plan,
+          options: const {
+            _Plan.h48: '48 h',
+            _Plan.h72: '72 h',
+            _Plan.none: 'Not now',
+          },
+          onChanged: (p) => setState(() => _plan = p),
+        ),
+        if (_plan != _Plan.none)
+          InsetSegmentedRow<int>(
+            label: 'Remind me before',
+            value: _leadHours,
+            options: const {8: '8 h before', 12: '12 h before'},
+            onChanged: (h) => setState(() => _leadHours = h),
+          ),
+      ],
+    );
+  }
+
+  Widget _admissionGroup() {
+    return InsetGroup(
+      header: 'Admission',
+      dividerIndent: 16,
+      children: [
+        InsetTextRow(label: 'Bed', controller: _bed, placeholder: 'Optional'),
+        InsetTextRow(
+          label: 'Diagnosis',
+          controller: _diagnosis,
+          placeholder: 'Optional',
+          maxLines: 4,
+          textCapitalization: TextCapitalization.sentences,
+        ),
+        SettingsRow(
+          title: 'Blood group',
+          value: _bloodGroup ?? 'Not set',
+          onTap: () async {
+            final g = await showOptionSheet<String>(
+              context,
+              title: 'Blood group',
+              selected: _bloodGroup,
+              options: {for (final g in _bloodGroups) g: g, '': 'Not known'},
+            );
+            if (g != null) setState(() => _bloodGroup = g.isEmpty ? null : g);
+          },
+        ),
+      ],
     );
   }
 }

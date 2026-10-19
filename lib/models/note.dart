@@ -106,6 +106,8 @@ class Note {
         return Icons.logout;
       case 'admission':
         return Icons.login;
+      case 'investigation':
+        return Icons.science_outlined;
       case 'general':
       default:
         return Icons.notes_outlined;

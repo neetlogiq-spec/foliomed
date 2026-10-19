@@ -53,6 +53,10 @@ class Patient {
   /// derived from it instead of [age] / [ageUnit].
   final DateTime? bornAt;
 
+  /// Gestational age at birth (newborns): completed weeks + days.
+  final int? gestationWeeks;
+  final int? gestationDays;
+
   const Patient({
     required this.id,
     this.patientCode = '',
@@ -71,7 +75,14 @@ class Patient {
     this.dischargedBy,
     this.dischargeSummary,
     this.bornAt,
+    this.gestationWeeks,
+    this.gestationDays,
   });
+
+  /// "39+2 wk", or null when not recorded.
+  String? get gestationLabel => gestationWeeks == null
+      ? null
+      : '$gestationWeeks+${gestationDays ?? 0} wk';
 
   bool get isActive => status == PatientStatus.admitted;
   bool get isDischarged => status == PatientStatus.discharged;
@@ -111,6 +122,8 @@ class Patient {
       dischargedBy: row['discharged_by'] as String?,
       dischargeSummary: row['discharge_summary'] as String?,
       bornAt: parseTimestampOrNull(row['born_at']),
+      gestationWeeks: (row['gestation_weeks'] as num?)?.toInt(),
+      gestationDays: (row['gestation_days'] as num?)?.toInt(),
     );
   }
 
@@ -131,6 +144,8 @@ class Patient {
       'hospital_id': mrn == null || mrn.isEmpty ? null : mrn,
       'admitted_at': toTimestamp(admittedAt),
       'born_at': toTimestampOrNull(bornAt),
+      'gestation_weeks': gestationWeeks,
+      'gestation_days': gestationWeeks == null ? null : (gestationDays ?? 0),
     };
   }
 
@@ -162,6 +177,8 @@ class Patient {
       dischargedBy: dischargedBy,
       dischargeSummary: dischargeSummary,
       bornAt: bornAt,
+      gestationWeeks: gestationWeeks,
+      gestationDays: gestationDays,
     );
   }
 
