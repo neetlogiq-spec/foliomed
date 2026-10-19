@@ -15,9 +15,8 @@ import 'supabase_service.dart';
 /// user's wards (row-level security filters the feed server-side) lands in
 /// the notification inbox and shows a banner.
 ///
-/// TODO(push): background / closed-app push needs a provider (FCM or
-/// OneSignal) plus a Supabase Edge Function on `notes` insert. Device
-/// tokens will be stored in `profiles.push_tokens`.
+/// Closed-app alerts come from server push (PushRegistration + the
+/// push-dispatch Edge Function).
 class PushService {
   PushService._();
 

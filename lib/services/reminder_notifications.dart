@@ -6,14 +6,15 @@ import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../models/patient_reminder.dart';
+import 'push_registration.dart';
 
 /// On-device notifications for patient reminders, so a due "Send 48-hour
 /// investigations" alerts even when FolioMed is closed.
 ///
-/// No server is involved: every phone that has opened FolioMed schedules
-/// its ward's open reminders locally and re-syncs whenever the list
-/// changes. Phones that haven't opened the app since a reminder was added
-/// won't know about it (that needs server push — still a TODO).
+/// Fallback for when server push isn't live: every phone that has opened
+/// FolioMed schedules its ward's open reminders locally and re-syncs
+/// whenever the list changes. Once push is live the server sends these
+/// instead (see PushRegistration / docs/PUSH_SETUP.md).
 class ReminderNotifications {
   ReminderNotifications._();
   static final ReminderNotifications instance = ReminderNotifications._();
@@ -56,6 +57,21 @@ class ReminderNotifications {
         if (id != null && id.isNotEmpty) onTap?.call(id);
       },
     );
+    final android = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    // Channels that server pushes (FCM) post into.
+    await android?.createNotificationChannel(const AndroidNotificationChannel(
+      'patient_reminders',
+      'Patient reminders',
+      description: 'Investigations and other timed tasks for your wards',
+      importance: Importance.high,
+    ));
+    await android?.createNotificationChannel(const AndroidNotificationChannel(
+      'ward_notes',
+      'Ward notes',
+      description: 'New notes from your ward team',
+      importance: Importance.high,
+    ));
     _ready = true;
   }
 
@@ -77,12 +93,15 @@ class ReminderNotifications {
     }
   }
 
-  /// Replaces every scheduled reminder notification with [open].
+  /// Replaces every scheduled reminder notification with [open]. When
+  /// server push is live the server alerts instead, so nothing is
+  /// scheduled locally (no double alerts).
   Future<void> sync(List<PatientReminder> open) async {
     if (!isSupported) return;
     await init();
     try {
       await _plugin.cancelAllPendingNotifications();
+      if (PushRegistration.instance.isLive.value) return;
       final now = DateTime.now();
       final upcoming = open
           .where((r) => !r.isDone && r.nextAlertAt.isAfter(now))

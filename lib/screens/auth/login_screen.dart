@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../services/push_service.dart';
+import '../../services/push_registration.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/app_typography.dart';
 import '../../utils/friendly_error.dart';
@@ -73,6 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
     await _markOnboardingDone();
     PushService.register();
+    PushRegistration.instance.register();
     final user = auth.currentUser!;
     final needsName = user.name.trim().isEmpty ||
         user.name.trim() == user.email.split('@').first;

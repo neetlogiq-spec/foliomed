@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import '../models/app_user.dart';
 import '../services/auth_service.dart';
+import '../services/push_registration.dart';
 
 class AuthProvider extends ChangeNotifier {
   final AuthService _authService;
@@ -76,6 +77,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> signOut() async {
+    await PushRegistration.instance.unregister();
     await _authService.signOut();
     _currentUser = null;
     notifyListeners();

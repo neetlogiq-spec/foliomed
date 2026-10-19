@@ -17,7 +17,7 @@ enum BiliAction {
   none('No action at this level', 'Below the repeat-measurement threshold.'),
 
   /// At/above "repeat bilirubin measurement".
-  repeat('Repeat bilirubin', 'Repeat the bilirubin measurement.'),
+  repeat('Repeat bilirubin', 'Repeat the bilirubin measurement in 6–12 hours.'),
 
   /// At/above "consider phototherapy and repeat in 6 hours".
   considerPhototherapy('Consider phototherapy',
@@ -101,8 +101,9 @@ class NiceCg98 implements BilirubinGuideline {
 
   @override
   String get source =>
-      'NICE CG98 Table 1 (≥38 weeks). Verify against the published NICE '
-      'threshold table/graph before acting.';
+      'NICE CG98 threshold table (≥38 weeks, last updated 2016; NICE flagged '
+      'the thresholds for review in 2023). Check the current NICE table and '
+      'your laboratory\'s assay before acting.';
 
   /// hours → [repeat, consider phototherapy, phototherapy, exchange] (µmol/L)
   static const Map<int, List<double>> table = {

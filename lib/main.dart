@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'config/supabase_config.dart';
 import 'services/accessibility_settings.dart';
 import 'services/reminder_notifications.dart';
+import 'services/push_registration.dart';
 import 'utils/app_theme.dart';
 import 'utils/app_routes.dart';
 import 'providers/providers.dart';
@@ -16,6 +17,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AccessibilitySettings.init();
   await ReminderNotifications.instance.init();
+  await PushRegistration.instance.initFirebase();
   if (!SupabaseConfig.isConfigured) {
     runApp(const _MissingConfigApp());
     return;
