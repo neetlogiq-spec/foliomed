@@ -14,7 +14,7 @@ import '../../utils/app_utils.dart';
 import '../../utils/share_helper.dart';
 import '../../widgets/support_sheet.dart';
 import '../../widgets/theme_toggle_button.dart';
-import '../../widgets/foliomed_brand.dart';
+import '../../widgets/large_title_app_bar.dart';
 import 'add_ward_screen.dart';
 import 'ward_detail_screen.dart';
 import '../../utils/layout.dart';
@@ -59,8 +59,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       // One RPC returns every counter (Postgres count(*) server-side), plus
       // the five latest notes the admin can see for the activity feed.
       final results = await Future.wait<dynamic>([
-        supabase.rpc('dashboard_counts',
-            params: {'p_since': toTimestamp(midnight)}),
+        supabase.rpc(
+          'dashboard_counts',
+          params: {'p_since': toTimestamp(midnight)},
+        ),
         supabase
             .from(Tables.notes)
             .select('author_name, patient_name, created_at')
@@ -73,11 +75,13 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
       final recentRows = List<Map<String, dynamic>>.from(results[1] as List);
 
       final recent = recentRows
-          .map((row) => _RecentActivityItem(
-                authorName: row['author_name'] as String? ?? '',
-                patientName: row['patient_name'] as String? ?? '',
-                createdAt: parseTimestamp(row['created_at']),
-              ))
+          .map(
+            (row) => _RecentActivityItem(
+              authorName: row['author_name'] as String? ?? '',
+              patientName: row['patient_name'] as String? ?? '',
+              createdAt: parseTimestamp(row['created_at']),
+            ),
+          )
           .toList();
 
       if (!mounted) return;
@@ -115,28 +119,43 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
     final user = auth.currentUser;
     return Scaffold(
       backgroundColor: AppColors.surface,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _header(user?.name ?? 'Admin'),
-            Expanded(
-              child: RefreshIndicator(
-                onRefresh: _loadCounts,
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: withBottomBarInset(context, const EdgeInsets.all(16)),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _statsGrid(),
-                      const SizedBox(height: 24),
-                      _wardsOverview(),
-                      const SizedBox(height: 24),
-                      _staffActivity(),
-                      const SizedBox(height: 80),
-                    ],
-                  ),
+      body: RefreshIndicator.adaptive(
+        edgeOffset: MediaQuery.paddingOf(context).top + 52,
+        onRefresh: _loadCounts,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            LargeTitleAppBar(
+              eyebrow: timeOfDayGreeting(),
+              title: user?.name ?? 'Admin',
+              actions: [
+                const ThemeToggleButton(),
+                ChromeIconButton(
+                  icon: Icons.share_outlined,
+                  tooltip: 'Share FolioMed',
+                  onPressed: () => ShareHelper.shareApp(),
                 ),
+                ChromeIconButton(
+                  icon: Icons.local_cafe_outlined,
+                  tooltip: 'Support the developer',
+                  color: AppColors.warning,
+                  onPressed: () => showSupportSheet(context),
+                ),
+              ],
+            ),
+            SliverPadding(
+              padding: withBottomBarInset(
+                context,
+                const EdgeInsets.fromLTRB(16, 8, 16, 96),
+              ),
+              sliver: SliverList.list(
+                children: [
+                  _statsGrid(),
+                  const SizedBox(height: 28),
+                  _wardsOverview(),
+                  const SizedBox(height: 28),
+                  _staffActivity(),
+                ],
               ),
             ),
           ],
@@ -146,44 +165,13 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
         heroTag: 'admin_home_fab',
         backgroundColor: AppColors.adminColor,
         foregroundColor: Colors.white,
+        tooltip: 'Add ward',
         onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const AddWardScreen()),
-          );
+          Navigator.of(
+            context,
+          ).push(MaterialPageRoute(builder: (_) => const AddWardScreen()));
         },
         child: const Icon(Icons.add),
-      ),
-    );
-  }
-
-  Widget _header(String name) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.appBarBg,
-        border: Border(
-          bottom: BorderSide(color: AppColors.divider),
-        ),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      child: Row(
-        children: [
-          const FolioMedBrand(size: 36),
-          const Spacer(),
-          const ThemeToggleButton(),
-          IconButton(
-            tooltip: 'Share FolioMed',
-            icon: const Icon(Icons.share_outlined),
-            onPressed: () => ShareHelper.shareApp(),
-          ),
-          IconButton(
-            tooltip: 'Support the developer',
-            icon: const Icon(
-              Icons.local_cafe_outlined,
-              color: Color(0xFFE57F00),
-            ),
-            onPressed: () => showSupportSheet(context),
-          ),
-        ],
       ),
     );
   }
@@ -287,10 +275,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 const SizedBox(width: 8),
                 Text(
                   'Refreshing analytics…',
-                  style: appText(
-                    color: AppColors.textSecondary,
-                    fontSize: 12,
-                  ),
+                  style: appText(color: AppColors.textSecondary, fontSize: 12),
                 ),
               ],
             ),
@@ -323,20 +308,16 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
             ],
           ),
           const Spacer(),
+          // Tabular figures: counts refresh in place without shifting.
           Text(
             value,
-            style: appText(
+            style: AppTypography.title1(
               color: AppColors.textPrimary,
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-            ),
+            ).copyWith(fontFeatures: AppTypography.tabular),
           ),
           Text(
             label,
-            style: appText(
-              color: AppColors.textSecondary,
-              fontSize: 12,
-            ),
+            style: AppTypography.footnote(color: AppColors.textSecondary),
           ),
         ],
       ),
@@ -364,9 +345,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const AddWardScreen(),
-                      ),
+                      MaterialPageRoute(builder: (_) => const AddWardScreen()),
                     );
                   },
                   child: const Text('Add Ward'),
@@ -423,8 +402,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                 ),
               ),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: AppColors.surface,
                   borderRadius: BorderRadius.circular(8),
@@ -452,10 +430,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               const SizedBox(width: 4),
               Text(
                 w.headDoctorName,
-                style: appText(
-                  color: AppColors.textSecondary,
-                  fontSize: 12,
-                ),
+                style: appText(color: AppColors.textSecondary, fontSize: 12),
               ),
             ],
           ),
@@ -473,8 +448,10 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               const Spacer(),
               OutlinedButton(
                 style: OutlinedButton.styleFrom(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 0,
+                  ),
                   minimumSize: const Size(0, 32),
                 ),
                 onPressed: () {
@@ -518,17 +495,16 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                   padding: const EdgeInsets.all(20),
                   child: Text(
                     'No recent activity',
-                    style: appText(
-                      color: AppColors.textSecondary,
-                    ),
+                    style: appText(color: AppColors.textSecondary),
                   ),
                 )
               else
                 for (int i = 0; i < _recent.length; i++) ...[
                   ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: getAvatarColor(_recent[i].authorName)
-                          .withOpacity(0.15),
+                      backgroundColor: getAvatarColor(
+                        _recent[i].authorName,
+                      ).withOpacity(0.15),
                       child: Text(
                         getInitials(_recent[i].authorName),
                         style: TextStyle(
@@ -539,10 +515,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     ),
                     title: Text(
                       _recent[i].authorName,
-                      style: appText(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
+                      style: appText(fontWeight: FontWeight.w600, fontSize: 14),
                     ),
                     subtitle: Text(
                       'added a note to ${_recent[i].patientName}',

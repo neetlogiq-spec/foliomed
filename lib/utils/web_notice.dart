@@ -99,7 +99,7 @@ class WebNotice {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Continuing on web? Allow browser notifications so urgent alerts reach you.',
+                      'Continuing on web? New notes from your ward appear while this tab is open.',
                       style: appText(
                         color: AppColors.textPrimary,
                         fontSize: 12,

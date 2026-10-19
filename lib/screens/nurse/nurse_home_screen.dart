@@ -15,7 +15,7 @@ import '../../widgets/notifications_panel.dart';
 import '../../utils/share_helper.dart';
 import '../../widgets/support_sheet.dart';
 import '../../widgets/theme_toggle_button.dart';
-import '../../widgets/foliomed_brand.dart';
+import '../../widgets/large_title_app_bar.dart';
 import 'acknowledge_sheet.dart';
 import '../../widgets/app_sheet.dart';
 import '../../utils/layout.dart';
@@ -49,106 +49,60 @@ class _NurseHomeScreenState extends State<NurseHomeScreen> {
     final user = auth.currentUser;
     return Scaffold(
       backgroundColor: AppColors.surface,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _header(user?.name ?? 'Nurse'),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: withBottomBarInset(context, const EdgeInsets.all(16)),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _alertBanner(),
-                    _statsRow(),
-                    const SizedBox(height: 24),
-                    _pendingHeader(),
-                    const SizedBox(height: 10),
-                    _pendingList(),
-                    const SizedBox(height: 24),
-                    _allNotesHeader(),
-                    const SizedBox(height: 10),
-                    _allNotesList(),
-                    const SizedBox(height: 40),
-                  ],
-                ),
-              ),
+      body: CustomScrollView(
+        slivers: [
+          LargeTitleAppBar(
+            eyebrow: timeOfDayGreeting(),
+            title: user?.name ?? 'Nurse',
+            actions: _headerActions(context),
+          ),
+          SliverPadding(
+            padding: withBottomBarInset(
+              context,
+              const EdgeInsets.fromLTRB(16, 8, 16, 40),
             ),
-          ],
-        ),
+            sliver: SliverList.list(
+              children: [
+                _alertBanner(),
+                _statsRow(),
+                const SizedBox(height: 28),
+                _pendingHeader(),
+                const SizedBox(height: 10),
+                _pendingList(),
+                const SizedBox(height: 28),
+                _allNotesHeader(),
+                const SizedBox(height: 10),
+                _allNotesList(),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _header(String name) {
-    return Consumer<NotificationProvider>(
-      builder: (context, notifProvider, _) {
-        final notifCount = notifProvider.items.length;
-        return Container(
-          decoration: BoxDecoration(
-            color: AppColors.appBarBg,
-            border: Border(
-              bottom: BorderSide(color: AppColors.divider),
-            ),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Row(
-            children: [
-              const FolioMedBrand(size: 36),
-              const Spacer(),
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  IconButton(
-                    onPressed: () => showNotificationsPanel(context),
-                    icon: const Icon(Icons.notifications_outlined),
-                  ),
-                  if (notifCount > 0)
-                    Positioned(
-                      right: 6,
-                      top: 6,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        constraints: const BoxConstraints(
-                          minWidth: 18,
-                          minHeight: 18,
-                        ),
-                        decoration: const BoxDecoration(
-                          color: AppColors.danger,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Text(
-                          '$notifCount',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              const ThemeToggleButton(),
-              IconButton(
-                tooltip: 'Share FolioMed',
-                icon: const Icon(Icons.share_outlined),
-                onPressed: () => ShareHelper.shareApp(),
-              ),
-              IconButton(
-                tooltip: 'Support the developer',
-                icon: const Icon(
-                  Icons.local_cafe_outlined,
-                  color: Color(0xFFE57F00),
-                ),
-                onPressed: () => showSupportSheet(context),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+  List<Widget> _headerActions(BuildContext context) {
+    final notifCount = context.watch<NotificationProvider>().items.length;
+    return [
+      ChromeIconButton(
+        icon: Icons.notifications_outlined,
+        tooltip: 'Notifications',
+        badgeCount: notifCount,
+        onPressed: () => showNotificationsPanel(context),
+      ),
+      const ThemeToggleButton(),
+      ChromeIconButton(
+        icon: Icons.share_outlined,
+        tooltip: 'Share FolioMed',
+        onPressed: () => ShareHelper.shareApp(),
+      ),
+      ChromeIconButton(
+        icon: Icons.local_cafe_outlined,
+        tooltip: 'Support the developer',
+        color: AppColors.warning,
+        onPressed: () => showSupportSheet(context),
+      ),
+    ];
   }
 
   Widget _alertBanner() {
@@ -183,8 +137,10 @@ class _NurseHomeScreenState extends State<NurseHomeScreen> {
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.white,
                   side: const BorderSide(color: Colors.white),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
                 ),
                 onPressed: () => setState(() => _filter = 'Urgent'),
                 child: const Text('View Now'),
@@ -257,18 +213,12 @@ class _NurseHomeScreenState extends State<NurseHomeScreen> {
           const SizedBox(height: 10),
           Text(
             value,
-            style: appText(
-              color: AppColors.textPrimary,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+            style: AppTypography.title1(color: AppColors.textPrimary)
+                .copyWith(fontFeatures: AppTypography.tabular),
           ),
           Text(
             label,
-            style: appText(
-              color: AppColors.textSecondary,
-              fontSize: 12,
-            ),
+            style: AppTypography.footnote(color: AppColors.textSecondary),
           ),
         ],
       ),
@@ -347,11 +297,7 @@ class _NurseHomeScreenState extends State<NurseHomeScreen> {
             ),
             child: Column(
               children: [
-                Icon(
-                  Icons.check_circle,
-                  color: AppColors.accent,
-                  size: 48,
-                ),
+                Icon(Icons.check_circle, color: AppColors.accent, size: 48),
                 const SizedBox(height: 8),
                 Text(
                   'All caught up!',

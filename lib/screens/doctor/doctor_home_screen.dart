@@ -15,7 +15,6 @@ import '../../widgets/notifications_panel.dart';
 import '../../utils/share_helper.dart';
 import '../../widgets/support_sheet.dart';
 import '../../widgets/theme_toggle_button.dart';
-import '../../widgets/foliomed_brand.dart';
 import '../shared/filtered_notes_screen.dart';
 import 'add_note_screen.dart';
 import 'add_patient_screen.dart';
@@ -23,6 +22,9 @@ import 'patient_detail_screen.dart';
 import 'patients_list_screen.dart';
 import '../../utils/layout.dart';
 import '../../widgets/app_alert_dialog.dart';
+import '../../widgets/large_title_app_bar.dart';
+import '../../widgets/pressable.dart';
+import '../../widgets/empty_state.dart';
 
 class DoctorHomeScreen extends StatefulWidget {
   const DoctorHomeScreen({super.key});
@@ -33,6 +35,20 @@ class DoctorHomeScreen extends StatefulWidget {
 
 class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
   List<String> _subscribedWardIds = const [];
+
+  /// The note list's entrance plays once, when data first arrives.
+  bool _notesEntered = false;
+
+  void _addPatient() {
+    final wardIds = context.read<AuthProvider>().currentUser?.wardIds ?? [];
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => AddPatientScreen(
+          initialWardId: wardIds.isNotEmpty ? wardIds.first : null,
+        ),
+      ),
+    );
+  }
 
   @override
   void didChangeDependencies() {
@@ -64,94 +80,61 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.surface,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(user?.name ?? 'Doctor'),
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      AppColors.appBarBg,
-                      AppColors.surface,
-                    ],
-                    stops: const [0.0, 0.18],
+      body: RefreshIndicator.adaptive(
+        edgeOffset: MediaQuery.paddingOf(context).top + 52,
+        onRefresh: () async {
+          HapticFeedback.lightImpact();
+          final wardIds =
+              context.read<AuthProvider>().currentUser?.wardIds ?? const [];
+          context.read<NoteProvider>().subscribeForWards(wardIds);
+          context.read<PatientProvider>().subscribeForWards(wardIds);
+          await Future.delayed(const Duration(milliseconds: 300));
+        },
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            LargeTitleAppBar(
+              eyebrow: timeOfDayGreeting(),
+              title: user?.name ?? 'Doctor',
+              actions: _headerActions(context),
+            ),
+            SliverPadding(
+              padding: withBottomBarInset(
+                context,
+                const EdgeInsets.fromLTRB(16, 8, 16, 96),
+              ),
+              sliver: SliverList.list(
+                children: [
+                  _buildStats(),
+                  const SizedBox(height: 28),
+                  SectionHeader(
+                    'Active Patients',
+                    actionLabel: 'See All',
+                    onAction: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const PatientsListScreen(),
+                      ),
+                    ),
                   ),
-                ),
-                child: RefreshIndicator(
-                  color: AppColors.primary,
-                  onRefresh: () async {
-                    HapticFeedback.lightImpact();
-                    final wardIds = context
-                            .read<AuthProvider>()
-                            .currentUser
-                            ?.wardIds ??
-                        const [];
-                    context
-                        .read<NoteProvider>()
-                        .subscribeForWards(wardIds);
-                    context
-                        .read<PatientProvider>()
-                        .subscribeForWards(wardIds);
-                    await Future.delayed(
-                        const Duration(milliseconds: 300));
-                  },
-                  child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: withBottomBarInset(context, const EdgeInsets.all(16)),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildStats(),
-                    const SizedBox(height: 24),
-                    _sectionHeader(
-                      'Active Patients',
-                      actionLabel: 'See All',
-                      onAction: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const PatientsListScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    _buildPatientsRow(),
-                    const SizedBox(height: 24),
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: AppColors.appBarBg,
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: AppColors.divider),
+                  _buildPatientsRow(),
+                  const SizedBox(height: 28),
+                  // Flat section on the grouped background — no
+                  // container-in-a-container.
+                  SectionHeader(
+                    'Recent Notes',
+                    trailing: IconButton(
+                      tooltip: 'New note',
+                      icon: Icon(
+                        Icons.add_circle,
+                        color: AppColors.isDark
+                            ? AppColors.darkPrimary
+                            : AppColors.primary,
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _sectionHeader(
-                            'Recent Notes',
-                            trailing: IconButton(
-                              icon: const Icon(
-                                Icons.add_circle,
-                                color: AppColors.primary,
-                              ),
-                              onPressed: () =>
-                                  showAddNoteBottomSheet(context),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          _buildNotesList(),
-                        ],
-                      ),
+                      onPressed: () => showAddNoteBottomSheet(context),
                     ),
-                    const SizedBox(height: 80),
-                  ],
-                ),
-                ),
-                ),
+                  ),
+                  _buildNotesList(),
+                ],
               ),
             ),
           ],
@@ -167,22 +150,19 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
             foregroundColor: AppColors.primary,
             elevation: 2,
             icon: const Icon(Icons.person_add_outlined),
-            label: Text('Add Patient',
-                style: appText(fontWeight: FontWeight.w600)),
-            onPressed: () {
-              final wardIds =
-                  context.read<AuthProvider>().currentUser?.wardIds ?? [];
-              Navigator.of(context).push(MaterialPageRoute(
-                builder: (_) => AddPatientScreen(
-                    initialWardId: wardIds.isNotEmpty ? wardIds.first : null),
-              ));
-            },
+            label: Text(
+              'Add Patient',
+              style: appText(fontWeight: FontWeight.w600),
+            ),
+            onPressed: _addPatient,
           ),
           const SizedBox(height: 10),
           FloatingActionButton.extended(
             heroTag: 'doctor_home_fab',
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
+            backgroundColor: AppColors.isDark
+                ? AppColors.darkPrimary
+                : AppColors.primary,
+            foregroundColor: AppColors.onPrimary,
             icon: const Icon(Icons.add),
             label: const Text('New Note'),
             onPressed: () => showAddNoteBottomSheet(context),
@@ -192,75 +172,28 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
     );
   }
 
-  Widget _buildHeader(String name) {
-    return Consumer<NotificationProvider>(
-      builder: (context, notifProvider, _) {
-        final notifCount = notifProvider.items.length;
-        return Container(
-          decoration: BoxDecoration(
-            color: AppColors.appBarBg,
-            border: Border(
-              bottom: BorderSide(color: AppColors.divider),
-            ),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Row(
-            children: [
-              const FolioMedBrand(size: 36),
-              const Spacer(),
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  IconButton(
-                    onPressed: () => showNotificationsPanel(context),
-                    icon: const Icon(Icons.notifications_outlined),
-                  ),
-                  if (notifCount > 0)
-                    Positioned(
-                      right: 6,
-                      top: 6,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        constraints: const BoxConstraints(
-                          minWidth: 18,
-                          minHeight: 18,
-                        ),
-                        decoration: const BoxDecoration(
-                          color: AppColors.danger,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Text(
-                          '$notifCount',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              const ThemeToggleButton(),
-              IconButton(
-                tooltip: 'Share FolioMed',
-                icon: const Icon(Icons.share_outlined),
-                onPressed: () => ShareHelper.shareApp(),
-              ),
-              IconButton(
-                tooltip: 'Support the developer',
-                icon: const Icon(
-                  Icons.local_cafe_outlined,
-                  color: Color(0xFFE57F00),
-                ),
-                onPressed: () => showSupportSheet(context),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+  List<Widget> _headerActions(BuildContext context) {
+    final notifCount = context.watch<NotificationProvider>().items.length;
+    return [
+      ChromeIconButton(
+        icon: Icons.notifications_outlined,
+        tooltip: 'Notifications',
+        badgeCount: notifCount,
+        onPressed: () => showNotificationsPanel(context),
+      ),
+      const ThemeToggleButton(),
+      ChromeIconButton(
+        icon: Icons.share_outlined,
+        tooltip: 'Share FolioMed',
+        onPressed: () => ShareHelper.shareApp(),
+      ),
+      ChromeIconButton(
+        icon: Icons.local_cafe_outlined,
+        tooltip: 'Support the developer',
+        color: AppColors.warning,
+        onPressed: () => showSupportSheet(context),
+      ),
+    ];
   }
 
   Widget _buildStats() {
@@ -280,9 +213,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
               icon: Icons.people_outline,
               color: AppColors.doctorColor,
               onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const PatientsListScreen(),
-                ),
+                MaterialPageRoute(builder: (_) => const PatientsListScreen()),
               ),
             ),
             const SizedBox(width: 10),
@@ -331,84 +262,42 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
     bool emphasised = false,
   }) {
     return Expanded(
-      child: InkWell(
+      child: Pressable(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
         child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: emphasised ? color : AppColors.divider,
-            width: emphasised ? 1.5 : 1,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.card,
+            borderRadius: BorderRadius.circular(AppRadii.card),
+            // Urgent with items: a coloured edge, not a glow.
+            border: emphasised ? Border.all(color: color, width: 1.5) : null,
+            boxShadow: AppColors.cardShadow,
           ),
-          boxShadow: emphasised
-              ? [
-                  BoxShadow(
-                    color: color.withOpacity(0.25),
-                    blurRadius: 18,
-                    offset: const Offset(0, 6),
-                  ),
-                ]
-              : AppColors.cardShadow,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: color.withOpacity(AppColors.iconChipOpacity),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, color: color, size: 18),
+          child: Semantics(
+            label: '$label: $value',
+            excludeSemantics: true,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(icon, color: color, size: 20),
+                const SizedBox(height: 10),
+                Text(
+                  value,
+                  style: AppTypography.title1(
+                    color: AppColors.textPrimary,
+                  ).copyWith(fontFeatures: AppTypography.tabular),
+                ),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.footnote(color: AppColors.textSecondary),
+                ),
+              ],
             ),
-            const SizedBox(height: 10),
-            Text(
-              value,
-              style: appText(
-                color: AppColors.textPrimary,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Text(
-              label,
-              style: appText(
-                color: AppColors.textSecondary,
-                fontSize: 12,
-              ),
-            ),
-          ],
-        ),
+          ),
         ),
       ),
-    );
-  }
-
-  Widget _sectionHeader(
-    String title, {
-    String? actionLabel,
-    VoidCallback? onAction,
-    Widget? trailing,
-  }) {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            title,
-            style: appText(
-              color: AppColors.textPrimary,
-              fontSize: 17,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-        if (trailing != null) trailing,
-        if (actionLabel != null)
-          TextButton(onPressed: onAction, child: Text(actionLabel)),
-      ],
     );
   }
 
@@ -416,17 +305,13 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
     return Consumer<PatientProvider>(
       builder: (context, provider, _) {
         if (provider.patients.isEmpty) {
-          return Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: AppColors.card,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              'No patients yet',
-              style: appText(color: AppColors.textSecondary),
+          return _EmptyCard(
+            child: EmptyState(
+              icon: Icons.people_outline,
+              title: 'No patients yet',
+              subtitle: 'Admit a patient to start their notes.',
+              buttonLabel: 'Add Patient',
+              onButtonTap: _addPatient,
             ),
           );
         }
@@ -444,8 +329,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
   }
 
   Widget _patientMiniCard(Patient p) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(16),
+    return Pressable(
       onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(
@@ -455,10 +339,10 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
       },
       child: Container(
         width: 160,
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: AppColors.card,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadii.card),
           boxShadow: AppColors.cardShadow,
         ),
         child: Column(
@@ -488,20 +372,14 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
             ),
             Text(
               'Bed ${p.bedNumber}',
-              style: appText(
-                color: AppColors.textSecondary,
-                fontSize: 12,
-              ),
+              style: appText(color: AppColors.textSecondary, fontSize: 12),
             ),
             const SizedBox(height: 4),
             Text(
               p.diagnosis,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: appText(
-                color: AppColors.textPrimary,
-                fontSize: 12,
-              ),
+              style: appText(color: AppColors.textPrimary, fontSize: 12),
             ),
           ],
         ),
@@ -514,50 +392,43 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
       builder: (context, provider, _) {
         final recent = provider.notes.take(10).toList();
         if (recent.isEmpty) {
-          return Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(28),
-            decoration: BoxDecoration(
-              color: AppColors.card,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              children: [
-                Icon(
-                  Icons.inbox_outlined,
-                  size: 48,
-                  color: AppColors.textSecondary.withOpacity(0.5),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'No notes yet',
-                  style: appText(
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
+          return _EmptyCard(
+            child: EmptyState(
+              icon: Icons.notes_outlined,
+              title: 'No notes yet',
+              subtitle: 'Notes your ward team posts appear here in real time.',
+              buttonLabel: 'New Note',
+              onButtonTap: () => showAddNoteBottomSheet(context),
             ),
           );
         }
+        final animate = !_notesEntered;
+        if (animate) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) _notesEntered = true;
+          });
+        }
         return Column(
           children: [
-            for (final n in recent)
+            for (final (i, n) in recent.indexed)
               Padding(
                 padding: const EdgeInsets.only(bottom: 10),
-                child: NoteCard(
-                  note: n,
-                  onAcknowledge: () {
-                    final name =
-                        context.read<AuthProvider>().currentUser?.name ??
-                            'Staff';
-                    context
-                        .read<NoteProvider>()
-                        .acknowledgeNote(n.id, name);
-                  },
-                  onUnacknowledge: () => context
-                      .read<NoteProvider>()
-                      .unacknowledgeNote(n.id),
-                  onDelete: () => _confirmDelete(context, n.id),
+                child: staggeredEntrance(
+                  context,
+                  index: i,
+                  animate: animate,
+                  child: NoteCard(
+                    note: n,
+                    onAcknowledge: () {
+                      final name =
+                          context.read<AuthProvider>().currentUser?.name ??
+                          'Staff';
+                      context.read<NoteProvider>().acknowledgeNote(n.id, name);
+                    },
+                    onUnacknowledge: () =>
+                        context.read<NoteProvider>().unacknowledgeNote(n.id),
+                    onDelete: () => _confirmDelete(context, n.id),
+                  ),
                 ),
               ),
           ],
@@ -580,9 +451,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.danger,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger),
             onPressed: () => Navigator.pop(context, true),
             child: const Text('Delete'),
           ),
@@ -592,5 +461,24 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
     if (confirm == true && context.mounted) {
       await context.read<NoteProvider>().deleteNote(noteId);
     }
+  }
+}
+
+/// Card surface for an inline empty state inside a section.
+class _EmptyCard extends StatelessWidget {
+  const _EmptyCard({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(AppRadii.card),
+      ),
+      child: child,
+    );
   }
 }

@@ -29,6 +29,7 @@ import 'wards_screen.dart';
 import '../../providers/theme_provider.dart';
 import '../../utils/layout.dart';
 import '../../widgets/app_alert_dialog.dart';
+import '../../services/accessibility_settings.dart';
 
 class MainScaffold extends StatefulWidget {
   final UserRole role;
@@ -117,6 +118,7 @@ class _MainScaffoldState extends State<MainScaffold>
       context.read<NoteProvider>().pauseStreams();
       context.read<PatientProvider>().pauseStream();
     } else if (state == AppLifecycleState.resumed) {
+      AccessibilitySettings.refresh();
       final wardIds =
           context.read<AuthProvider>().currentUser?.wardIds ?? const <String>[];
       context.read<NoteProvider>().subscribeForWards(wardIds);
@@ -392,7 +394,19 @@ class _MainScaffoldState extends State<MainScaffold>
   }
 
   Widget _scaffold(BuildContext context) {
-    final solidChrome = MediaQuery.highContrastOf(context);
+    return ValueListenableBuilder<bool>(
+      valueListenable: AccessibilitySettings.reduceTransparency,
+      builder: (context, reduceTransparency, _) {
+        // Solid chrome when the user asks for less transparency or more
+        // contrast — translucency must never cost legibility.
+        final solidChrome =
+            reduceTransparency || MediaQuery.highContrastOf(context);
+        return _buildScaffold(context, solidChrome);
+      },
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context, bool solidChrome) {
     return Scaffold(
       // Content scrolls under the translucent tab bar; tab screens add the
       // bar's height to their own scroll padding (withBottomBarInset).

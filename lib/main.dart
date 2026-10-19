@@ -3,6 +3,7 @@ import 'package:media_kit/media_kit.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'config/supabase_config.dart';
+import 'services/accessibility_settings.dart';
 import 'services/vlm_server_manager.dart';
 import 'utils/app_theme.dart';
 import 'utils/app_routes.dart';
@@ -15,6 +16,7 @@ final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   MediaKit.ensureInitialized();
+  await AccessibilitySettings.init();
   if (!SupabaseConfig.isConfigured) {
     runApp(const _MissingConfigApp());
     return;
