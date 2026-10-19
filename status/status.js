@@ -5,92 +5,64 @@ import {
   isConfigured,
 } from '../supabase-public.js';
 
-// Every read is a one-shot REST call, re-run on click or every 5 minutes
-// and paused while the tab is hidden.
-const REFRESH_MS = 5 * 60 * 1000; // 5 minutes
-const FEED_LIMIT = 20;
+// One-shot REST calls, re-run on demand or every 5 minutes while visible.
+const REFRESH_MS = 5 * 60 * 1000;
+const FEED_LIMIT = 15;
 
-// ────────── Health checks ──────────
-function setStatus(cardId, state, detailText) {
-  const card = document.getElementById(cardId);
-  if (!card) return;
-  const pill = card.querySelector('[data-slot="pill"]');
-  const detail = card.querySelector('[data-slot="detail"]');
-  if (pill) {
-    pill.className = 'status-pill ' + state;
-    pill.textContent =
-      state === 'green' ? 'OK' :
-      state === 'amber' ? 'DEGRADED' :
-      state === 'red' ? 'DOWN' : state.toUpperCase();
-  }
-  if (detail) detail.textContent = detailText;
+const LABELS = { ok: 'Operational', down: 'Unavailable', checking: 'Checking', pending: 'Not configured' };
+
+function setService(id, state, detail) {
+  const row = document.getElementById(id);
+  if (!row) return;
+  row.dataset.state = state;
+  const label = row.querySelector('[data-slot="label"]');
+  if (label) label.textContent = LABELS[state] ?? state;
+  const d = row.querySelector('[data-slot="detail"]');
+  if (d && detail) d.textContent = detail;
 }
 
 async function checkAuth() {
   try {
     const ms = await pingAuth();
-    setStatus('svc-auth', 'green',
-      `Auth API reachable · ${ms}ms · Email/Password, Google, Apple`);
+    setService('svc-auth', 'ok', `Google and Apple sign-in · responded in ${ms} ms`);
   } catch (e) {
-    setStatus('svc-auth', 'red', `Error: ${e.message}`);
+    setService('svc-auth', 'down', `Sign-in service not responding (${e.message})`);
   }
 }
 
 async function checkDatabase() {
-  if (!isConfigured()) {
-    setStatus('svc-firestore', 'amber', 'Supabase anon key not configured');
-    return;
-  }
+  if (!isConfigured()) return setService('svc-database', 'pending');
   const start = performance.now();
   try {
     await fetchTotals();
     const ms = Math.round(performance.now() - start);
-    setStatus('svc-firestore', 'green',
-      `Connected · ${ms}ms · Public metrics readable`);
+    setService('svc-database', 'ok', `Wards, patients and notes · responded in ${ms} ms`);
   } catch (e) {
-    setStatus('svc-firestore', 'red', `Error — ${e.message}`);
+    setService('svc-database', 'down', `Database not responding (${e.message})`);
   }
 }
 
-function updateHeader() {
-  document.getElementById('last-check').textContent =
-    new Date().toLocaleString();
-}
-
-function tally() {
-  const pills = document.querySelectorAll('.status-pill');
-  let degraded = 0, down = 0;
-  pills.forEach(p => {
-    if (p.classList.contains('amber')) degraded++;
-    else if (p.classList.contains('red')) down++;
-  });
+function summarise() {
+  const live = ['svc-auth', 'svc-database'].map((id) => document.getElementById(id)?.dataset.state);
   const el = document.getElementById('overall');
-  const banner = document.getElementById('alert-banner');
-  const bannerIcon = document.getElementById('alert-icon');
-  const bannerText = document.getElementById('alert-text');
-  if (down > 0) {
-    el.textContent = `⚠ ${down} service(s) down.`;
-    el.style.color = '#ff6b6b';
-    banner.className = 'alert-banner red';
-    bannerIcon.textContent = '✕';
-    bannerText.textContent = `${down} service${down>1?'s are':' is'} down — investigate now.`;
-  } else if (degraded > 0) {
-    el.textContent = `All core systems operational · ${degraded} pending setup.`;
-    el.style.color = '#f6b93b';
-    banner.className = 'alert-banner amber';
-    bannerIcon.textContent = '⚠';
-    bannerText.textContent = `${degraded} service${degraded>1?'s need':' needs'} attention.`;
-  } else {
-    el.textContent = '✓ All systems operational.';
-    el.style.color = '#00c896';
-    banner.className = 'alert-banner hidden';
-  }
+  const down = live.filter((s) => s === 'down').length;
+  const [color, text] = down
+    ? ['var(--red-dot)', `${down} service${down > 1 ? 's are' : ' is'} unavailable`]
+    : ['var(--green-dot)', 'All systems operational'];
+  el.innerHTML = '';
+  const dot = document.createElement('span');
+  dot.className = 'dot';
+  dot.style.background = color;
+  const label = document.createElement('span');
+  label.textContent = text;
+  el.append(dot, label);
+  document.getElementById('last-check').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
-// ────────── Live counters (one-shot) ──────────
+const fmt = new Intl.NumberFormat();
 function setCounter(id, value) {
   const el = document.getElementById(id);
-  if (el) el.textContent = value ?? '—';
+  if (el) el.textContent = typeof value === 'number' ? fmt.format(value) : (value ?? '—');
 }
 
 async function loadCounters() {
@@ -102,86 +74,65 @@ async function loadCounters() {
     setCounter('ct-notes', d.notes);
     setCounter('ct-acks', d.acks);
     setCounter('ct-comments', d.comments);
-    if (d.lastActivityAt) {
-      setCounter('last-activity', timeAgo(d.lastActivityAt));
-      document.getElementById('live-pulse')?.classList.add('pulsing');
-    } else {
-      setCounter('last-activity', 'no activity yet');
-    }
+    setCounter('last-activity', d.lastActivityAt ? timeAgo(d.lastActivityAt) : 'none yet');
   } catch (e) {
-    console.warn('loadCounters failed:', e);
+    console.warn('Totals unavailable:', e);
   }
 }
 
-// ────────── Activity feed (one-shot) ──────────
+const EVENT = {
+  note: 'Note posted', ack: 'Note acknowledged', comment: 'Reply posted',
+  patient: 'Patient admitted', ward: 'Ward created', user: 'Clinician joined',
+};
+
 async function loadFeed() {
   const feed = document.getElementById('activity-feed');
-  if (!feed) return;
   try {
     const events = await fetchActivity(FEED_LIMIT);
-    if (events.length === 0) {
-      feed.innerHTML = '<div class="feed-empty">No activity yet — once your team starts using FolioMed, events appear here.</div>';
+    feed.replaceChildren();
+    if (!events.length) {
+      const li = document.createElement('li');
+      li.className = 'empty';
+      li.textContent = 'No activity yet.';
+      feed.append(li);
       return;
     }
-    // Summaries stay private (they can name patients) — show type + time.
-    feed.innerHTML = events.map(({ type, at }) => `
-        <div class="feed-item">
-          <div class="feed-icon ${typeColor(type)}">${typeEmoji(type)}</div>
-          <div class="feed-body">
-            <div class="feed-summary">${escape(labelFor(type))}</div>
-            <div class="feed-meta">${timeAgo(at)}</div>
-          </div>
-        </div>`).join('');
+    for (const { type, at } of events) {
+      const li = document.createElement('li');
+      const name = document.createElement('span');
+      name.textContent = EVENT[type] ?? type;
+      const time = document.createElement('time');
+      time.dateTime = at.toISOString();
+      time.textContent = timeAgo(at);
+      li.append(name, time);
+      feed.append(li);
+    }
   } catch (e) {
-    console.warn('loadFeed failed:', e);
-    feed.innerHTML =
-      '<div class="feed-empty">Could not load activity right now.</div>';
+    feed.innerHTML = '<li class="empty">Activity is unavailable right now.</li>';
   }
 }
 
-function typeEmoji(t) {
-  return ({note:'📝', ack:'✅', comment:'💬', patient:'🛏️', ward:'🏥', user:'👤'})[t] || '•';
-}
-function typeColor(t) {
-  return ({note:'blue', ack:'green', comment:'purple', patient:'amber', ward:'teal', user:'pink'})[t] || 'blue';
-}
-function labelFor(t) {
-  return ({note:'Note posted', ack:'Note acknowledged', comment:'Reply', patient:'Patient admitted', ward:'Ward created', user:'User signed up'})[t] || t;
-}
 function timeAgo(d) {
-  const sec = Math.floor((Date.now() - d.getTime()) / 1000);
-  if (sec < 60) return `${sec}s ago`;
-  if (sec < 3600) return `${Math.floor(sec/60)}m ago`;
-  if (sec < 86400) return `${Math.floor(sec/3600)}h ago`;
-  return `${Math.floor(sec/86400)}d ago`;
-}
-function escape(s) {
-  return String(s ?? '').replace(/[&<>"']/g, c =>
-    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+  const s = Math.max(0, Math.floor((Date.now() - d.getTime()) / 1000));
+  if (s < 60) return 'just now';
+  if (s < 3600) return `${Math.floor(s / 60)} min ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)} h ago`;
+  return `${Math.floor(s / 86400)} d ago`;
 }
 
-// ────────── Orchestration ──────────
 async function runAll() {
   await Promise.all([checkAuth(), checkDatabase(), loadCounters(), loadFeed()]);
-  updateHeader();
-  setTimeout(tally, 200);
+  summarise();
 }
 
 document.getElementById('recheck')?.addEventListener('click', runAll);
 runAll();
 
-// Re-run only every 5 minutes (was 30s). Pause completely when the tab
-// is hidden — no point billing reads while the user can't see them.
-let timer = null;
-function startAutoRefresh() {
-  stopAutoRefresh();
-  timer = setInterval(runAll, REFRESH_MS);
-}
-function stopAutoRefresh() {
-  if (timer) { clearInterval(timer); timer = null; }
-}
+let timer = setInterval(runAll, REFRESH_MS);
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) stopAutoRefresh();
-  else { startAutoRefresh(); runAll(); }
+  clearInterval(timer);
+  if (!document.hidden) {
+    runAll();
+    timer = setInterval(runAll, REFRESH_MS);
+  }
 });
-startAutoRefresh();
