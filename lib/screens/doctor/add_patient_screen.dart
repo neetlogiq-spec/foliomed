@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../clinical/birth_summary.dart';
 import '../../models/newborn_screen.dart';
 import '../../models/patient.dart';
 import '../../models/ward.dart';
@@ -56,6 +57,17 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
   DateTime? _bornAt;
   int? _gaWeeks;
   int? _gaDays;
+
+  // Birth details (newborns)
+  final _birthWeight = TextEditingController(); // kg
+  final _indication = TextEditingController();
+  String? _sizeForDates;
+  String? _deliveryMode;
+  String? _motherGroup;
+  int? _apgar1;
+  int? _apgar5;
+  bool _resuscitated = false;
+
   _Plan _plan = _Plan.h48;
   int _leadHours = 12;
   bool _saving = false;
@@ -87,12 +99,30 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
       _diagnosis.text = p.diagnosis;
       _gender = p.gender.isEmpty ? 'Male' : p.gender;
       _bloodGroup = _bloodGroups.contains(p.bloodGroup) ? p.bloodGroup : null;
+      if (p.birthWeightG != null) {
+        _birthWeight.text = (p.birthWeightG! / 1000)
+            .toStringAsFixed(3)
+            .replaceFirst(RegExp(r'0+$'), '')
+            .replaceFirst(RegExp(r'\.$'), '');
+      }
+      _indication.text = p.deliveryIndication ?? '';
+      _sizeForDates = p.sizeForDates;
+      _deliveryMode = p.deliveryMode;
+      _motherGroup = p.motherBloodGroup;
+      _apgar1 = p.apgar1;
+      _apgar5 = p.apgar5;
+      _resuscitated = p.resuscitated ?? false;
     }
+  }
+
+  int? get _birthWeightG {
+    final kg = double.tryParse(_birthWeight.text.trim().replaceAll(',', '.'));
+    return kg == null ? null : (kg * 1000).round();
   }
 
   @override
   void dispose() {
-    for (final c in [_name, _age, _hospitalId, _bed, _diagnosis]) {
+    for (final c in [_name, _age, _hospitalId, _bed, _diagnosis, _birthWeight, _indication]) {
       c.dispose();
     }
     super.dispose();
@@ -103,6 +133,21 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
 
   Patient _build({required String id, required String wardId}) {
     final old = widget.existing;
+    final newborn = _bornAt != null;
+    final draft = _draft(id: id, wardId: wardId, diagnosis: _diagnosis.text.trim());
+    // The composed birth line fills an empty diagnosis, and replaces it
+    // when the diagnosis was the old composed line (i.e. never hand-edited).
+    final line = newborn ? birthSummaryLine(draft) : null;
+    final oldLine = old == null ? null : birthSummaryLine(old);
+    final typed = _diagnosis.text.trim();
+    final diagnosis = line != null && (typed.isEmpty || typed == oldLine) ? line : typed;
+    return _draft(id: id, wardId: wardId, diagnosis: diagnosis);
+  }
+
+  Patient _draft({required String id, required String wardId, required String diagnosis}) {
+    final old = widget.existing;
+    final newborn = _bornAt != null;
+    final assisted = _deliveryMode != null && _deliveryMode != 'NVD';
     return Patient(
       id: id,
       patientCode: old?.patientCode ?? '',
@@ -113,7 +158,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
       gender: _gender,
       wardId: wardId,
       bedNumber: _bed.text.trim(),
-      diagnosis: _diagnosis.text.trim(),
+      diagnosis: diagnosis,
       bloodGroup: _bloodGroup,
       admittedAt: old?.admittedAt ?? DateTime.now(),
       status: old?.status ?? PatientStatus.admitted,
@@ -123,6 +168,14 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
       bornAt: _bornAt,
       gestationWeeks: _gaWeeks,
       gestationDays: _gaWeeks == null ? null : _gaDays,
+      birthWeightG: newborn ? _birthWeightG : null,
+      sizeForDates: newborn ? _sizeForDates : null,
+      deliveryMode: newborn ? _deliveryMode : null,
+      deliveryIndication: newborn && assisted ? _indication.text.trim() : null,
+      motherBloodGroup: newborn ? _motherGroup : null,
+      apgar1: newborn ? _apgar1 : null,
+      apgar5: newborn ? _apgar5 : null,
+      resuscitated: newborn ? _resuscitated : null,
     );
   }
 
@@ -219,6 +272,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
             _ageGroup(),
             const SizedBox(height: 24),
             _newbornGroup(),
+            if (_bornAt != null) ...[const SizedBox(height: 24), _birthDetailsGroup()],
             if (_askPlan) ...[const SizedBox(height: 24), _planGroup()],
             const SizedBox(height: 24),
             _admissionGroup(),
@@ -377,6 +431,11 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
               }
             },
           ),
+          if (Maturity.fromGestation(_gaWeeks) != null)
+            SettingsRow(
+              title: 'Maturity',
+              value: Maturity.fromGestation(_gaWeeks)!.label,
+            ),
           SettingsRow(
             title: 'Clear birth time',
             destructive: true,
@@ -387,6 +446,114 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
             }),
           ),
         ],
+      ],
+    );
+  }
+
+  Widget _birthDetailsGroup() {
+    final assisted = _deliveryMode != null && _deliveryMode != 'NVD';
+    final preview = birthSummaryLine(
+        _draft(id: '', wardId: '', diagnosis: ''));
+    Future<int?> pickApgar(String title, int? current) => showOptionSheet<int>(
+          context,
+          title: title,
+          selected: current,
+          options: {for (var i = 10; i >= 0; i--) i: '$i'},
+        );
+    return InsetGroup(
+      header: 'Birth details',
+      dividerIndent: 16,
+      footer: preview == null
+          ? null
+          : '$preview\nUsed as the diagnosis unless you write your own.',
+      children: [
+        InsetTextRow(
+          label: 'Birth weight',
+          controller: _birthWeight,
+          placeholder: 'e.g. 3.1',
+          suffix: 'kg',
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'^\d{0,1}([.,]\d{0,3})?')),
+          ],
+          onChanged: (_) => setState(() {}),
+          validator: (v) {
+            final g = _birthWeightG;
+            if ((v ?? '').trim().isEmpty || g == null) return null;
+            return g < 300 || g > 7000 ? 'Between 0.3 and 7 kg' : null;
+          },
+        ),
+        InsetSegmentedRow<String>(
+          label: 'Size for dates',
+          value: _sizeForDates,
+          options: {for (final s in kSizesForDates) s: s},
+          onChanged: (v) => setState(() => _sizeForDates = v),
+        ),
+        SettingsRow(
+          title: 'Delivery',
+          value: _deliveryMode ?? 'Not set',
+          onTap: () async {
+            final m = await showOptionSheet<String>(
+              context,
+              title: 'Mode of delivery',
+              selected: _deliveryMode,
+              options: {
+                'NVD': 'NVD (normal vaginal)',
+                'LSCS': 'LSCS (caesarean)',
+                'Vacuum': 'Vacuum-assisted',
+                'Forceps': 'Forceps-assisted',
+                '': 'Not known',
+              },
+            );
+            if (m != null) setState(() => _deliveryMode = m.isEmpty ? null : m);
+          },
+        ),
+        if (assisted)
+          InsetTextRow(
+            label: 'Indication',
+            controller: _indication,
+            placeholder: 'e.g. CPD',
+            textCapitalization: TextCapitalization.characters,
+            onChanged: (_) => setState(() {}),
+          ),
+        SettingsRow(
+          title: 'APGAR 1 min',
+          value: _apgar1?.toString() ?? 'Not set',
+          onTap: () async {
+            final v = await pickApgar('APGAR at 1 minute', _apgar1);
+            if (v != null) setState(() => _apgar1 = v);
+          },
+        ),
+        SettingsRow(
+          title: 'APGAR 5 min',
+          value: _apgar5?.toString() ?? 'Not set',
+          onTap: () async {
+            final v = await pickApgar('APGAR at 5 minutes', _apgar5);
+            if (v != null) setState(() => _apgar5 = v);
+          },
+        ),
+        SettingsRow(
+          title: 'Resuscitation needed',
+          trailing: Switch.adaptive(
+            value: _resuscitated,
+            onChanged: (v) => setState(() => _resuscitated = v),
+          ),
+          showChevron: false,
+        ),
+        SettingsRow(
+          title: "Mother's blood group",
+          subtitle: 'Flags ABO / Rh risk for jaundice',
+          value: _motherGroup ?? 'Not set',
+          onTap: () async {
+            final g = await showOptionSheet<String>(
+              context,
+              title: "Mother's blood group",
+              selected: _motherGroup,
+              options: {for (final g in _bloodGroups) g: g, '': 'Not known'},
+            );
+            if (g != null) setState(() => _motherGroup = g.isEmpty ? null : g);
+          },
+        ),
       ],
     );
   }
@@ -436,7 +603,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
         InsetTextRow(
           label: 'Diagnosis',
           controller: _diagnosis,
-          placeholder: 'Optional',
+          placeholder: _bornAt != null ? 'From birth details if left blank' : 'Optional',
           maxLines: 4,
           textCapitalization: TextCapitalization.sentences,
         ),

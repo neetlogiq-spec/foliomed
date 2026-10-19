@@ -57,6 +57,16 @@ class Patient {
   final int? gestationWeeks;
   final int? gestationDays;
 
+  /// Birth details (newborns). See `lib/clinical/birth_summary.dart`.
+  final int? birthWeightG;
+  final String? sizeForDates; // AGA / SGA / LGA
+  final String? deliveryMode; // NVD / LSCS / Vacuum / Forceps
+  final String? deliveryIndication; // e.g. "CPD"
+  final String? motherBloodGroup;
+  final int? apgar1;
+  final int? apgar5;
+  final bool? resuscitated;
+
   const Patient({
     required this.id,
     this.patientCode = '',
@@ -77,6 +87,14 @@ class Patient {
     this.bornAt,
     this.gestationWeeks,
     this.gestationDays,
+    this.birthWeightG,
+    this.sizeForDates,
+    this.deliveryMode,
+    this.deliveryIndication,
+    this.motherBloodGroup,
+    this.apgar1,
+    this.apgar5,
+    this.resuscitated,
   });
 
   /// "39+2 wk", or null when not recorded.
@@ -124,6 +142,14 @@ class Patient {
       bornAt: parseTimestampOrNull(row['born_at']),
       gestationWeeks: (row['gestation_weeks'] as num?)?.toInt(),
       gestationDays: (row['gestation_days'] as num?)?.toInt(),
+      birthWeightG: (row['birth_weight_g'] as num?)?.toInt(),
+      sizeForDates: row['size_for_dates'] as String?,
+      deliveryMode: row['delivery_mode'] as String?,
+      deliveryIndication: row['delivery_indication'] as String?,
+      motherBloodGroup: row['mother_blood_group'] as String?,
+      apgar1: (row['apgar_1'] as num?)?.toInt(),
+      apgar5: (row['apgar_5'] as num?)?.toInt(),
+      resuscitated: row['resuscitated'] as bool?,
     );
   }
 
@@ -146,6 +172,14 @@ class Patient {
       'born_at': toTimestampOrNull(bornAt),
       'gestation_weeks': gestationWeeks,
       'gestation_days': gestationWeeks == null ? null : (gestationDays ?? 0),
+      'birth_weight_g': birthWeightG,
+      'size_for_dates': sizeForDates,
+      'delivery_mode': deliveryMode,
+      'delivery_indication': _blankToNull(deliveryIndication),
+      'mother_blood_group': motherBloodGroup,
+      'apgar_1': apgar1,
+      'apgar_5': apgar5,
+      'resuscitated': resuscitated,
     };
   }
 
@@ -179,8 +213,19 @@ class Patient {
       bornAt: bornAt,
       gestationWeeks: gestationWeeks,
       gestationDays: gestationDays,
+      birthWeightG: birthWeightG,
+      sizeForDates: sizeForDates,
+      deliveryMode: deliveryMode,
+      deliveryIndication: deliveryIndication,
+      motherBloodGroup: motherBloodGroup,
+      apgar1: apgar1,
+      apgar5: apgar5,
+      resuscitated: resuscitated,
     );
   }
+
+  static String? _blankToNull(String? v) =>
+      v == null || v.trim().isEmpty ? null : v.trim();
 
   String get initials {
     final trimmed = name.trim();

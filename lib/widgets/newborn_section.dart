@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../clinical/bilirubin.dart';
+import '../clinical/birth_summary.dart';
 import '../models/newborn_screen.dart';
 import '../models/patient.dart';
 import '../services/newborn_screen_service.dart';
@@ -36,11 +37,16 @@ class _NewbornSectionState extends State<NewbornSection> {
           SettingsRow(
             icon: Icons.child_friendly_outlined,
             iconColor: AppColors.nurseColor,
-            title: 'Born ${formatDueTime(p.bornAt!)}',
+            title: '${p.hoursSinceBirth()} h of life'
+                '${p.gestationLabel == null ? '' : ' · ${p.gestationLabel}'}',
             subtitle: [
-              '${p.hoursSinceBirth()} h of life',
-              if (p.gestationLabel != null) p.gestationLabel!,
-            ].join(' · '),
+              birthSummaryLine(p) ?? 'Born ${formatDueTime(p.bornAt!)}',
+              [
+                if (apgarLabel(p) != null) apgarLabel(p)!,
+                if (p.resuscitated == true) 'resuscitated at birth',
+                if (p.motherBloodGroup != null) 'mother ${p.motherBloodGroup}',
+              ].join(' · '),
+            ].where((l) => l.isNotEmpty).join('\n'),
           ),
           for (final s in screens) ..._screenRows(context, s),
           if (snap.hasData && p.isActive &&

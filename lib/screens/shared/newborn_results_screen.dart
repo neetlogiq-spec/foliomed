@@ -52,7 +52,8 @@ class _NewbornResultsScreenState extends State<NewbornResultsScreen> {
       (DateTime.now().isBefore(widget.screen.dueAt) ? DateTime.now() : widget.screen.dueAt);
   late BiliUnit _unit = _initial.biliUnit;
   late String? _babyGroup = _initial.babyBloodGroup;
-  late String? _motherGroup = _initial.motherBloodGroup;
+  late String? _motherGroup =
+      _initial.motherBloodGroup ?? widget.patient.motherBloodGroup;
   late OaeResult? _oaeR = _initial.oaeRight;
   late OaeResult? _oaeL = _initial.oaeLeft;
   bool _saving = false;
