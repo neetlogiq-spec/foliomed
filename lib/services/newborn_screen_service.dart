@@ -43,6 +43,10 @@ class NewbornScreenService {
       _client.rpc('remind_newborn_results',
           params: {'p_screen': screenId, 'p_hours': hours});
 
+  /// Stops asking for results; they can still be entered later.
+  Future<void> skipResults(String screenId) =>
+      _client.rpc('skip_newborn_results', params: {'p_screen': screenId});
+
   Future<void> saveResults(String screenId, NewbornResults results, String summary) =>
       _client.rpc('save_newborn_results', params: {
         'p_screen': screenId,

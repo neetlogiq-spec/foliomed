@@ -40,13 +40,14 @@ class NotesRepository {
   Stream<List<Note>> patientTimeline(String patientId) =>
       _live(_notes.stream(primaryKey: ['id']).eq('patient_id', patientId), limit: 100);
 
-  /// How many notes in [wardIds] still wait for confirmation. Realtime
-  /// allows one filter, so the ward narrowing happens here.
+  /// How many recent notes in [wardIds] still wait for confirmation.
+  /// Filtered live on `ward_id` only: realtime never tells a query filtered
+  /// on `is_acknowledged = false` that a note was confirmed, so the count
+  /// would never go down.
   Stream<int> pendingCount(List<String> wardIds) {
     if (wardIds.isEmpty) return Stream.value(0);
-    final wards = wardIds.toSet();
-    return _live(_notes.stream(primaryKey: ['id']).eq('is_acknowledged', false), limit: pendingCap)
-        .map((notes) => notes.where((n) => wards.contains(n.wardId)).length);
+    return _live(_notes.stream(primaryKey: ['id']).inFilter('ward_id', wardIds), limit: pendingCap)
+        .map((notes) => notes.where((n) => !n.isConfirmed).length);
   }
 
   /// Whether one note is confirmed, live.

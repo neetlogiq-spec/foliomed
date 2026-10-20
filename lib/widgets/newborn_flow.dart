@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show PostgrestException;
 
 import '../models/newborn_screen.dart';
 import '../models/patient.dart';
@@ -30,6 +31,9 @@ class NewbornFlow {
     ));
   }
 
+  /// The plan no longer exists (re-planned or deleted).
+  static bool isGone(Object e) => e is PostgrestException && (e.code == 'P0002' || e.code == 'PGRST116');
+
   /// Due prompt for a newborn-plan reminder. Returns true if it handled it.
   static Future<bool> handleDue(BuildContext context, PatientReminder r,
       {required Future<void> Function() markDone,
@@ -37,6 +41,17 @@ class NewbornFlow {
     final screenId = r.screenId;
     if (screenId == null) return false;
     final who = r.patientName.isEmpty ? 'This baby' : r.patientName;
+    // The reminder on this phone may be out of date (plan replaced, already
+    // sent or resulted by a teammate). Ask only about the plan's real state.
+    final NewbornScreen? screen;
+    try {
+      screen = await _service.get(screenId);
+    } catch (_) {
+      return true; // offline or similar: ask again next time
+    }
+    if (screen == null || screen.status == ScreenStatus.resulted) return true;
+    if (screen.status == ScreenStatus.sent && r.kind != 'newborn_results') return true;
+    if (!context.mounted) return true;
     switch (r.kind) {
       case 'newborn_prep':
         await showAdaptiveDialog<void>(
@@ -102,7 +117,9 @@ class NewbornFlow {
       await _service.markSent(screenId);
       Haptics.success();
     } catch (e) {
-      if (context.mounted) _error(context, e);
+      if (context.mounted) {
+        _error(context, isGone(e) ? 'This plan was replaced. Use the one on the baby’s page.' : e);
+      }
       return;
     }
     if (!context.mounted) return;
@@ -116,7 +133,8 @@ class NewbornFlow {
       context: context,
       builder: (ctx) => AppAlertDialog(
         title: const Text('Results back?'),
-        content: const Text('Enter the results now, or FolioMed will ask again in 6 hours.'),
+        content: const Text('Enter the results now, have FolioMed ask again in 6 hours, '
+            'or skip — you can still add them later from the baby’s page.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, 'enter'),
@@ -126,17 +144,30 @@ class NewbornFlow {
             onPressed: () => Navigator.pop(ctx, 'later'),
             child: const Text('Not yet — ask in 6 h'),
           ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, 'skip'),
+            child: const Text('Skip'),
+          ),
         ],
       ),
     );
     if (!context.mounted) return;
     if (choice == 'enter') {
       await openResults(context, screenId, patientId);
-    } else if (choice == 'later') {
+    } else if (choice == 'later' || choice == 'skip') {
       try {
-        await _service.remindResults(screenId, hours: 6);
+        if (choice == 'skip') {
+          await _service.skipResults(screenId);
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text('Skipped. Add results any time from the baby’s page.'),
+            ));
+          }
+        } else {
+          await _service.remindResults(screenId, hours: 6);
+        }
       } catch (e) {
-        if (context.mounted) _error(context, e);
+        if (context.mounted) _error(context, isGone(e) ? 'This plan was replaced. Use the one on the baby’s page.' : e);
       }
     }
   }

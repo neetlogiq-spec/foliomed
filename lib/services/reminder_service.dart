@@ -13,20 +13,29 @@ class ReminderService {
 
   static const int kOpenCap = 300;
 
+  /// Most recent reminders (open or done) kept live.
+  static const int kLiveCap = 600;
+
   /// Open (not done) reminders across the caller's wards, soonest first.
-  /// RLS limits rows to wards the caller belongs to; [wardIds] narrows it.
+  ///
+  /// The live query is filtered on `ward_id`, never on `done_at`: Supabase
+  /// realtime doesn't tell a filtered query about rows that stop matching
+  /// (or are deleted), so a `done_at is null` filter left finished and
+  /// re-planned reminders on screen. "Open" is applied here instead.
   Stream<List<PatientReminder>> openForWards(List<String> wardIds) {
     if (wardIds.isEmpty) return Stream.value(const []);
-    final wanted = wardIds.toSet();
     return _table
         .stream(primaryKey: ['id'])
-        .isFilter('done_at', null)
-        .order('due_at', ascending: true)
-        .limit(kOpenCap)
-        .map((rows) => rows
-            .map(PatientReminder.fromRow)
-            .where((r) => wanted.contains(r.wardId))
-            .toList());
+        .inFilter('ward_id', wardIds)
+        .order('due_at', ascending: false)
+        .limit(kLiveCap)
+        .map((rows) {
+          final open = [
+            for (final r in rows.map(PatientReminder.fromRow))
+              if (!r.isDone) r,
+          ]..sort((a, b) => a.dueAt.compareTo(b.dueAt));
+          return open.length > kOpenCap ? open.sublist(0, kOpenCap) : open;
+        });
   }
 
   /// Every reminder on one patient (open and done), soonest first.

@@ -17,31 +17,39 @@ class PatientService {
   /// Discharged patients shown in the "Discharged" list, newest first.
   static const int kDischargedListCap = 100;
 
-  /// Realtime streams accept one filter, so status is filtered by the
-  /// server and the ward ids client-side (RLS already limits rows to the
-  /// caller's wards). Filtering status server-side keeps a growing pile of
-  /// discharged patients from crowding admitted ones out of the cap.
+  /// Most recent patients (any status) kept live per ward set.
+  static const int kLiveRowCap = 1000;
+
+  /// Patients on [wardIds] with [status]. The live query is filtered on
+  /// `ward_id` only — realtime doesn't tell a query filtered on `status`
+  /// that a patient was discharged or readmitted, so they'd stay in the
+  /// wrong list. Status is applied here; [limit] caps the result.
   Stream<List<Patient>> _byStatus(
     String status,
     Set<String> wardIds, {
-    required String orderBy,
     required int limit,
   }) {
     return _patients
         .stream(primaryKey: ['id'])
-        .eq('status', status)
-        .order(orderBy, ascending: false)
-        .limit(limit)
-        .map((rows) => rows
-            .map(Patient.fromRow)
-            .where((p) => wardIds.contains(p.wardId))
-            .toList());
+        .inFilter('ward_id', wardIds.toList())
+        .order('admitted_at', ascending: false)
+        .limit(kLiveRowCap)
+        .map((rows) {
+          final out = [
+            for (final p in rows.map(Patient.fromRow))
+              if (p.status.name == status) p,
+          ];
+          if (status == 'discharged') {
+            out.sort((a, b) => (b.dischargedAt ?? b.admittedAt).compareTo(a.dischargedAt ?? a.admittedAt));
+          }
+          return out.length > limit ? out.sublist(0, limit) : out;
+        });
   }
 
   Stream<List<Patient>> getActivePatientsForWards(List<String> wardIds) {
     if (wardIds.isEmpty) return Stream.value(const []);
     return _byStatus('admitted', wardIds.toSet(),
-        orderBy: 'admitted_at', limit: kPatientsListCap);
+        limit: kPatientsListCap);
   }
 
   Stream<List<Patient>> getPatientsByWard(String wardId) =>
@@ -50,7 +58,7 @@ class PatientService {
   Stream<List<Patient>> getDischargedPatientsForWards(List<String> wardIds) {
     if (wardIds.isEmpty) return Stream.value(const []);
     return _byStatus('discharged', wardIds.toSet(),
-        orderBy: 'discharged_at', limit: kDischargedListCap);
+        limit: kDischargedListCap);
   }
 
   /// Live view of one patient (status, ward and bed change under you when a
