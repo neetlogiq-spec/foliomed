@@ -102,7 +102,7 @@ class NewbornFlow {
       await _service.markSent(screenId);
       Haptics.success();
     } catch (e) {
-      _error(context, e);
+      if (context.mounted) _error(context, e);
       return;
     }
     if (!context.mounted) return;
@@ -159,7 +159,7 @@ class NewbornFlow {
         builder: (_) => NewbornResultsScreen(screen: screen, patient: patient),
       ));
     } catch (e) {
-      _error(context, e);
+      if (context.mounted) _error(context, e);
     }
   }
 

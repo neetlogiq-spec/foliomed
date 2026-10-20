@@ -1,77 +1,72 @@
+# Codemagic: iOS build → TestFlight.
+#
+# One-time setup in Codemagic:
+#   • Team → Integrations → App Store Connect: add the API key
+#     (Key ID ZCU49PSMCN, your Issuer ID) and name it "FolioMed ASC".
+#   • App → Environment variables → group "foliomed-secrets":
+#       SUPABASE_ANON_KEY, and (for push) FIREBASE_PROJECT_ID,
+#       FIREBASE_MESSAGING_SENDER_ID, FIREBASE_IOS_API_KEY, FIREBASE_IOS_APP_ID
+#   • Set ASC_APP_ID below to the app's numeric Apple ID.
 workflows:
-  ios-release:
-    name: FolioMed iOS - App Store
+  ios-testflight:
+    name: iOS → TestFlight
     instance_type: mac_mini_m2
     max_build_duration: 60
-
-    # App Store Connect API key integration, created in Codemagic →
-    # Team settings → Integrations using AuthKey_ZCU49PSMCN.p8
-    # (Key ID ZCU49PSMCN + your Issuer ID). Name it exactly this:
     integrations:
-      app_store_connect: Codemagic FolioMed
-
+      app_store_connect: FolioMed ASC
     environment:
+      flutter: 3.47.7
+      xcode: latest
+      cocoapods: default
+      groups:
+        - foliomed-secrets
       ios_signing:
         distribution_type: app_store
         bundle_identifier: com.foliomed.app
-      # Environment group "foliomed" (Codemagic → App settings → Environment
-      # variables) must define SUPABASE_ANON_KEY.
-      groups:
-        - foliomed
       vars:
-        BUNDLE_ID: "com.foliomed.app"
-        # Numeric Apple ID of the app record in App Store Connect.
-        APP_STORE_APPLE_ID: "YOUR_APP_STORE_APPLE_ID"
-      flutter: 3.41.9
-      xcode: latest
-      cocoapods: default
-
+        ASC_APP_ID: "SET_ME"
     cache:
       cache_paths:
-        - $HOME/Library/Caches/CocoaPods
         - $HOME/.pub-cache
-        - $FCI_BUILD_DIR/ios/Pods
-
+        - $HOME/Library/Caches/CocoaPods
+    triggering:
+      events: [tag]
+      tag_patterns:
+        - pattern: "ios-v*"
     scripts:
-      - name: Initialize keychain
-        script: keychain initialize
-
-      - name: Fetch Flutter packages
-        script: flutter pub get
-
-      - name: Set up provisioning profiles
-        script: xcode-project use-profiles
-
-      - name: Pod install
+      - name: Signing
         script: |
-          cd ios
-          pod install --repo-update
-
-      - name: Auto-bump build number
+          keychain initialize
+          xcode-project use-profiles
+      - name: Dependencies
         script: |
-          cd ios
-          LATEST=$(app-store-connect get-latest-app-store-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo "0")
-          agvtool new-version -all $((LATEST + 1))
-
-      - name: Build IPA
+          flutter pub get
+          (cd ios && pod install --repo-update)
+      - name: Next build number
         script: |
+          LAST=$(app-store-connect get-latest-app-store-build-number "$ASC_APP_ID" 2>/dev/null || echo 0)
+          echo "BUILD_NUMBER=$((LAST + 1))" >> "$CM_ENV"
+      - name: Build
+        script: |
+          cat > env.json <<JSON
+          {
+            "SUPABASE_ANON_KEY": "$SUPABASE_ANON_KEY",
+            "FIREBASE_PROJECT_ID": "${FIREBASE_PROJECT_ID:-}",
+            "FIREBASE_MESSAGING_SENDER_ID": "${FIREBASE_MESSAGING_SENDER_ID:-}",
+            "FIREBASE_IOS_API_KEY": "${FIREBASE_IOS_API_KEY:-}",
+            "FIREBASE_IOS_APP_ID": "${FIREBASE_IOS_APP_ID:-}"
+          }
+          JSON
           flutter build ipa --release \
-            --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
+            --build-number="$BUILD_NUMBER" \
+            --dart-define-from-file=env.json \
             --export-options-plist=/Users/builder/export_options.plist
-
     artifacts:
       - build/ios/ipa/*.ipa
-      - /tmp/xcodebuild_logs/*.log
-
     publishing:
       app_store_connect:
         auth: integration
         submit_to_testflight: true
-        submit_to_app_store: false
       email:
-        recipients:
-          - kashyap2k007@gmail.com
-        notify:
-          success: true
-          failure: true
-
+        recipients: [kashyap2k007@gmail.com]
+        notify: { success: true, failure: true }

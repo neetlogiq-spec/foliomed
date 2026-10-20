@@ -1,79 +1,63 @@
-name: Deploy FolioMed
+name: CI and website
 
 on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  # Tests + analyzer on every push / PR.
-  test:
+  checks:
+    name: Analyse and test
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable, cache: true }
+      - run: flutter pub get
+      - run: flutter analyze --no-fatal-infos
+      - run: flutter test
+      - name: Database tests (Postgres)
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq postgresql >/dev/null
+          sudo service postgresql start
+          for suite in supabase/tests/[1-9]*.sql; do
+            sudo -u postgres psql -q -c "drop database if exists t" -c "create database t"
+            for f in supabase/tests/00_supabase_stub.sql supabase/migrations/*.sql "$suite"; do
+              sudo -u postgres psql -q -v ON_ERROR_STOP=1 -d t -f "$f" > /dev/null
+            done
+            echo "passed: $suite"
+          done
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Analyze
-        run: flutter analyze --no-fatal-infos --no-fatal-warnings
-
-      - name: Unit tests
-        run: flutter test
-
-  # Landing (/) + status (/status/) + Flutter web app (/app/) → GitHub Pages
-  # at www.foliomed.app. Only runs on main.
-  deploy-pages:
-    needs: test
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+  publish:
+    name: Publish www.foliomed.app
+    needs: checks
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      # Repository secrets (Settings → Secrets and variables → Actions):
-      #   SUPABASE_ANON_KEY — public anon key (required for a working app)
-      - name: Build web app
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable, cache: true }
+      - run: flutter pub get
+      # Secret: SUPABASE_ANON_KEY (the public anon key).
+      - name: Web app
         env:
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: flutter build web --release --base-href /app/ --dart-define=SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY"
+      - name: Put the site together
         run: |
-          flutter build web --release --base-href "/app/" --no-tree-shake-icons \
-            --dart-define=SUPABASE_ANON_KEY="${SUPABASE_ANON_KEY}"
-
-      - name: Assemble site
-        run: |
-          mkdir -p site/status site/app
-          cp -r landing/. site/
-          cp -r status/. site/status/
-          cp -r build/web/. site/app/
-          echo "www.foliomed.app" > site/CNAME
-          touch site/.nojekyll
-
-      - name: Deploy to gh-pages
-        uses: peaceiris/actions-gh-pages@v4
+          mkdir -p public/app public/status
+          cp -R landing/. public/
+          cp -R status/. public/status/
+          cp -R build/web/. public/app/
+          printf 'www.foliomed.app\n' > public/CNAME
+          : > public/.nojekyll
+      - uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./site
+          publish_dir: ./public
           publish_branch: gh-pages
           force_orphan: true

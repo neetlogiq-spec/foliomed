@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-  Tells Android — and Samsung Smart Switch / device-to-device transfer —
-  not to copy any of the app's data when the user reinstalls or moves
-  to a new phone. Without this, SharedPreferences (including the
-  onboarding-complete flag) gets restored and the tutorial gets skipped
-  on what is supposed to be a fresh install.
--->
+<!-- Nothing from FolioMed is copied by cloud backup or phone-to-phone
+     transfer: a new phone starts clean and signs in again. -->
 <data-extraction-rules>
     <cloud-backup>
         <exclude domain="root" />

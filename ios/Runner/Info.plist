@@ -2,30 +2,74 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CADisableMinimumFrameDurationOnPhone</key>
-	<true/>
-	<key>CFBundleDevelopmentRegion</key>
-	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<!-- Identity (values come from the Xcode build settings / pubspec) -->
 	<key>CFBundleDisplayName</key>
 	<string>FolioMed</string>
-	<key>CFBundleExecutable</key>
-	<string>$(EXECUTABLE_NAME)</string>
-	<key>CFBundleIdentifier</key>
-	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-	<key>CFBundleInfoDictionaryVersion</key>
-	<string>6.0</string>
 	<key>CFBundleName</key>
 	<string>FolioMed</string>
-	<key>CFBundlePackageType</key>
-	<string>APPL</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleShortVersionString</key>
 	<string>$(FLUTTER_BUILD_NAME)</string>
-	<key>CFBundleSignature</key>
-	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+
+	<!-- Why FolioMed asks for access (shown in the iOS permission prompt) -->
+	<key>NSCameraUsageDescription</key>
+	<string>To photograph a document or lab report when you tap Scan. Its text is read on this iPhone; the photo isn't uploaded.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>To pick a photo of a document or lab report when you tap Scan. Its text is read on this iPhone; the photo isn't uploaded.</string>
+
+	<!-- Ward alerts arrive as push notifications -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+		<string>fetch</string>
+	</array>
+
+	<!-- Google sign-in returns to com.foliomed.app://login-callback -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.foliomed.app</string>
+			</array>
+		</dict>
+	</array>
+	<!-- Links FolioMed opens: the website, email, the App Store -->
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>https</string>
+		<string>http</string>
+		<string>mailto</string>
+		<string>tel</string>
+		<string>itms-apps</string>
+	</array>
+
+	<!-- Only standard HTTPS: no export-compliance questions per upload -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+
+	<!-- Window and scenes (Flutter) -->
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
+	<key>UIMainStoryboardFile</key>
+	<string>Main</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -49,10 +93,8 @@
 	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
-	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
-	<key>UIMainStoryboardFile</key>
-	<string>Main</string>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
@@ -66,48 +108,5 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>NSCameraUsageDescription</key>
-	<string>FolioMed uses the camera only when you tap Scan text, to photograph a document so its text can be added to your note. The photo is processed on this iPhone and is not uploaded.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>FolioMed opens your photo library only when you tap Scan text and choose a photo, so its text can be added to your note. The photo is not uploaded.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>FolioMed only records audio when you tap the mic to dictate a note. Recording stops the moment you save or cancel.</string>
-	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>FolioMed transcribes your voice into text only while you're tapping the mic icon, so you can post a note hands-free.</string>
-	<!-- Remote notifications: kept for the upcoming push provider (see PushService TODO) -->
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>fetch</string>
-		<string>remote-notification</string>
-	</array>
-	<!-- url_launcher needs these schemes whitelisted on iOS to open
-	     external links from inside the app: www.foliomed.app, mailto:
-	     bug-report links, the App Store rating fallback. -->
-	<key>LSApplicationQueriesSchemes</key>
-	<array>
-		<string>https</string>
-		<string>http</string>
-		<string>mailto</string>
-		<string>tel</string>
-		<string>itms-apps</string>
-	</array>
-	<!-- Supabase auth deep link (Google OAuth return, email links):
-	     com.foliomed.app://login-callback -->
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleTypeRole</key>
-			<string>Editor</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>com.foliomed.app</string>
-			</array>
-		</dict>
-	</array>
-	<!-- ITSAppUsesNonExemptEncryption=false — FolioMed only uses standard
-	     HTTPS / TLS encryption (Supabase). Declaring this saves us from
-	     filling out the export-compliance form on every TestFlight upload. -->
-	<key>ITSAppUsesNonExemptEncryption</key>
-	<false/>
 </dict>
 </plist>

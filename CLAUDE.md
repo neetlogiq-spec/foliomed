@@ -3,7 +3,7 @@
 ## What is FolioMed
 A real-time clinical notes app for hospital ward teams. Flutter app on a
 Supabase backend. Targets Android (Play Store), iOS (App Store via
-Codemagic or `tools/ios_release.sh`) and Web. **Free for everyone** — no paid tier.
+Codemagic or `tools/release_ios.sh`) and Web — see `docs/RELEASING.md`. **Free for everyone** — no paid tier.
 
 **Developer:** Kashyap Anand (kashyap2k007@gmail.com)
 **Landing page:** https://www.foliomed.app
@@ -23,7 +23,8 @@ Codemagic or `tools/ios_release.sh`) and Web. **Free for everyone** — no paid 
 - **Supabase Realtime** — live lists (`.stream()`) + in-app note alerts (`PushService`)
 - **GitHub Pages** — landing + status + Flutter web app (see `.github/workflows/deploy.yml`)
 - **Provider** — state management
-- **Codemagic** — iOS CI/CD
+- **Codemagic** — iOS → TestFlight on `ios-v*` tags (`codemagic.yaml`)
+- **GitHub Actions** — Flutter + database tests on every push; publishes the site from `main`
 
 ## Configuration
 Build-time values come from `--dart-define-from-file=env.json` (gitignored;
@@ -108,7 +109,7 @@ Test the schema locally without Docker: `supabase/tests/README.md` (suites 10–
 - Create streams once per key (`StreamCache` or `late final`), never inline in `build`, or every rebuild opens a new channel.
 - An UPDATE/DELETE blocked by RLS returns **zero rows, not an error** — use `.select()` and check the result where it matters (see `admin_staff_screen.dart`).
 - SharedPreferences keys are versioned (`welcome_seen_v1`, `tips_dismissed_v1`, …) — bumping one re-shows that screen/tip.
-- Apple Sign-In button is gated to iOS — never show on Android/Web.
+- Apple Sign-In button is gated to iOS — never show on Android/Web. There are no desktop targets (macOS/Windows/Linux folders were removed).
 - `ios/Runner/Runner.entitlements` → `aps-environment` must stay `production` for TestFlight/App Store builds.
 
 ---

@@ -1,46 +1,46 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
-
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
+  <!-- Replaced at build time by `flutter build web --base-href /app/`. -->
   <base href="$FLUTTER_BASE_HREF">
-
   <meta charset="UTF-8">
-  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="FolioMed: ward notes, patients and newborn follow-ups for hospital teams.">
+  <meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 
-  <!-- iOS meta tags & icons -->
+  <!-- Add to Home Screen on iPhone -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="FolioMed">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
-
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
-
-  <title>FolioMed</title>
+  <link rel="icon" type="image/png" href="favicon.png">
   <link rel="manifest" href="manifest.json">
+  <title>FolioMed</title>
+
+  <!-- A quiet spinner on the app's own background until Flutter paints. -->
+  <style>
+    :root { color-scheme: light dark; }
+    html, body { margin: 0; height: 100%; background: #F2F2F7; }
+    @media (prefers-color-scheme: dark) { html, body { background: #000; } }
+    #starting { position: fixed; inset: 0; display: grid; place-items: center; }
+    #starting span {
+      width: 22px; height: 22px; border-radius: 50%;
+      border: 2.5px solid rgba(118, 118, 128, .25); border-top-color: #0F6D99;
+      animation: turn .9s linear infinite;
+    }
+    @keyframes turn { to { transform: rotate(1turn); } }
+    @media (prefers-reduced-motion: reduce) { #starting span { animation-duration: 2.4s; } }
+  </style>
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
-
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
+  <div id="starting" aria-label="Loading FolioMed" role="progressbar"><span></span></div>
+  <script>
+    window.addEventListener('flutter-first-frame', function () {
+      var s = document.getElementById('starting');
+      if (s) s.remove();
+    });
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

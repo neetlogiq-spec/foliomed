@@ -23,19 +23,19 @@ foliomed_path,original_counterpart,kind,code_lines,retained_pct,class
 .claude/skills/review-animations/SKILL.md,,text,67,0,new
 .claude/skills/review-animations/STANDARDS.md,,text,84,1,new
 .claude/skills/write-swift/SKILL.md,,text,212,0,new
-.github/workflows/deploy.yml,.github/workflows/deploy.yml,text,46,59,modified original
+.github/workflows/deploy.yml,.github/workflows/deploy.yml,text,45,20,mostly rewritten
 .gitignore,,binary,,0,new/changed binary
-.metadata,.metadata,binary,,100,identical binary
-CLAUDE.md,CLAUDE.md,text,74,0,new
+.metadata,,binary,,0,new/changed binary
+CLAUDE.md,CLAUDE.md,text,75,0,new
 CNAME,,binary,,0,new/changed binary
 README.md,README.md,text,22,14,mostly rewritten
 SKILL.md,,text,142,1,new
-analysis_options.yaml,analysis_options.yaml,text,3,33,mostly rewritten
+analysis_options.yaml,analysis_options.yaml,text,6,17,mostly rewritten
 android/.gitignore,android/.gitignore,binary,,100,identical binary
-android/app/build.gradle.kts,android/app/build.gradle.kts,text,39,85,original (largely retained)
+android/app/build.gradle.kts,android/app/build.gradle.kts,text,33,48,modified original
 android/app/proguard-rules.pro,,binary,,0,new/changed binary
 android/app/src/debug/AndroidManifest.xml,android/app/src/debug/AndroidManifest.xml,text,5,80,original (largely retained)
-android/app/src/main/AndroidManifest.xml,android/app/src/main/AndroidManifest.xml,text,66,74,original (largely retained)
+android/app/src/main/AndroidManifest.xml,android/app/src/main/AndroidManifest.xml,text,59,49,modified original
 android/app/src/main/kotlin/com/foliomed/app/MainActivity.kt,android/app/src/main/kotlin/com/wardly/app/MainActivity.kt,text,2,100,original (largely retained)
 android/app/src/main/res/drawable-v21/launch_background.xml,android/app/src/main/res/drawable-v21/launch_background.xml,text,8,88,original (largely retained)
 android/app/src/main/res/drawable/launch_background.xml,android/app/src/main/res/drawable/launch_background.xml,text,8,88,original (largely retained)
@@ -46,7 +46,7 @@ android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png,,binary,,0,new/changed bi
 android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png,,binary,,0,new/changed binary
 android/app/src/main/res/values-night/styles.xml,android/app/src/main/res/values-night/styles.xml,text,13,85,original (largely retained)
 android/app/src/main/res/values/styles.xml,android/app/src/main/res/values/styles.xml,text,13,85,original (largely retained)
-android/app/src/main/res/xml/data_extraction_rules.xml,android/app/src/main/res/xml/data_extraction_rules.xml,text,22,95,original (largely retained)
+android/app/src/main/res/xml/data_extraction_rules.xml,android/app/src/main/res/xml/data_extraction_rules.xml,text,19,84,original (largely retained)
 android/app/src/profile/AndroidManifest.xml,android/app/src/profile/AndroidManifest.xml,text,5,80,original (largely retained)
 android/build.gradle.kts,android/build.gradle.kts,text,14,100,original (largely retained)
 android/gradle.properties,android/gradle.properties,text,4,25,mostly rewritten
@@ -54,18 +54,17 @@ android/gradle/wrapper/gradle-wrapper.properties,android/gradle/wrapper/gradle-w
 android/settings.gradle.kts,android/settings.gradle.kts,text,15,100,original (largely retained)
 assets/clinical/aap2022_bilirubin.json,,text,1,0,new
 assets/icon.png,,binary,,0,new/changed binary
-assets/images/.gitkeep,lib/widgets/.gitkeep,binary,,100,identical binary
-codemagic.yaml,codemagic.yaml,text,43,84,original (largely retained)
+codemagic.yaml,codemagic.yaml,text,47,36,modified original
 docs/AAP_DATA_VERIFICATION.md,,text,39,0,new
-docs/APP_STORE_DEPLOY_PROMPT.md,docs/APP_STORE_DEPLOY_PROMPT.md,text,114,97,original (largely retained)
 docs/LEGACY_NEXTJS_APP.md,,text,27,0,new
 docs/PUSH_SETUP.md,,text,57,0,new
-docs/provenance/PROVENANCE_AUDIT.md,,text,73,0,new
+docs/RELEASING.md,,text,20,0,new
+docs/provenance/PROVENANCE_AUDIT.md,,text,85,0,new
 docs/provenance/compare.py,,binary,,0,new/changed binary
 docs/provenance/file_provenance.csv,,binary,,0,new/changed binary
 env.example.json,,text,9,0,new
 ios/.gitignore,ios/.gitignore,binary,,100,identical binary
-ios/ExportOptions.plist,ios/ExportOptions.plist,text,17,65,modified original
+ios/ExportOptions.plist,ios/ExportOptions.plist,text,17,53,modified original
 ios/Flutter/AppFrameworkInfo.plist,ios/Flutter/AppFrameworkInfo.plist,text,21,43,modified original
 ios/Flutter/Debug.xcconfig,ios/Flutter/Debug.xcconfig,text,0,,trivial/empty
 ios/Flutter/Release.xcconfig,ios/Flutter/Release.xcconfig,text,0,,trivial/empty
@@ -111,16 +110,16 @@ ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage@3x.png,ios/Runner/As
 ios/Runner/Assets.xcassets/LaunchImage.imageset/README.md,ios/Runner/Assets.xcassets/LaunchImage.imageset/README.md,text,2,100,original (largely retained)
 ios/Runner/Base.lproj/LaunchScreen.storyboard,ios/Runner/Base.lproj/LaunchScreen.storyboard,text,27,96,original (largely retained)
 ios/Runner/Base.lproj/Main.storyboard,ios/Runner/Base.lproj/Main.storyboard,text,19,100,original (largely retained)
-ios/Runner/Info.plist,ios/Runner/Info.plist,text,83,69,modified original
+ios/Runner/Info.plist,ios/Runner/Info.plist,text,77,68,modified original
 ios/Runner/Runner-Bridging-Header.h,ios/Runner/Runner-Bridging-Header.h,text,0,,trivial/empty
-ios/Runner/Runner.entitlements,ios/Runner/Runner.entitlements,text,15,80,original (largely retained)
+ios/Runner/Runner.entitlements,ios/Runner/Runner.entitlements,text,11,36,modified original
 ios/Runner/SceneDelegate.swift,ios/Runner/SceneDelegate.swift,text,1,100,original (largely retained)
 ios/RunnerTests/RunnerTests.swift,ios/RunnerTests/RunnerTests.swift,text,2,100,original (largely retained)
 landing/index.html,landing/index.html,text,217,0,new
 landing/privacy.html,landing/privacy.html,text,120,5,new
 landing/site.css,,text,241,2,new
 landing/site.js,,text,25,8,new
-landing/sitemap.xml,landing/sitemap.xml,text,11,64,modified original
+landing/sitemap.xml,landing/sitemap.xml,text,5,20,mostly rewritten
 landing/supabase-public.js,,text,28,4,new
 lib/app/app_keys.dart,lib/main.dart,text,2,50,modified original
 lib/app/foliomed_app.dart,lib/main.dart,text,43,33,mostly rewritten
@@ -172,7 +171,7 @@ lib/screens/shared/newborn_results_screen.dart,,text,308,5,new
 lib/screens/shared/patients_screen.dart,,text,270,7,new
 lib/screens/shared/today_screen.dart,,text,297,9,new
 lib/screens/shared/ward_page.dart,,text,268,6,new
-lib/screens/shared/wards_screen.dart,lib/screens/shared/wards_screen.dart,text,118,7,new
+lib/screens/shared/wards_screen.dart,lib/screens/shared/wards_screen.dart,text,120,7,new
 lib/screens/start/alert_setup_screen.dart,,text,130,10,mostly rewritten
 lib/screens/start/launch_decision.dart,,text,12,0,new
 lib/screens/start/launch_screen.dart,,text,49,6,new
@@ -228,47 +227,8 @@ lib/widgets/scope_button.dart,,text,77,3,new
 lib/widgets/tip_card.dart,,text,59,7,new
 lib/widgets/ward_actions.dart,,text,129,13,mostly rewritten
 lib/widgets/widgets.dart,lib/widgets/widgets.dart,text,0,,trivial/empty
-linux/.gitignore,linux/.gitignore,binary,,100,identical binary
-linux/CMakeLists.txt,linux/CMakeLists.txt,text,65,95,original (largely retained)
-linux/flutter/CMakeLists.txt,linux/flutter/CMakeLists.txt,text,59,98,original (largely retained)
-linux/flutter/generated_plugin_registrant.cc,linux/flutter/generated_plugin_registrant.cc,text,10,40,modified original
-linux/flutter/generated_plugin_registrant.h,linux/flutter/generated_plugin_registrant.h,text,1,100,original (largely retained)
-linux/flutter/generated_plugins.cmake,linux/flutter/generated_plugins.cmake,text,16,88,original (largely retained)
-linux/runner/CMakeLists.txt,linux/runner/CMakeLists.txt,text,10,90,original (largely retained)
-linux/runner/main.cc,linux/runner/main.cc,text,3,100,original (largely retained)
-linux/runner/my_application.cc,linux/runner/my_application.cc,text,69,100,original (largely retained)
-linux/runner/my_application.h,linux/runner/my_application.h,text,5,100,original (largely retained)
-macos/.gitignore,macos/.gitignore,binary,,100,identical binary
-macos/Flutter/Flutter-Debug.xcconfig,macos/Flutter/Flutter-Debug.xcconfig,text,0,,trivial/empty
-macos/Flutter/Flutter-Release.xcconfig,macos/Flutter/Flutter-Release.xcconfig,text,0,,trivial/empty
-macos/Flutter/GeneratedPluginRegistrant.swift,macos/Flutter/GeneratedPluginRegistrant.swift,text,14,79,original (largely retained)
-macos/Podfile,macos/Podfile,binary,,100,identical binary
-macos/Runner.xcodeproj/project.pbxproj,macos/Runner.xcodeproj/project.pbxproj,text,619,99,original (largely retained)
-macos/Runner.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist,macos/Runner.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist,text,4,0,new
-macos/Runner.xcodeproj/xcshareddata/xcschemes/Runner.xcscheme,,binary,,0,new/changed binary
-macos/Runner.xcworkspace/contents.xcworkspacedata,macos/Runner.xcworkspace/contents.xcworkspacedata,binary,,100,identical binary
-macos/Runner.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist,macos/Runner.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist,text,4,0,new
-macos/Runner/AppDelegate.swift,macos/Runner/AppDelegate.swift,text,3,100,original (largely retained)
-macos/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json,macos/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json,text,42,0,new
-macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_1024.png,,binary,,0,new/changed binary
-macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_128.png,,binary,,0,new/changed binary
-macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_16.png,,binary,,0,new/changed binary
-macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_256.png,,binary,,0,new/changed binary
-macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_32.png,,binary,,0,new/changed binary
-macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_512.png,,binary,,0,new/changed binary
-macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_64.png,,binary,,0,new/changed binary
-macos/Runner/Base.lproj/MainMenu.xib,macos/Runner/Base.lproj/MainMenu.xib,binary,,100,identical binary
-macos/Runner/Configs/AppInfo.xcconfig,macos/Runner/Configs/AppInfo.xcconfig,text,3,67,modified original
-macos/Runner/Configs/Debug.xcconfig,macos/Runner/Configs/Debug.xcconfig,text,0,,trivial/empty
-macos/Runner/Configs/Release.xcconfig,macos/Runner/Configs/Release.xcconfig,text,0,,trivial/empty
-macos/Runner/Configs/Warnings.xcconfig,macos/Runner/Configs/Warnings.xcconfig,text,13,100,original (largely retained)
-macos/Runner/DebugProfile.entitlements,macos/Runner/DebugProfile.entitlements,text,6,50,modified original
-macos/Runner/Info.plist,macos/Runner/Info.plist,text,34,62,modified original
-macos/Runner/MainFlutterWindow.swift,macos/Runner/MainFlutterWindow.swift,text,27,30,mostly rewritten
-macos/Runner/Release.entitlements,macos/Runner/Release.entitlements,text,4,25,mostly rewritten
-macos/RunnerTests/RunnerTests.swift,macos/RunnerTests/RunnerTests.swift,text,2,100,original (largely retained)
 pubspec.lock,,binary,,0,new/changed binary
-pubspec.yaml,pubspec.yaml,text,54,81,original (largely retained)
+pubspec.yaml,pubspec.yaml,text,47,70,original (largely retained)
 skills-lock.json,,text,76,0,new
 status/index.html,status/index.html,text,83,1,new
 status/status.js,status/status.js,text,96,15,mostly rewritten
@@ -287,7 +247,7 @@ supabase/migrations/20261020020000_ward_units.sql,,text,77,0,new
 supabase/migrations/20261020030000_push_notifications.sql,,text,137,0,new
 supabase/migrations/20261021000000_newborn_tracking.sql,,text,147,0,new
 supabase/migrations/20261022000000_neuro_risk_factors.sql,,text,10,0,new
-supabase/tests/00_supabase_stub.sql,,text,13,0,new
+supabase/tests/00_supabase_stub.sql,,text,14,0,new
 supabase/tests/10_rls_smoke.sql,,text,55,0,new
 supabase/tests/20_admin_role.sql,,text,23,0,new
 supabase/tests/30_patient_lifecycle.sql,,text,37,0,new
@@ -320,31 +280,13 @@ test/start_flow_test.dart,,text,54,0,new
 test/stream_cache_test.dart,,text,35,0,new
 test/tab_bar_inset_test.dart,,text,28,0,new
 test/ward_units_test.dart,,text,45,0,new
-tools/deploy.sh,tools/deploy.sh,text,14,43,modified original
-tools/ios_release.sh,tools/ios_release.sh,text,27,85,original (largely retained)
+tools/check_and_push.sh,,text,8,25,mostly rewritten
 tools/play_assets.py,,binary,,0,new/changed binary
+tools/release_ios.sh,,text,17,18,mostly rewritten
 web/favicon.png,,binary,,0,new/changed binary
 web/icons/Icon-192.png,,binary,,0,new/changed binary
 web/icons/Icon-512.png,,binary,,0,new/changed binary
 web/icons/Icon-maskable-192.png,,binary,,0,new/changed binary
 web/icons/Icon-maskable-512.png,,binary,,0,new/changed binary
-web/index.html,web/index.html,text,26,88,original (largely retained)
-web/manifest.json,web/manifest.json,text,23,91,original (largely retained)
-windows/.gitignore,windows/.gitignore,binary,,100,identical binary
-windows/CMakeLists.txt,windows/CMakeLists.txt,text,58,97,original (largely retained)
-windows/flutter/CMakeLists.txt,windows/flutter/CMakeLists.txt,text,71,99,original (largely retained)
-windows/flutter/generated_plugin_registrant.cc,windows/flutter/generated_plugin_registrant.cc,text,13,69,modified original
-windows/flutter/generated_plugin_registrant.h,windows/flutter/generated_plugin_registrant.h,text,1,100,original (largely retained)
-windows/flutter/generated_plugins.cmake,windows/flutter/generated_plugins.cmake,text,18,89,original (largely retained)
-windows/runner/CMakeLists.txt,windows/runner/CMakeLists.txt,text,18,89,original (largely retained)
-windows/runner/Runner.rc,,binary,,0,new/changed binary
-windows/runner/flutter_window.cpp,windows/runner/flutter_window.cpp,text,33,88,original (largely retained)
-windows/runner/flutter_window.h,windows/runner/flutter_window.h,text,9,100,original (largely retained)
-windows/runner/main.cpp,windows/runner/main.cpp,text,20,100,original (largely retained)
-windows/runner/resource.h,windows/runner/resource.h,text,0,,trivial/empty
-windows/runner/resources/app_icon.ico,,binary,,0,new/changed binary
-windows/runner/runner.exe.manifest,windows/runner/runner.exe.manifest,binary,,100,identical binary
-windows/runner/utils.cpp,windows/runner/utils.cpp,text,36,100,original (largely retained)
-windows/runner/utils.h,windows/runner/utils.h,text,3,100,original (largely retained)
-windows/runner/win32_window.cpp,windows/runner/win32_window.cpp,text,153,97,original (largely retained)
-windows/runner/win32_window.h,windows/runner/win32_window.h,text,35,94,original (largely retained)
+web/index.html,web/index.html,text,31,23,mostly rewritten
+web/manifest.json,web/manifest.json,text,13,23,mostly rewritten

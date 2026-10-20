@@ -57,8 +57,11 @@ class _WardsScreenState extends State<WardsScreen> {
       ),
     );
     if (!mounted) return;
-    if (choice == 'create') await WardActions.create(context);
-    else if (choice == 'join') await WardActions.join(context);
+    if (choice == 'create') {
+      await WardActions.create(context);
+    } else if (choice == 'join') {
+      await WardActions.join(context);
+    }
   }
 
   @override

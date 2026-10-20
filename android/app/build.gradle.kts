@@ -1,73 +1,55 @@
-import java.util.Properties
 import java.io.FileInputStream
+import java.util.Properties
 
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
-    id("dev.flutter.flutter-gradle-plugin")
+    id("dev.flutter.flutter-gradle-plugin") // after the Android and Kotlin plugins
 }
 
-// Load release-signing credentials from android/key.properties (gitignored).
-// If the file is missing (e.g. fresh checkout, CI without secrets), release
-// builds fall back to debug signing so `flutter run --release` still works
-// for local development — but a Play-Store-ready bundle requires the file.
-val keystoreProperties = Properties()
-val keystorePropertiesFile = rootProject.file("key.properties")
-if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+// Upload-key credentials live in android/key.properties (never committed).
+// Without that file, release builds are debug-signed: fine for testing on
+// a phone, not accepted by Google Play.
+val signing = Properties().apply {
+    rootProject.file("key.properties").takeIf { it.exists() }?.let { load(FileInputStream(it)) }
 }
+val hasUploadKey = signing.isNotEmpty()
 
 android {
     namespace = "com.foliomed.app"
     compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
-    compileOptions {
-        // flutter_local_notifications needs java.time on older Android.
-        isCoreLibraryDesugaringEnabled = true
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
-
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
-    }
-
     defaultConfig {
         applicationId = "com.foliomed.app"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
-        // Play Console requires targetSdk >= 35 for new submissions. compileSdk
-        // is already 36, so we're well within the supported range.
-        targetSdk = 35
+        targetSdk = 35 // Google Play's current minimum for new apps
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
 
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true // java.time for scheduled notifications
+    }
+    kotlinOptions { jvmTarget = "17" }
+
     signingConfigs {
-        create("release") {
-            if (keystorePropertiesFile.exists()) {
-                keyAlias = keystoreProperties["keyAlias"] as String
-                keyPassword = keystoreProperties["keyPassword"] as String
-                storeFile = file(keystoreProperties["storeFile"] as String)
-                storePassword = keystoreProperties["storePassword"] as String
+        create("upload") {
+            if (hasUploadKey) {
+                storeFile = file(signing.getProperty("storeFile"))
+                storePassword = signing.getProperty("storePassword")
+                keyAlias = signing.getProperty("keyAlias")
+                keyPassword = signing.getProperty("keyPassword")
             }
         }
     }
 
     buildTypes {
         release {
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro",
-            )
-            signingConfig = if (keystorePropertiesFile.exists()) {
-                signingConfigs.getByName("release")
-            } else {
-                signingConfigs.getByName("debug")
-            }
+            signingConfig = signingConfigs.getByName(if (hasUploadKey) "upload" else "debug")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 }
