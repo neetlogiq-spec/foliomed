@@ -12,10 +12,14 @@ import '../utils/haptics.dart';
 /// notifications, and the "has this been done?" prompt.
 class ReminderProvider extends ChangeNotifier {
   ReminderProvider({ReminderService? service, DateTime Function()? clock})
-      : _service = service ?? ReminderService(),
+      : _injected = service,
         _clock = clock ?? DateTime.now;
 
-  final ReminderService _service;
+  final ReminderService? _injected;
+
+  /// Created on first use, so building the provider never touches the
+  /// network.
+  late final ReminderService _service = _injected ?? ReminderService();
   final DateTime Function() _clock;
 
   StreamSubscription<List<PatientReminder>>? _sub;

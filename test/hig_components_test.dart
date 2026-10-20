@@ -6,7 +6,8 @@ import 'package:foliomed/providers/theme_provider.dart';
 import 'package:foliomed/services/accessibility_settings.dart';
 import 'package:foliomed/widgets/large_title_app_bar.dart';
 import 'package:foliomed/widgets/note_tile.dart';
-import 'package:foliomed/widgets/patient_card.dart';
+import 'package:foliomed/providers/reminder_provider.dart';
+import 'package:foliomed/screens/shared/patients_screen.dart';
 import 'package:provider/provider.dart';
 
 Note _note({bool acknowledged = false, String content = 'BP 120/80'}) => Note(
@@ -152,20 +153,25 @@ void main() {
     });
   });
 
-  testWidgets('PatientCard status chip is announced and fits 2x text',
-      (tester) async {
+  testWidgets('PatientRow shows bed, age and ID and fits 2x text', (tester) async {
     final patient = Patient(
       id: 'p1',
+      patientCode: 'FM000042',
       name: 'Asha Rao',
       age: 34,
-      gender: 'F',
+      gender: 'Female',
       wardId: '12345',
       bedNumber: '12',
       diagnosis: 'Pneumonia',
       admittedAt: DateTime(2026, 10, 1),
     );
-    await tester.pumpWidget(_app(PatientCard(patient: patient), textScale: 2));
-    expect(find.bySemanticsLabel(RegExp('Status: Active')), findsOneWidget);
+    await tester.pumpWidget(ChangeNotifierProvider<ReminderProvider>(
+      create: (_) => ReminderProvider(),
+      child: _app(Material(child: PatientRow(patient: patient)), textScale: 2),
+    ));
+    expect(find.text('12'), findsOneWidget);
+    expect(find.textContaining('34 y'), findsOneWidget);
+    expect(find.textContaining('FM000042'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

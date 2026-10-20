@@ -68,6 +68,7 @@ at most two original files; framework idiom is excluded):
 | 2026-10-20 | Baseline | ~24% |
 | 2026-10-20 | Stage 1 — start flow (launch, welcome, alert setup), help, tips, tab shell, routes, brand mark, review request; onboarding/tutorial/coachmarks removed | ~18% |
 | 2026-10-20 | Stage 2 — notes: NotesRepository, WardFeed, Note/NoteReply models, NoteTile, compose sheet, reply thread, confirm sheet, alerts inbox; "acknowledge" → "confirm" in the UI | ~14% |
+| 2026-10-20 | Stage 3a — admin: Overview, People, admin Ward page (team / patients / notes); WardProvider, add-ward, staff sheet, patient card, role badge, theme toggle removed | ~12% |
 
 ## Remediation plan
 

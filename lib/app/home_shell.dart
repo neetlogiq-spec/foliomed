@@ -10,8 +10,8 @@ import '../providers/patient_provider.dart';
 import '../providers/reminder_provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/unit_provider.dart';
-import '../screens/admin/admin_home_screen.dart';
-import '../screens/admin/admin_staff_screen.dart';
+import '../screens/admin/admin_overview_screen.dart';
+import '../screens/admin/admin_people_screen.dart';
 import '../screens/shared/patients_screen.dart';
 import '../screens/shared/profile_screen.dart';
 import '../screens/shared/today_screen.dart';
@@ -52,9 +52,9 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
 
   late final List<_Tab> _tabs = widget.role == UserRole.admin
       ? const [
-          _Tab('Dashboard', Icons.space_dashboard_outlined, Icons.space_dashboard, AdminHomeScreen()),
+          _Tab('Overview', Icons.space_dashboard_outlined, Icons.space_dashboard, AdminHomeScreen()),
           _Tab('Wards', Icons.corporate_fare_outlined, Icons.corporate_fare, WardsScreen()),
-          _Tab('Staff', Icons.badge_outlined, Icons.badge, AdminStaffScreen()),
+          _Tab('People', Icons.badge_outlined, Icons.badge, AdminPeopleScreen()),
           _Tab('Profile', Icons.account_circle_outlined, Icons.account_circle, ProfileScreen()),
         ]
       : [

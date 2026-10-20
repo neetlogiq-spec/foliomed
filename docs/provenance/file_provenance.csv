@@ -60,7 +60,7 @@ docs/AAP_DATA_VERIFICATION.md,,text,39,0,new
 docs/APP_STORE_DEPLOY_PROMPT.md,docs/APP_STORE_DEPLOY_PROMPT.md,text,114,97,original (largely retained)
 docs/LEGACY_NEXTJS_APP.md,,text,27,0,new
 docs/PUSH_SETUP.md,,text,57,0,new
-docs/provenance/PROVENANCE_AUDIT.md,,text,71,0,new
+docs/provenance/PROVENANCE_AUDIT.md,,text,72,0,new
 docs/provenance/compare.py,,binary,,0,new/changed binary
 docs/provenance/file_provenance.csv,,binary,,0,new/changed binary
 env.example.json,,text,9,0,new
@@ -131,7 +131,7 @@ lib/clinical/handover.dart,,text,84,2,new
 lib/clinical/lab_report_parser.dart,,text,78,0,new
 lib/config/firebase_config.dart,,text,24,0,new
 lib/config/supabase_config.dart,,text,10,0,new
-lib/main.dart,lib/main.dart,text,64,45,modified original
+lib/main.dart,lib/main.dart,text,63,44,modified original
 lib/models/.gitkeep,lib/widgets/.gitkeep,binary,,100,identical binary
 lib/models/app_user.dart,lib/models/app_user.dart,text,73,47,modified original
 lib/models/models.dart,lib/models/models.dart,text,0,,trivial/empty
@@ -149,18 +149,15 @@ lib/providers/alert_inbox.dart,,text,50,10,mostly rewritten
 lib/providers/auth_provider.dart,lib/providers/auth_provider.dart,text,87,75,original (largely retained)
 lib/providers/patient_provider.dart,lib/providers/patient_provider.dart,text,110,34,mostly rewritten
 lib/providers/providers.dart,lib/providers/providers.dart,text,0,,trivial/empty
-lib/providers/reminder_provider.dart,,text,85,4,new
+lib/providers/reminder_provider.dart,,text,86,3,new
 lib/providers/text_scale_provider.dart,lib/providers/text_scale_provider.dart,text,19,74,original (largely retained)
 lib/providers/theme_provider.dart,lib/providers/theme_provider.dart,text,25,72,original (largely retained)
 lib/providers/unit_provider.dart,,text,76,0,new
 lib/providers/ward_feed.dart,,text,65,2,new
-lib/providers/ward_provider.dart,lib/providers/ward_provider.dart,text,56,41,modified original
 lib/screens/admin/.gitkeep,lib/widgets/.gitkeep,binary,,100,identical binary
-lib/screens/admin/add_staff_bottom_sheet.dart,lib/screens/admin/add_staff_bottom_sheet.dart,text,73,10,mostly rewritten
-lib/screens/admin/add_ward_screen.dart,lib/screens/admin/add_ward_screen.dart,text,97,46,modified original
-lib/screens/admin/admin_home_screen.dart,lib/screens/admin/admin_home_screen.dart,text,306,40,modified original
-lib/screens/admin/admin_staff_screen.dart,lib/screens/admin/admin_staff_screen.dart,text,197,30,mostly rewritten
-lib/screens/admin/ward_detail_screen.dart,lib/screens/admin/ward_detail_screen.dart,text,228,35,modified original
+lib/screens/admin/admin_overview_screen.dart,,text,131,10,mostly rewritten
+lib/screens/admin/admin_people_screen.dart,,text,87,5,new
+lib/screens/admin/admin_ward_screen.dart,,text,115,5,new
 lib/screens/auth/.gitkeep,lib/widgets/.gitkeep,binary,,100,identical binary
 lib/screens/auth/login_screen.dart,lib/screens/auth/login_screen.dart,text,153,18,mostly rewritten
 lib/screens/auth/role_choice_screen.dart,,text,104,6,new
@@ -233,12 +230,9 @@ lib/widgets/newborn_section.dart,,text,119,7,new
 lib/widgets/newborn_tracking_section.dart,,text,385,5,new
 lib/widgets/note_tile.dart,,text,133,8,new
 lib/widgets/patient_actions.dart,,text,259,7,new
-lib/widgets/patient_card.dart,lib/widgets/patient_card.dart,text,102,23,mostly rewritten
 lib/widgets/pressable.dart,,text,51,8,new
 lib/widgets/reminder_widgets.dart,,text,173,6,new
-lib/widgets/role_badge.dart,lib/widgets/role_badge.dart,text,38,32,mostly rewritten
 lib/widgets/scope_button.dart,,text,77,3,new
-lib/widgets/theme_toggle_button.dart,lib/widgets/theme_toggle_button.dart,text,8,62,modified original
 lib/widgets/tip_card.dart,,text,59,7,new
 lib/widgets/ward_actions.dart,,text,129,14,mostly rewritten
 lib/widgets/widgets.dart,lib/widgets/widgets.dart,text,0,,trivial/empty
@@ -321,7 +315,7 @@ test/bilirubin_test.dart,,text,41,0,new
 test/birth_summary_test.dart,,text,41,0,new
 test/birth_time_field_test.dart,,text,37,0,new
 test/guideline_reference_test.dart,,text,54,0,new
-test/hig_components_test.dart,,text,121,2,new
+test/hig_components_test.dart,,text,125,2,new
 test/lab_report_parser_test.dart,,text,40,0,new
 test/models_row_mapping_test.dart,,text,106,2,new
 test/newborn_reminders_test.dart,,text,100,0,new
