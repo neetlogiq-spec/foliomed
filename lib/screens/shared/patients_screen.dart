@@ -18,6 +18,7 @@ import '../../utils/layout.dart';
 import '../../utils/stream_cache.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/scope_button.dart';
+import '../../widgets/tip_card.dart';
 import '../../providers/unit_provider.dart';
 import '../../widgets/large_title_app_bar.dart';
 import '../doctor/add_patient_screen.dart';
@@ -162,6 +163,13 @@ class _PatientsScreenState extends State<PatientsScreen> {
           ),
           const SizedBox(height: 6),
           const Align(alignment: Alignment.centerLeft, child: ScopeButton()),
+          const SizedBox(height: 8),
+          const TipCard(
+            id: 'patients_census',
+            icon: Icons.assignment_outlined,
+            title: 'Handing over?',
+            message: 'The clipboard button at the top gives today’s census and a handover list you can share.',
+          ),
         ],
       ),
     );

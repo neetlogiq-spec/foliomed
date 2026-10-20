@@ -9,7 +9,8 @@ import 'services/push_registration.dart';
 import 'clinical/bilirubin.dart';
 import 'clinical/bilirubin_assess.dart';
 import 'utils/app_theme.dart';
-import 'utils/app_routes.dart';
+import 'app/routes.dart';
+import 'widgets/tip_card.dart';
 import 'providers/providers.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -24,6 +25,7 @@ void main() async {
   try {
     Aap2022.loadJson(await rootBundle.loadString('assets/clinical/aap2022_bilirubin.json'));
     await GuidelinePreference.load();
+    await TipStore.load();
   } catch (e) {
     debugPrint('AAP thresholds not loaded: $e'); // AAP then reports "could not be loaded"
   }
@@ -88,9 +90,8 @@ class FolioMedApp extends StatelessWidget {
             themeMode: themeProvider.mode,
             navigatorKey: navigatorKey,
             scaffoldMessengerKey: scaffoldMessengerKey,
-            initialRoute: AppRoutes.splash,
-            routes: AppRoutes.routes,
-            onGenerateRoute: AppRoutes.generateRoute,
+            initialRoute: Routes.launch,
+            routes: Routes.table,
             debugShowCheckedModeBanner: false,
             builder: (context, child) {
               final mq = MediaQuery.of(context);

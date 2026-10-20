@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../app/routes.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/app_user.dart';
@@ -27,7 +28,7 @@ class _RoleChoiceScreenState extends State<RoleChoiceScreen> {
     final ok = await auth.confirmRole(role);
     if (!mounted) return;
     if (ok) {
-      Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
+      Routes.restart(context);
       return;
     }
     setState(() => _saving = null);

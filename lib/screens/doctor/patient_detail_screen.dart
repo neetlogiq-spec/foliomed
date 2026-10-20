@@ -19,6 +19,7 @@ import '../../widgets/empty_state.dart';
 import '../../utils/layout.dart';
 import '../../widgets/reminder_widgets.dart';
 import '../../widgets/newborn_section.dart';
+import '../../widgets/tip_card.dart';
 import '../../widgets/newborn_tracking_section.dart';
 import '../../providers/unit_provider.dart';
 import '../../widgets/note_list_items.dart';
@@ -126,6 +127,12 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
                   _DischargedBanner(patient: patient),
                   const SizedBox(height: 16),
                 ],
+                const TipCard(
+                  id: 'patient_actions',
+                  icon: Icons.more_horiz,
+                  title: 'More for this patient',
+                  message: 'Tap ••• at the top to edit details, move to another unit or ward, discharge or delete.',
+                ),
                 const GroupedSectionHeader('Patient info'),
                 _infoCard(patient),
                 const SizedBox(height: 16),

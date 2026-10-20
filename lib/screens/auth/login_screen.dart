@@ -2,8 +2,8 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import '../../app/routes.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../providers/auth_provider.dart';
@@ -16,7 +16,7 @@ import '../../utils/friendly_error.dart';
 import '../../utils/oauth_error.dart';
 import '../../widgets/app_alert_dialog.dart';
 import '../../widgets/foliomed_brand.dart';
-import 'onboarding_screen.dart';
+import '../start/welcome_screen.dart';
 
 /// Sign-in: Google or Apple only — no passwords to create, forget or leak.
 /// The same screen covers new and returning users; a new account is
@@ -61,10 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Future<void> _markOnboardingDone() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(kOnboardingDoneKey, true);
-  }
+  Future<void> _markOnboardingDone() => WelcomeScreen.markSeen();
 
   Future<void> _afterSignIn(AuthProvider auth, {required bool ok}) async {
     if (!mounted) return;
@@ -81,7 +78,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (needsName && mounted) await _promptForName(auth);
     if (!mounted) return;
     // The splash gate routes by role (and asks a new user for it once).
-    Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
+    Routes.restart(context);
   }
 
   Future<void> _signInGoogle() async {
@@ -161,7 +158,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const Center(child: FolioMedBrand(size: 48)),
+                      const Center(child: FolioMedLockup(size: 44)),
                       const SizedBox(height: 40),
                       Text(
                         'Every handover,\nin one place.',

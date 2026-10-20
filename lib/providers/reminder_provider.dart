@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import '../models/patient_reminder.dart';
 import '../services/reminder_notifications.dart';
 import '../services/reminder_service.dart';
+import '../services/review_request.dart';
 import '../utils/haptics.dart';
 
 /// Open reminders for the user's wards: drives the "Due" list, the local
@@ -74,8 +75,11 @@ class ReminderProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> markDone(PatientReminder r) =>
-      _run(() => _service.markDone(r.id), Haptics.success);
+  Future<bool> markDone(PatientReminder r) async {
+    final ok = await _run(() => _service.markDone(r.id), Haptics.success);
+    if (ok) ReviewRequest.maybeAsk();
+    return ok;
+  }
 
   Future<bool> reopen(PatientReminder r) =>
       _run(() => _service.reopen(r.id), Haptics.commit);

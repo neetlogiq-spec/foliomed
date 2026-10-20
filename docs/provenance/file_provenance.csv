@@ -1,0 +1,365 @@
+foliomed_path,original_counterpart,kind,code_lines,retained_pct,class
+.claude/settings.json,.claude/settings.json,text,0,,trivial/empty
+.claude/skills/animate-expo/RECIPES.md,,text,167,0,new
+.claude/skills/animate-expo/SKILL.md,,text,146,0,new
+.claude/skills/animate/RECIPES.md,,text,108,1,new
+.claude/skills/animate/SKILL.md,,text,107,1,new
+.claude/skills/animation-performance/SKILL.md,,text,100,0,new
+.claude/skills/animation-vocabulary/SKILL.md,,text,112,0,new
+.claude/skills/apple-design/SKILL.md,,text,142,1,new
+.claude/skills/ask-sonner/API.md,,text,52,0,new
+.claude/skills/ask-sonner/SKILL.md,,text,40,0,new
+.claude/skills/break-ui/CATALOG.md,,text,100,0,new
+.claude/skills/break-ui/SKILL.md,,text,92,0,new
+.claude/skills/emil-design-eng/SKILL.md,,text,235,0,new
+.claude/skills/find-animation-opportunities/SKILL.md,,text,66,0,new
+.claude/skills/improve-animations/AUDIT.md,,text,62,2,new
+.claude/skills/improve-animations/PLAN-TEMPLATE.md,,text,33,0,new
+.claude/skills/improve-animations/SKILL.md,,text,57,0,new
+.claude/skills/mobile-native/SKILL.md,,text,136,1,new
+.claude/skills/pick-ui-library/SKILL.md,,text,49,0,new
+.claude/skills/prototype/PICKER.md,,text,120,12,mostly rewritten
+.claude/skills/prototype/SKILL.md,,text,43,0,new
+.claude/skills/review-animations/SKILL.md,,text,67,0,new
+.claude/skills/review-animations/STANDARDS.md,,text,84,1,new
+.claude/skills/write-swift/SKILL.md,,text,212,0,new
+.github/workflows/deploy.yml,.github/workflows/deploy.yml,text,46,59,modified original
+.gitignore,,binary,,0,new/changed binary
+.metadata,.metadata,binary,,100,identical binary
+CLAUDE.md,CLAUDE.md,text,74,0,new
+CNAME,,binary,,0,new/changed binary
+README.md,README.md,text,22,14,mostly rewritten
+SKILL.md,,text,142,1,new
+analysis_options.yaml,analysis_options.yaml,text,3,33,mostly rewritten
+android/.gitignore,android/.gitignore,binary,,100,identical binary
+android/app/build.gradle.kts,android/app/build.gradle.kts,text,39,85,original (largely retained)
+android/app/proguard-rules.pro,,binary,,0,new/changed binary
+android/app/src/debug/AndroidManifest.xml,android/app/src/debug/AndroidManifest.xml,text,5,100,original (largely retained)
+android/app/src/main/AndroidManifest.xml,android/app/src/main/AndroidManifest.xml,text,66,76,original (largely retained)
+android/app/src/main/kotlin/com/foliomed/app/MainActivity.kt,android/app/src/main/kotlin/com/wardly/app/MainActivity.kt,text,2,100,original (largely retained)
+android/app/src/main/res/drawable-v21/launch_background.xml,android/app/src/main/res/drawable-v21/launch_background.xml,text,8,100,original (largely retained)
+android/app/src/main/res/drawable/launch_background.xml,android/app/src/main/res/drawable/launch_background.xml,text,8,100,original (largely retained)
+android/app/src/main/res/mipmap-hdpi/ic_launcher.png,,binary,,0,new/changed binary
+android/app/src/main/res/mipmap-mdpi/ic_launcher.png,,binary,,0,new/changed binary
+android/app/src/main/res/mipmap-xhdpi/ic_launcher.png,,binary,,0,new/changed binary
+android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png,,binary,,0,new/changed binary
+android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png,,binary,,0,new/changed binary
+android/app/src/main/res/values-night/styles.xml,android/app/src/main/res/values-night/styles.xml,text,13,100,original (largely retained)
+android/app/src/main/res/values/styles.xml,android/app/src/main/res/values/styles.xml,text,13,100,original (largely retained)
+android/app/src/main/res/xml/data_extraction_rules.xml,android/app/src/main/res/xml/data_extraction_rules.xml,text,22,100,original (largely retained)
+android/app/src/profile/AndroidManifest.xml,android/app/src/profile/AndroidManifest.xml,text,5,100,original (largely retained)
+android/build.gradle.kts,android/build.gradle.kts,text,14,100,original (largely retained)
+android/gradle.properties,android/gradle.properties,text,4,25,mostly rewritten
+android/gradle/wrapper/gradle-wrapper.properties,android/gradle/wrapper/gradle-wrapper.properties,text,5,100,original (largely retained)
+android/settings.gradle.kts,android/settings.gradle.kts,text,15,100,original (largely retained)
+assets/clinical/aap2022_bilirubin.json,,text,1,0,new
+assets/icon.png,,binary,,0,new/changed binary
+assets/images/.gitkeep,lib/widgets/.gitkeep,binary,,100,identical binary
+codemagic.yaml,codemagic.yaml,text,43,84,original (largely retained)
+docs/AAP_DATA_VERIFICATION.md,,text,39,0,new
+docs/APP_STORE_DEPLOY_PROMPT.md,docs/APP_STORE_DEPLOY_PROMPT.md,text,114,98,original (largely retained)
+docs/LEGACY_NEXTJS_APP.md,,text,27,0,new
+docs/PUSH_SETUP.md,,text,57,0,new
+docs/provenance/PROVENANCE_AUDIT.md,,text,65,0,new
+docs/provenance/compare.py,,binary,,0,new/changed binary
+docs/provenance/file_provenance.csv,,binary,,0,new/changed binary
+env.example.json,,text,9,0,new
+ios/.gitignore,ios/.gitignore,binary,,100,identical binary
+ios/ExportOptions.plist,ios/ExportOptions.plist,text,17,82,original (largely retained)
+ios/Flutter/AppFrameworkInfo.plist,ios/Flutter/AppFrameworkInfo.plist,text,21,100,original (largely retained)
+ios/Flutter/Debug.xcconfig,ios/Flutter/Debug.xcconfig,text,0,,trivial/empty
+ios/Flutter/Release.xcconfig,ios/Flutter/Release.xcconfig,text,0,,trivial/empty
+ios/Podfile,,binary,,0,new/changed binary
+ios/Podfile.lock,ios/Podfile.lock,binary,,100,identical binary
+ios/Runner.xcodeproj/project.pbxproj,ios/Runner.xcodeproj/project.pbxproj,text,614,95,original (largely retained)
+ios/Runner.xcodeproj/project.xcworkspace/contents.xcworkspacedata,ios/Runner.xcodeproj/project.xcworkspace/contents.xcworkspacedata,binary,,100,identical binary
+ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist,ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist,text,4,100,original (largely retained)
+ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings,ios/Runner.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings,binary,,100,identical binary
+ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved,,binary,,0,new/changed binary
+ios/Runner.xcodeproj/xcshareddata/xcschemes/Runner.xcscheme,,binary,,0,new/changed binary
+ios/Runner.xcworkspace/contents.xcworkspacedata,macos/Runner.xcworkspace/contents.xcworkspacedata,binary,,100,identical binary
+ios/Runner.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist,ios/Runner.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist,text,4,100,original (largely retained)
+ios/Runner.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings,ios/Runner.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings,binary,,100,identical binary
+ios/Runner.xcworkspace/xcshareddata/swiftpm/Package.resolved,,binary,,0,new/changed binary
+ios/Runner/AppDelegate.swift,ios/Runner/AppDelegate.swift,text,28,25,mostly rewritten
+ios/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json,ios/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json,text,1,100,original (largely retained)
+ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-1024x1024@1x.png,,binary,,0,new/changed binary
+ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-20x20@1x.png,,binary,,0,new/changed binary
+ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-20x20@2x.png,,binary,,0,new/changed binary
+ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-20x20@3x.png,,binary,,0,new/changed binary
+ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-29x29@1x.png,,binary,,0,new/changed binary
+ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-29x29@2x.png,,binary,,0,new/changed binary
+ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-29x29@3x.png,,binary,,0,new/changed binary
+ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-40x40@1x.png,,binary,,0,new/changed binary
+ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-40x40@2x.png,,binary,,0,new/changed binary
+ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-40x40@3x.png,,binary,,0,new/changed binary
+ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-50x50@1x.png,,binary,,0,new/changed binary
+ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-50x50@2x.png,,binary,,0,new/changed binary
+ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-57x57@1x.png,,binary,,0,new/changed binary
+ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-57x57@2x.png,,binary,,0,new/changed binary
+ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-60x60@2x.png,,binary,,0,new/changed binary
+ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-60x60@3x.png,,binary,,0,new/changed binary
+ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-72x72@1x.png,,binary,,0,new/changed binary
+ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-72x72@2x.png,,binary,,0,new/changed binary
+ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-76x76@1x.png,,binary,,0,new/changed binary
+ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-76x76@2x.png,,binary,,0,new/changed binary
+ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-83.5x83.5@2x.png,,binary,,0,new/changed binary
+ios/Runner/Assets.xcassets/LaunchImage.imageset/Contents.json,ios/Runner/Assets.xcassets/LaunchImage.imageset/Contents.json,text,12,100,original (largely retained)
+ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage.png,ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage@3x.png,binary,,100,identical binary
+ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage@2x.png,ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage@3x.png,binary,,100,identical binary
+ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage@3x.png,ios/Runner/Assets.xcassets/LaunchImage.imageset/LaunchImage@3x.png,binary,,100,identical binary
+ios/Runner/Assets.xcassets/LaunchImage.imageset/README.md,ios/Runner/Assets.xcassets/LaunchImage.imageset/README.md,text,2,100,original (largely retained)
+ios/Runner/Base.lproj/LaunchScreen.storyboard,ios/Runner/Base.lproj/LaunchScreen.storyboard,text,27,100,original (largely retained)
+ios/Runner/Base.lproj/Main.storyboard,ios/Runner/Base.lproj/Main.storyboard,text,19,100,original (largely retained)
+ios/Runner/Info.plist,ios/Runner/Info.plist,text,83,83,original (largely retained)
+ios/Runner/Runner-Bridging-Header.h,ios/Runner/Runner-Bridging-Header.h,text,0,,trivial/empty
+ios/Runner/Runner.entitlements,ios/Runner/Runner.entitlements,text,15,100,original (largely retained)
+ios/Runner/SceneDelegate.swift,ios/Runner/SceneDelegate.swift,text,1,100,original (largely retained)
+ios/RunnerTests/RunnerTests.swift,ios/RunnerTests/RunnerTests.swift,text,2,100,original (largely retained)
+landing/index.html,landing/index.html,text,217,1,new
+landing/privacy.html,landing/privacy.html,text,120,7,new
+landing/site.css,,text,241,2,new
+landing/site.js,,text,25,8,new
+landing/sitemap.xml,landing/sitemap.xml,text,11,73,original (largely retained)
+landing/supabase-public.js,,text,28,4,new
+lib/app/home_shell.dart,,text,128,22,mostly rewritten
+lib/app/routes.dart,,text,19,0,new
+lib/clinical/bilirubin.dart,,text,220,2,new
+lib/clinical/bilirubin_assess.dart,,text,58,10,mostly rewritten
+lib/clinical/birth_summary.dart,,text,45,2,new
+lib/clinical/handover.dart,,text,84,2,new
+lib/clinical/lab_report_parser.dart,,text,78,0,new
+lib/config/firebase_config.dart,,text,24,4,new
+lib/config/supabase_config.dart,,text,10,0,new
+lib/main.dart,lib/main.dart,text,64,58,modified original
+lib/models/.gitkeep,lib/widgets/.gitkeep,binary,,100,identical binary
+lib/models/app_user.dart,lib/models/app_user.dart,text,73,74,original (largely retained)
+lib/models/models.dart,lib/models/models.dart,text,0,,trivial/empty
+lib/models/newborn_screen.dart,,text,173,6,new
+lib/models/newborn_tracking.dart,,text,91,16,mostly rewritten
+lib/models/note.dart,lib/models/note.dart,text,91,60,modified original
+lib/models/note_comment.dart,lib/models/note_comment.dart,text,32,56,modified original
+lib/models/patient.dart,lib/models/patient.dart,text,213,18,mostly rewritten
+lib/models/patient_reminder.dart,,text,58,22,mostly rewritten
+lib/models/row_parsing.dart,,text,13,8,new
+lib/models/ward.dart,lib/models/ward.dart,text,35,63,modified original
+lib/models/ward_unit.dart,,text,65,14,mostly rewritten
+lib/providers/.gitkeep,lib/widgets/.gitkeep,binary,,100,identical binary
+lib/providers/auth_provider.dart,lib/providers/auth_provider.dart,text,87,94,original (largely retained)
+lib/providers/note_provider.dart,lib/providers/note_provider.dart,text,127,92,original (largely retained)
+lib/providers/notification_provider.dart,lib/providers/notification_provider.dart,text,46,100,original (largely retained)
+lib/providers/patient_provider.dart,lib/providers/patient_provider.dart,text,110,75,original (largely retained)
+lib/providers/providers.dart,lib/providers/providers.dart,text,0,,trivial/empty
+lib/providers/reminder_provider.dart,,text,85,16,mostly rewritten
+lib/providers/text_scale_provider.dart,lib/providers/text_scale_provider.dart,text,19,100,original (largely retained)
+lib/providers/theme_provider.dart,lib/providers/theme_provider.dart,text,25,100,original (largely retained)
+lib/providers/unit_provider.dart,,text,76,17,mostly rewritten
+lib/providers/ward_provider.dart,lib/providers/ward_provider.dart,text,56,91,original (largely retained)
+lib/screens/admin/.gitkeep,lib/widgets/.gitkeep,binary,,100,identical binary
+lib/screens/admin/add_staff_bottom_sheet.dart,lib/screens/admin/add_staff_bottom_sheet.dart,text,73,47,modified original
+lib/screens/admin/add_ward_screen.dart,lib/screens/admin/add_ward_screen.dart,text,97,97,original (largely retained)
+lib/screens/admin/admin_home_screen.dart,lib/screens/admin/admin_home_screen.dart,text,306,81,original (largely retained)
+lib/screens/admin/admin_staff_screen.dart,lib/screens/admin/admin_staff_screen.dart,text,197,82,original (largely retained)
+lib/screens/admin/ward_detail_screen.dart,lib/screens/admin/ward_detail_screen.dart,text,228,88,original (largely retained)
+lib/screens/auth/.gitkeep,lib/widgets/.gitkeep,binary,,100,identical binary
+lib/screens/auth/login_screen.dart,lib/screens/auth/login_screen.dart,text,153,48,modified original
+lib/screens/auth/role_choice_screen.dart,,text,104,42,modified original
+lib/screens/doctor/.gitkeep,lib/widgets/.gitkeep,binary,,100,identical binary
+lib/screens/doctor/add_note_screen.dart,lib/screens/doctor/add_note_screen.dart,text,404,85,original (largely retained)
+lib/screens/doctor/add_patient_screen.dart,lib/screens/doctor/add_patient_screen.dart,text,512,16,mostly rewritten
+lib/screens/doctor/patient_detail_screen.dart,lib/screens/doctor/patient_detail_screen.dart,text,289,54,modified original
+lib/screens/help/help_center_screen.dart,,text,65,29,mostly rewritten
+lib/screens/help/help_topics.dart,,text,59,2,new
+lib/screens/nurse/.gitkeep,lib/widgets/.gitkeep,binary,,100,identical binary
+lib/screens/nurse/acknowledge_sheet.dart,lib/screens/nurse/acknowledge_sheet.dart,text,84,93,original (largely retained)
+lib/screens/shared/.gitkeep,lib/widgets/.gitkeep,binary,,100,identical binary
+lib/screens/shared/census_screen.dart,,text,221,21,mostly rewritten
+lib/screens/shared/filtered_notes_screen.dart,lib/screens/shared/filtered_notes_screen.dart,text,72,97,original (largely retained)
+lib/screens/shared/newborn_results_screen.dart,,text,308,17,mostly rewritten
+lib/screens/shared/patients_screen.dart,,text,270,26,mostly rewritten
+lib/screens/shared/profile_screen.dart,lib/screens/shared/profile_screen.dart,text,519,60,modified original
+lib/screens/shared/today_screen.dart,,text,297,31,mostly rewritten
+lib/screens/shared/ward_page.dart,,text,268,22,mostly rewritten
+lib/screens/shared/wards_screen.dart,lib/screens/shared/wards_screen.dart,text,118,26,mostly rewritten
+lib/screens/start/alert_setup_screen.dart,,text,130,28,mostly rewritten
+lib/screens/start/launch_decision.dart,,text,12,0,new
+lib/screens/start/launch_screen.dart,,text,49,29,mostly rewritten
+lib/screens/start/welcome_screen.dart,,text,118,33,mostly rewritten
+lib/services/.gitkeep,lib/widgets/.gitkeep,binary,,100,identical binary
+lib/services/a11y/reduce_transparency_stub.dart,,text,1,0,new
+lib/services/a11y/reduce_transparency_web.dart,,text,8,25,mostly rewritten
+lib/services/accessibility_settings.dart,,text,26,12,mostly rewritten
+lib/services/auth_service.dart,lib/services/auth_service.dart,text,123,34,mostly rewritten
+lib/services/device_power_settings.dart,,text,59,8,new
+lib/services/metrics_service.dart,lib/services/metrics_service.dart,text,8,38,modified original
+lib/services/newborn_screen_service.dart,,text,30,0,new
+lib/services/note_service.dart,lib/services/note_service.dart,text,96,36,modified original
+lib/services/patient_service.dart,lib/services/patient_service.dart,text,83,14,mostly rewritten
+lib/services/push_registration.dart,,text,46,13,mostly rewritten
+lib/services/push_service.dart,lib/services/push_service.dart,text,48,31,mostly rewritten
+lib/services/reminder_notifications.dart,,text,94,3,new
+lib/services/reminder_service.dart,,text,43,12,mostly rewritten
+lib/services/review_request.dart,,text,37,22,mostly rewritten
+lib/services/services.dart,lib/services/services.dart,text,0,,trivial/empty
+lib/services/supabase_service.dart,,text,13,0,new
+lib/services/text_scan_service.dart,,text,43,2,new
+lib/services/tracking_service.dart,,text,77,0,new
+lib/services/unit_service.dart,,text,31,3,new
+lib/services/ward_service.dart,lib/services/ward_service.dart,text,69,19,mostly rewritten
+lib/utils/.gitkeep,lib/widgets/.gitkeep,binary,,100,identical binary
+lib/utils/app_constants.dart,lib/utils/app_constants.dart,text,12,92,original (largely retained)
+lib/utils/app_theme.dart,lib/utils/app_theme.dart,text,288,28,mostly rewritten
+lib/utils/app_typography.dart,,text,140,3,new
+lib/utils/app_utils.dart,lib/utils/app_utils.dart,text,29,93,original (largely retained)
+lib/utils/friendly_error.dart,lib/utils/friendly_error.dart,text,92,61,modified original
+lib/utils/haptics.dart,,text,7,0,new
+lib/utils/layout.dart,,text,2,0,new
+lib/utils/oauth_error.dart,,text,21,0,new
+lib/utils/scope_filter.dart,,text,13,0,new
+lib/utils/share_helper.dart,lib/utils/share_helper.dart,text,32,59,modified original
+lib/utils/stream_cache.dart,,text,11,0,new
+lib/widgets/.gitkeep,lib/widgets/.gitkeep,binary,,100,identical binary
+lib/widgets/app_alert_dialog.dart,,text,66,12,mostly rewritten
+lib/widgets/app_sheet.dart,,text,208,5,new
+lib/widgets/bilirubin_chart.dart,,text,154,8,new
+lib/widgets/birth_time_field.dart,,text,117,18,mostly rewritten
+lib/widgets/empty_state.dart,lib/widgets/empty_state.dart,text,32,81,original (largely retained)
+lib/widgets/foliomed_brand.dart,lib/widgets/wardly_brand.dart,text,26,46,modified original
+lib/widgets/inset_group.dart,,text,199,30,mostly rewritten
+lib/widgets/large_title_app_bar.dart,,text,198,28,mostly rewritten
+lib/widgets/newborn_flow.dart,,text,134,22,mostly rewritten
+lib/widgets/newborn_section.dart,,text,119,16,mostly rewritten
+lib/widgets/newborn_tracking_section.dart,,text,385,17,mostly rewritten
+lib/widgets/note_card.dart,lib/widgets/note_card.dart,text,294,71,original (largely retained)
+lib/widgets/note_comments_sheet.dart,lib/widgets/note_comments_sheet.dart,text,297,94,original (largely retained)
+lib/widgets/note_list_items.dart,,text,92,43,modified original
+lib/widgets/notifications_panel.dart,lib/widgets/notifications_panel.dart,text,133,94,original (largely retained)
+lib/widgets/patient_actions.dart,,text,259,27,mostly rewritten
+lib/widgets/patient_card.dart,lib/widgets/patient_card.dart,text,102,73,original (largely retained)
+lib/widgets/pressable.dart,,text,51,18,mostly rewritten
+lib/widgets/reminder_widgets.dart,,text,173,24,mostly rewritten
+lib/widgets/role_badge.dart,lib/widgets/role_badge.dart,text,38,76,original (largely retained)
+lib/widgets/scope_button.dart,,text,77,16,mostly rewritten
+lib/widgets/theme_toggle_button.dart,lib/widgets/theme_toggle_button.dart,text,8,75,original (largely retained)
+lib/widgets/tip_card.dart,,text,59,37,modified original
+lib/widgets/ward_actions.dart,lib/screens/shared/wards_screen.dart,text,129,46,modified original
+lib/widgets/widgets.dart,lib/widgets/widgets.dart,text,0,,trivial/empty
+linux/.gitignore,linux/.gitignore,binary,,100,identical binary
+linux/CMakeLists.txt,linux/CMakeLists.txt,text,65,98,original (largely retained)
+linux/flutter/CMakeLists.txt,linux/flutter/CMakeLists.txt,text,59,100,original (largely retained)
+linux/flutter/generated_plugin_registrant.cc,linux/flutter/generated_plugin_registrant.cc,text,10,40,modified original
+linux/flutter/generated_plugin_registrant.h,linux/flutter/generated_plugin_registrant.h,text,1,100,original (largely retained)
+linux/flutter/generated_plugins.cmake,linux/flutter/generated_plugins.cmake,text,16,88,original (largely retained)
+linux/runner/CMakeLists.txt,linux/runner/CMakeLists.txt,text,10,100,original (largely retained)
+linux/runner/main.cc,linux/runner/main.cc,text,3,100,original (largely retained)
+linux/runner/my_application.cc,linux/runner/my_application.cc,text,69,100,original (largely retained)
+linux/runner/my_application.h,linux/runner/my_application.h,text,5,100,original (largely retained)
+macos/.gitignore,macos/.gitignore,binary,,100,identical binary
+macos/Flutter/Flutter-Debug.xcconfig,macos/Flutter/Flutter-Debug.xcconfig,text,0,,trivial/empty
+macos/Flutter/Flutter-Release.xcconfig,macos/Flutter/Flutter-Release.xcconfig,text,0,,trivial/empty
+macos/Flutter/GeneratedPluginRegistrant.swift,macos/Flutter/GeneratedPluginRegistrant.swift,text,14,79,original (largely retained)
+macos/Podfile,macos/Podfile,binary,,100,identical binary
+macos/Runner.xcodeproj/project.pbxproj,macos/Runner.xcodeproj/project.pbxproj,text,619,100,original (largely retained)
+macos/Runner.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist,macos/Runner.xcodeproj/project.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist,text,4,100,original (largely retained)
+macos/Runner.xcodeproj/xcshareddata/xcschemes/Runner.xcscheme,,binary,,0,new/changed binary
+macos/Runner.xcworkspace/contents.xcworkspacedata,macos/Runner.xcworkspace/contents.xcworkspacedata,binary,,100,identical binary
+macos/Runner.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist,macos/Runner.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist,text,4,100,original (largely retained)
+macos/Runner/AppDelegate.swift,macos/Runner/AppDelegate.swift,text,3,100,original (largely retained)
+macos/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json,macos/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json,text,42,0,new
+macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_1024.png,,binary,,0,new/changed binary
+macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_128.png,,binary,,0,new/changed binary
+macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_16.png,,binary,,0,new/changed binary
+macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_256.png,,binary,,0,new/changed binary
+macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_32.png,,binary,,0,new/changed binary
+macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_512.png,,binary,,0,new/changed binary
+macos/Runner/Assets.xcassets/AppIcon.appiconset/app_icon_64.png,,binary,,0,new/changed binary
+macos/Runner/Base.lproj/MainMenu.xib,macos/Runner/Base.lproj/MainMenu.xib,binary,,100,identical binary
+macos/Runner/Configs/AppInfo.xcconfig,macos/Runner/Configs/AppInfo.xcconfig,text,3,67,modified original
+macos/Runner/Configs/Debug.xcconfig,macos/Runner/Configs/Debug.xcconfig,text,0,,trivial/empty
+macos/Runner/Configs/Release.xcconfig,macos/Runner/Configs/Release.xcconfig,text,0,,trivial/empty
+macos/Runner/Configs/Warnings.xcconfig,macos/Runner/Configs/Warnings.xcconfig,text,13,100,original (largely retained)
+macos/Runner/DebugProfile.entitlements,macos/Runner/DebugProfile.entitlements,text,6,100,original (largely retained)
+macos/Runner/Info.plist,macos/Runner/Info.plist,text,34,97,original (largely retained)
+macos/Runner/MainFlutterWindow.swift,macos/Runner/MainFlutterWindow.swift,text,27,30,mostly rewritten
+macos/Runner/Release.entitlements,macos/Runner/Release.entitlements,text,4,100,original (largely retained)
+macos/RunnerTests/RunnerTests.swift,macos/RunnerTests/RunnerTests.swift,text,2,100,original (largely retained)
+pubspec.lock,,binary,,0,new/changed binary
+pubspec.yaml,pubspec.yaml,text,54,81,original (largely retained)
+skills-lock.json,,text,76,0,new
+status/index.html,status/index.html,text,83,4,new
+status/status.js,status/status.js,text,96,19,mostly rewritten
+supabase/.gitignore,,binary,,0,new/changed binary
+supabase/config.toml,,binary,,0,new/changed binary
+supabase/functions/push-dispatch/index.ts,,text,119,3,new
+supabase/migrations/20261019000000_initial_schema.sql,,text,347,1,new
+supabase/migrations/20261019010000_tighten_function_grants.sql,,text,10,0,new
+supabase/migrations/20261019020000_revoke_public_function_execute.sql,,text,16,0,new
+supabase/migrations/20261019030000_restrict_admin_role.sql,,text,97,0,new
+supabase/migrations/20261019040000_patient_lifecycle.sql,,text,136,0,new
+supabase/migrations/20261019050000_birth_time_and_reminders.sql,,text,91,0,new
+supabase/migrations/20261020000000_newborn_screening.sql,,text,200,0,new
+supabase/migrations/20261020010000_birth_details.sql,,text,23,0,new
+supabase/migrations/20261020020000_ward_units.sql,,text,77,0,new
+supabase/migrations/20261020030000_push_notifications.sql,,text,137,0,new
+supabase/migrations/20261021000000_newborn_tracking.sql,,text,147,0,new
+supabase/migrations/20261022000000_neuro_risk_factors.sql,,text,10,0,new
+supabase/tests/00_supabase_stub.sql,,text,13,0,new
+supabase/tests/10_rls_smoke.sql,,text,55,0,new
+supabase/tests/20_admin_role.sql,,text,23,0,new
+supabase/tests/30_patient_lifecycle.sql,,text,37,0,new
+supabase/tests/40_reminders.sql,,text,29,0,new
+supabase/tests/50_newborn_screening.sql,,text,46,0,new
+supabase/tests/60_birth_details.sql,,text,16,0,new
+supabase/tests/70_ward_units.sql,,text,39,0,new
+supabase/tests/80_push_outbox.sql,,text,39,0,new
+supabase/tests/90_newborn_tracking.sql,,text,37,0,new
+supabase/tests/95_neuro_risk.sql,,text,13,0,new
+supabase/tests/README.md,,text,12,0,new
+test/aap_bilirubin_test.dart,,text,102,0,new
+test/app_alert_dialog_test.dart,,text,59,3,new
+test/app_sheet_test.dart,,text,107,8,new
+test/apple_design_test.dart,,text,64,5,new
+test/bilirubin_test.dart,,text,41,0,new
+test/birth_summary_test.dart,,text,41,0,new
+test/birth_time_field_test.dart,,text,37,3,new
+test/guideline_reference_test.dart,,text,54,0,new
+test/hig_components_test.dart,,text,120,2,new
+test/lab_report_parser_test.dart,,text,40,0,new
+test/models_row_mapping_test.dart,,text,105,2,new
+test/newborn_reminders_test.dart,,text,100,0,new
+test/newborn_results_test.dart,,text,46,0,new
+test/newborn_tracking_test.dart,,text,80,0,new
+test/oauth_error_test.dart,,text,11,0,new
+test/patient_lifecycle_test.dart,,text,61,0,new
+test/start_flow_test.dart,,text,54,0,new
+test/stream_cache_test.dart,,text,35,0,new
+test/tab_bar_inset_test.dart,,text,28,0,new
+test/ward_units_test.dart,,text,45,0,new
+tools/deploy.sh,tools/deploy.sh,text,14,43,modified original
+tools/ios_release.sh,tools/ios_release.sh,text,27,85,original (largely retained)
+tools/play_assets.py,,binary,,0,new/changed binary
+web/favicon.png,,binary,,0,new/changed binary
+web/icons/Icon-192.png,,binary,,0,new/changed binary
+web/icons/Icon-512.png,,binary,,0,new/changed binary
+web/icons/Icon-maskable-192.png,,binary,,0,new/changed binary
+web/icons/Icon-maskable-512.png,,binary,,0,new/changed binary
+web/index.html,web/index.html,text,26,92,original (largely retained)
+web/manifest.json,web/manifest.json,text,23,91,original (largely retained)
+windows/.gitignore,windows/.gitignore,binary,,100,identical binary
+windows/CMakeLists.txt,windows/CMakeLists.txt,text,58,100,original (largely retained)
+windows/flutter/CMakeLists.txt,windows/flutter/CMakeLists.txt,text,71,100,original (largely retained)
+windows/flutter/generated_plugin_registrant.cc,windows/flutter/generated_plugin_registrant.cc,text,13,69,modified original
+windows/flutter/generated_plugin_registrant.h,windows/flutter/generated_plugin_registrant.h,text,1,100,original (largely retained)
+windows/flutter/generated_plugins.cmake,windows/flutter/generated_plugins.cmake,text,18,89,original (largely retained)
+windows/runner/CMakeLists.txt,windows/runner/CMakeLists.txt,text,18,100,original (largely retained)
+windows/runner/Runner.rc,,binary,,0,new/changed binary
+windows/runner/flutter_window.cpp,windows/runner/flutter_window.cpp,text,33,100,original (largely retained)
+windows/runner/flutter_window.h,windows/runner/flutter_window.h,text,9,100,original (largely retained)
+windows/runner/main.cpp,windows/runner/main.cpp,text,20,100,original (largely retained)
+windows/runner/resource.h,windows/runner/resource.h,text,0,,trivial/empty
+windows/runner/resources/app_icon.ico,,binary,,0,new/changed binary
+windows/runner/runner.exe.manifest,windows/runner/runner.exe.manifest,binary,,100,identical binary
+windows/runner/utils.cpp,windows/runner/utils.cpp,text,36,100,original (largely retained)
+windows/runner/utils.h,windows/runner/utils.h,text,3,100,original (largely retained)
+windows/runner/win32_window.cpp,windows/runner/win32_window.cpp,text,153,100,original (largely retained)
+windows/runner/win32_window.h,windows/runner/win32_window.h,text,35,100,original (largely retained)

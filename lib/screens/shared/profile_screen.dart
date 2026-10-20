@@ -11,9 +11,10 @@ import 'package:provider/provider.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../utils/share_helper.dart';
-import '../auth/background_setup_screen.dart';
-import 'help_screen.dart';
-import 'tutorial_screen.dart';
+import '../start/alert_setup_screen.dart';
+import '../../app/routes.dart';
+import '../help/help_center_screen.dart';
+import '../../widgets/tip_card.dart';
 
 import '../../models/app_user.dart';
 import '../../providers/auth_provider.dart';
@@ -339,14 +340,14 @@ class ProfileScreen extends StatelessWidget {
             ],
           ),
         ),
-        if (!BackgroundSetupScreen.shouldSkip())
+        if (AlertSetupScreen.applies)
           SettingsRow(
             icon: Icons.notifications_active_outlined,
             iconColor: AppColors.danger,
-            title: 'Notification setup',
-            subtitle: 'Make sure alerts arrive when the app is closed',
+            title: 'Alert Setup',
+            subtitle: 'Get alerts even when FolioMed is closed',
             onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const BackgroundSetupScreen()),
+              MaterialPageRoute(builder: (_) => const AlertSetupScreen()),
             ),
           ),
       ],
@@ -358,19 +359,22 @@ class ProfileScreen extends StatelessWidget {
       header: 'Help',
       children: [
         SettingsRow(
-          icon: Icons.play_lesson_outlined,
-          iconColor: AppColors.accent,
-          title: 'Tutorial',
-          onTap: () => Navigator.of(context).push(MaterialPageRoute(
-            builder: (_) => const TutorialScreen(),
-            fullscreenDialog: true,
-          )),
+          icon: Icons.help_outline,
+          title: 'Help',
+          subtitle: 'How-tos and answers',
+          onTap: () => Navigator.of(context)
+              .push(MaterialPageRoute(builder: (_) => const HelpCenterScreen())),
         ),
         SettingsRow(
-          icon: Icons.help_outline,
-          title: 'Help & FAQs',
-          onTap: () => Navigator.of(context)
-              .push(MaterialPageRoute(builder: (_) => const HelpScreen())),
+          icon: Icons.lightbulb_outline,
+          iconColor: AppColors.warning,
+          title: 'Show tips again',
+          onTap: () async {
+            final messenger = ScaffoldMessenger.of(context);
+            await TipStore.reset();
+            messenger.showSnackBar(
+                const SnackBar(content: Text('Tips will appear again as you use FolioMed.')));
+          },
         ),
       ],
     );
@@ -775,7 +779,7 @@ Account: $email
       await AuthService().deleteAccount();
       await auth.signOut();
       if (context.mounted) {
-        Navigator.of(context).pushNamedAndRemoveUntil('/login', (_) => false);
+        Routes.toSignIn(context);
       }
     } catch (e) {
       if (context.mounted) {
@@ -811,7 +815,7 @@ Account: $email
     if (confirm == true) {
       await auth.signOut();
       if (context.mounted) {
-        Navigator.of(context).pushNamedAndRemoveUntil('/login', (_) => false);
+        Routes.toSignIn(context);
       }
     }
   }
@@ -912,7 +916,7 @@ Account: $email
     if (!context.mounted) return;
     if (ok) {
       // Home screen and tabs depend on the role — restart at the gate.
-      Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false);
+      Routes.restart(context);
     } else if (auth.error != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

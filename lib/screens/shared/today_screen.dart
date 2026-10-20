@@ -23,6 +23,7 @@ import '../../widgets/large_title_app_bar.dart';
 import '../../widgets/note_list_items.dart';
 import '../../widgets/notifications_panel.dart';
 import '../../widgets/pressable.dart';
+import '../../widgets/tip_card.dart';
 import '../../widgets/scope_button.dart';
 import '../../providers/unit_provider.dart';
 import '../../utils/scope_filter.dart';
@@ -170,6 +171,12 @@ class _TodayScreenState extends State<TodayScreen> {
                   _summary(),
                   const SizedBox(height: 24),
                   const _RemindersBlock(),
+                  const TipCard(
+                    id: 'today_collapse',
+                    icon: Icons.unfold_less,
+                    title: 'Long feed?',
+                    message: 'Tap ⇕ next to Ward notes to show one line per note. Tap a line to read it.',
+                  ),
                   _feedHeader(),
                   const SizedBox(height: 10),
                   _feedList(),
