@@ -12,6 +12,7 @@ import 'exchange_tool.dart';
 import 'fluids_tool.dart';
 import 'infusion_tool.dart';
 import 'lines_tool.dart';
+import 'sarnat_tool.dart';
 import 'score_tool.dart';
 
 class _Tool {
@@ -51,6 +52,8 @@ class _ToolsScreenState extends State<ToolsScreen> {
       for (final d in kNewbornScores)
         _Tool(d.name, d.purpose, Icons.checklist_rtl, AppColors.secondary, '${d.id} score ${d.purpose}',
             () => ScoreTool(definition: d)),
+      _Tool('Modified Sarnat', 'HIE staging, with the NICHD moderate/severe criterion', Icons.psychology_outlined,
+          AppColors.secondary, 'sarnat hie encephalopathy asphyxia cooling nichd stage', SarnatTool.new),
     ]),
     _Group('Age', [
       _Tool('Corrected Age', 'Postmenstrual and corrected age for preterm babies', Icons.event_outlined,

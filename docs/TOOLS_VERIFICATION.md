@@ -28,6 +28,8 @@ flag to be flipped.
 | ☐ | Thompson items and bands | 0 normal, 1–10 mild, 11–14 moderate, 15–22 severe | Thompson 1997 |
 | ☐ | LATCH items and bands | 0–5 needs support, 6–7 some support, 8–10 going well (bands are FolioMed's practical reading) | Jensen 1994 |
 
+| ☐ | Modified Sarnat | 6 areas graded; worst sign per area; stage = most common grade (tie → more severe); NICHD: ≥3 areas moderate/severe | Sarnat 1976; Shankaran 2005 |
+
 Score wording (`lib/tools/newborn_scores.dart`) is FolioMed's own summary of
 each item — check it reads as your unit teaches it.
 

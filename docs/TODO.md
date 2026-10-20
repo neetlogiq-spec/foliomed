@@ -10,7 +10,7 @@
 ## Tools — next candidates (from the pediaid-flutter inventory, 2026-10-20)
 Write from primary sources only; never copy pediaid code, text or data.
 - Fenton 2013 growth chart → automatic AGA/SGA/LGA (check data terms of use)
-- Scores still to do: Modified Sarnat (staging table), New Ballard (needs pictures). Done: Apgar, Downes, Silverman-Anderson, Thompson, LATCH
+- Scores still to do: New Ballard (needs pictures). Done: Apgar, Downes, Silverman-Anderson, Thompson, LATCH, Modified Sarnat
 - Hypoglycaemia bolus (unit protocol), neonatal BP centiles (Zubrow 1995), blood volume, ponderal index
 - Electrolyte corrections (Na, K, Ca, Mg, PO4), anion gap, osmolality, TPN
 - Vaccine schedule (NIS / IAP) and catch-up
