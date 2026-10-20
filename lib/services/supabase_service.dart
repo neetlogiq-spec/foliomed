@@ -11,6 +11,7 @@ class Tables {
   static const String patients = 'patients';
   static const String patientReminders = 'patient_reminders';
   static const String wardJobs = 'ward_jobs';
+  static const String dischargeChecks = 'discharge_checks';
   static const String notes = 'notes';
   static const String noteComments = 'note_comments';
   static const String monitorVitals = 'monitor_vitals';

@@ -70,7 +70,9 @@ Firestore → Postgres mapping: `users`→`profiles`, `wards`, `patients`,
 
 - Ward jobs (migration `20261023000000`): `ward_jobs` (patient required; optional `due_by`, `assigned_to`; creator/assignee/completer names stamped by trigger `stamp_ward_job`; assignee must be a ward member; jobs follow the patient's ward via a `patients` trigger, dropping non-member assignees). Assigning someone else queues a push with `push_outbox.only_user` (push-dispatch honours it). App: `WardJob`, `JobService`, `JobBoard` (live, done-since-midnight), `JobRow`, `JobsScreen` (Mine/Ward/Done), `showAddJob`, `PatientJobsSection`, Today Up Next. `ScopeFilter.job` hides jobs of patients no longer admitted. Notification taps open the patient (`PushRegistration.onOpenPatient`).
 
-Test the schema locally without Docker: `supabase/tests/README.md` (suites 10–96).
+- Discharge checklist (migration `20261024000000`): `discharge_checks` stores only staff-ticked items (key per `kManualDischargeItems`; who/when stamped; untick = delete). Worked-out lines (investigations, TSH, blood group, OAE, bilirubin ≤24 h vs guideline, phototherapy, weight ≤24 h) come from `dischargeChecklist()` in `lib/clinical/discharge_checklist.dart` (pure, tested). `DischargeCheckService.watch(patient)` combines the live sources. UI: `DischargeReadinessRow` on newborn pages → `DischargeChecklistScreen`; discharging a newborn lists open items first (Review / Discharge Anyway).
+
+Test the schema locally without Docker: `supabase/tests/README.md` (suites 10–98).
 
 ## User Roles & tabs
 - **Doctor / Nurse** — Today (`lib/screens/today/`: Up Next list from `upNext()` — overdue/soon reminders, urgent unconfirmed notes, my + urgent/overdue jobs; At a Glance rows; Latest Notes → `WardNotesScreen` with To Confirm/All/Urgent; one + menu), Patients (`patients_screen.dart`, grouped by ward), Wards (`wards_tab.dart` → `ward_page.dart`), Profile. Doctors get the compose button in the nav bar; nurses confirm through the confirm sheet (`FeedNote`). UI says "confirm"; the DB column is still `is_acknowledged`.

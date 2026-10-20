@@ -36,6 +36,8 @@ const List<HelpSection> kHelpSections = [
         'When you add a birth time, FolioMed asks whether you’ll send the investigations at 48 or 72 hours and how early to remind you (8 or 12 hours). At the hour it asks the ward whether they were sent, then asks for the results.'),
     HelpTopic('What do the bilirubin lines mean?',
         'The chart plots each reading against the phototherapy and exchange lines for the baby’s gestation (and, for AAP, neurotoxicity risk factors). Switch between AAP 2022 and NICE above the chart. This is decision support only — always confirm against the guideline and your clinical judgement.'),
+    HelpTopic('What is the discharge checklist?',
+        'On a newborn’s page, Discharge Checklist shows what’s done and what isn’t. FolioMed fills in the investigations, TSH, blood grouping, OAE, a bilirubin and a weight from the last 24 hours, and whether phototherapy has stopped. Staff tick Vitamin K, BCG, OPV-0, Hepatitis B, feeding, urine and meconium, counselling and follow-up. If anything is open when you discharge, FolioMed lists it first; you can still discharge.'),
     HelpTopic('Why does AAP ask about risk factors?',
         'AAP 2022 uses lower thresholds when a baby has a neurotoxicity risk factor such as haemolysis, G6PD deficiency or sepsis. Record them (or "none") under Bilirubin on the patient page; until then FolioMed won’t apply AAP lines.'),
   ]),

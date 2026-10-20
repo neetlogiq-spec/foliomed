@@ -15,6 +15,7 @@ import '../../utils/formatting.dart';
 import '../../utils/layout.dart';
 import '../../widgets/empty_placeholder.dart';
 import '../../widgets/large_title_app_bar.dart';
+import '../../widgets/discharge_readiness_row.dart';
 import '../../widgets/newborn_section.dart';
 import '../../widgets/patient_jobs_section.dart';
 import '../../widgets/newborn_tracking_section.dart';
@@ -127,6 +128,10 @@ class _PatientScreenState extends State<PatientScreen> {
           const SizedBox(height: 16),
           NewbornTrackingSection(patient: p),
           const SizedBox(height: 16),
+          if (p.isActive) ...[
+            DischargeReadinessRow(patient: p),
+            const SizedBox(height: 16),
+          ],
         ],
         PatientJobsSection(patient: p),
         const SizedBox(height: 16),

@@ -16,7 +16,10 @@ import '../utils/friendly_error.dart';
 import 'app_alert_dialog.dart';
 import 'app_sheet.dart';
 import 'large_title_app_bar.dart';
+import '../clinical/discharge_checklist.dart';
+import '../screens/patients/discharge_checklist_screen.dart';
 import '../screens/patients/patient_form_screen.dart';
+import '../services/discharge_check_service.dart';
 
 /// "•••" in the patient's navigation bar: transfer, discharge or readmit.
 class PatientActionsButton extends StatelessWidget {
@@ -181,7 +184,43 @@ class PatientActionsButton extends StatelessWidget {
     if (ok && navigator.canPop()) navigator.pop();
   }
 
+  /// Newborns: shows what's still open on the discharge checklist first.
+  /// True to carry on with the discharge.
+  Future<bool> _checklistAllowsDischarge(BuildContext context) async {
+    if (patient.bornAt == null) return true;
+    List<CheckLine> lines;
+    try {
+      lines = await DischargeCheckService().watch(patient).first.timeout(const Duration(seconds: 8));
+    } catch (_) {
+      return true; // couldn't check (offline?) — don't block a discharge
+    }
+    final todo = outstanding(lines);
+    if (todo.isEmpty || !context.mounted) return true;
+    const shown = 6;
+    final choice = await showAdaptiveDialog<String>(
+      context: context,
+      builder: (ctx) => AppAlertDialog(
+        title: Text('${todo.length} item${todo.length == 1 ? '' : 's'} still open'),
+        content: Text([
+          for (final l in todo.take(shown)) '• ${l.title}${l.detail == null || l.manual ? '' : ': ${l.detail}'}',
+          if (todo.length > shown) '…and ${todo.length - shown} more',
+        ].join('\n')),
+        actions: [
+          ElevatedButton(onPressed: () => Navigator.pop(ctx, 'review'), child: const Text('Review Checklist')),
+          TextButton(onPressed: () => Navigator.pop(ctx, 'anyway'), child: const Text('Discharge Anyway')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+        ],
+      ),
+    );
+    if (choice == 'review' && context.mounted) {
+      await Navigator.of(context).push(MaterialPageRoute(builder: (_) => DischargeChecklistScreen(patient: patient)));
+      return false;
+    }
+    return choice == 'anyway';
+  }
+
   Future<void> _discharge(BuildContext context) async {
+    if (!await _checklistAllowsDischarge(context) || !context.mounted) return;
     final summary = TextEditingController();
     final confirmed = await showAdaptiveDialog<bool>(
       context: context,
