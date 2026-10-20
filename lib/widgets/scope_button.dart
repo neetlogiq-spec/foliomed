@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../models/patient.dart';
 import '../models/ward.dart';
 import '../models/ward_unit.dart';
-import '../providers/auth_provider.dart';
+import '../providers/account_provider.dart';
 import '../providers/unit_provider.dart';
 import '../services/ward_service.dart';
 import '../utils/app_theme.dart';
@@ -17,7 +17,7 @@ final _wardStreams = StreamCache<List<Ward>>();
 
 /// The user's wards, streamed once per ward set (shared across screens).
 Stream<List<Ward>> myWardsStream(BuildContext context) {
-  final ids = context.read<AuthProvider>().currentUser?.wardIds ?? const <String>[];
+  final ids = context.read<AccountProvider>().currentUser?.wardIds ?? const <String>[];
   if (ids.isEmpty) return Stream.value(const []);
   return _wardStreams.get(ids.join(','), () => WardService().wardsForUser(ids));
 }

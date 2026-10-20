@@ -6,7 +6,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../models/note.dart';
 import '../../models/patient.dart';
-import '../../providers/auth_provider.dart';
+import '../../providers/account_provider.dart';
 import '../../providers/patient_provider.dart';
 import '../../providers/ward_feed.dart';
 import '../../services/review_request.dart';
@@ -88,7 +88,7 @@ class _ComposeNoteSheetState extends State<_ComposeNoteSheet> {
   }
 
   Future<void> _post() async {
-    final me = context.read<AuthProvider>().currentUser;
+    final me = context.read<AccountProvider>().currentUser;
     final p = _patient;
     if (me == null || p == null) return;
     setState(() => _posting = true);

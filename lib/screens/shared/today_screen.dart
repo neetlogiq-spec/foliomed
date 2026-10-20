@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/app_user.dart';
 import '../../models/note.dart';
 import '../../models/patient_reminder.dart';
-import '../../providers/auth_provider.dart';
+import '../../providers/account_provider.dart';
 import '../../providers/ward_feed.dart';
 import '../../providers/alert_inbox.dart';
 import '../../providers/patient_provider.dart';
@@ -85,7 +85,7 @@ class _TodayScreenState extends State<TodayScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final wardIds =
-        context.watch<AuthProvider>().currentUser?.wardIds ?? const <String>[];
+        context.watch<AccountProvider>().currentUser?.wardIds ?? const <String>[];
     if (!_sameList(wardIds, _subscribedWardIds)) {
       _subscribedWardIds = List.of(wardIds);
       WidgetsBinding.instance.addPostFrameCallback((_) => _subscribe());
@@ -103,7 +103,7 @@ class _TodayScreenState extends State<TodayScreen> {
       [for (var i = 0; i < a.length; i++) a[i] == b[i]].every((x) => x);
 
   void _addPatient() {
-    final wardIds = context.read<AuthProvider>().currentUser?.wardIds ?? [];
+    final wardIds = context.read<AccountProvider>().currentUser?.wardIds ?? [];
     Navigator.of(context).push(MaterialPageRoute(
       builder: (_) => AddPatientScreen(
         initialWardId: wardIds.isNotEmpty ? wardIds.first : null,
@@ -114,7 +114,7 @@ class _TodayScreenState extends State<TodayScreen> {
   @override
   Widget build(BuildContext context) {
     context.watch<ThemeProvider>();
-    final user = context.watch<AuthProvider>().currentUser;
+    final user = context.watch<AccountProvider>().currentUser;
     final isDoctor = user?.role == UserRole.doctor;
     final now = DateTime.now();
     final firstName = (user?.name ?? '').trim().split(RegExp(r'\s+')).first;

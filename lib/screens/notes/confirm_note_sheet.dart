@@ -5,7 +5,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../models/note.dart';
 import '../../models/note_reply.dart';
-import '../../providers/auth_provider.dart';
+import '../../providers/account_provider.dart';
 import '../../providers/ward_feed.dart';
 import '../../services/notes_repository.dart';
 import '../../utils/app_theme.dart';
@@ -41,7 +41,7 @@ class _ConfirmNoteSheetState extends State<_ConfirmNoteSheet> {
 
   Future<void> _confirm() async {
     setState(() => _busy = true);
-    final me = context.read<AuthProvider>().currentUser;
+    final me = context.read<AccountProvider>().currentUser;
     final feed = context.read<WardFeed>();
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);

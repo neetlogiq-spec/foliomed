@@ -17,7 +17,7 @@ import '../help/help_center_screen.dart';
 import '../../widgets/tip_card.dart';
 
 import '../../models/app_user.dart';
-import '../../providers/auth_provider.dart';
+import '../../providers/account_provider.dart';
 import '../../providers/text_scale_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../utils/friendly_error.dart';
@@ -35,7 +35,7 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     context.watch<ThemeProvider>(); // rebuild on theme change
-    final auth = context.watch<AuthProvider>();
+    final auth = context.watch<AccountProvider>();
     final user = auth.currentUser;
 
     if (user == null) {
@@ -80,7 +80,7 @@ class ProfileScreen extends StatelessWidget {
   }
 
 
-  Widget _headerCard(BuildContext context, AppUser user, AuthProvider auth) {
+  Widget _headerCard(BuildContext context, AppUser user, AccountProvider auth) {
     final hasEmoji = user.avatarEmoji != null && user.avatarEmoji!.isNotEmpty;
     return Material(
       color: AppColors.card,
@@ -183,7 +183,7 @@ class ProfileScreen extends StatelessWidget {
     '☕',
   ];
 
-  void _showEmojiPicker(BuildContext context, AuthProvider auth) {
+  void _showEmojiPicker(BuildContext context, AccountProvider auth) {
     showAppSheet(
       context: context,
       backgroundColor: AppColors.card,
@@ -242,7 +242,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _accountGroup(BuildContext context, AuthProvider auth) {
+  Widget _accountGroup(BuildContext context, AccountProvider auth) {
     final isAdmin = auth.currentUser?.role == UserRole.admin;
     return InsetGroup(
       header: 'Account',
@@ -523,7 +523,7 @@ class ProfileScreen extends StatelessWidget {
   /// Bug-report intent: same as feedback but the body already has version
   /// + platform info filled in so the user doesn't have to.
   Future<void> _reportBug(BuildContext context) async {
-    final auth = context.read<AuthProvider>();
+    final auth = context.read<AccountProvider>();
     String version = 'unknown';
     try {
       final info = await PackageInfo.fromPlatform();
@@ -666,7 +666,7 @@ Account: $email
         .join('&');
   }
 
-  Widget _signOutGroup(BuildContext context, AuthProvider auth) {
+  Widget _signOutGroup(BuildContext context, AccountProvider auth) {
     return InsetGroup(
       footer: 'Deleting your account removes your profile and every ward you own, with its patients and notes.',
       children: [
@@ -688,7 +688,7 @@ Account: $email
 
   Future<void> _confirmDeleteAccount(
     BuildContext context,
-    AuthProvider auth,
+    AccountProvider auth,
   ) async {
     final authUser = supabase.auth.currentUser;
     if (authUser == null) return;
@@ -774,7 +774,7 @@ Account: $email
   /// Deletes the account via the `delete_my_account` Postgres function,
   /// which cascades to owned wards (patients, notes, replies) and removes
   /// the user from every ward they joined.
-  Future<void> _doDeleteAccount(BuildContext context, AuthProvider auth) async {
+  Future<void> _doDeleteAccount(BuildContext context, AccountProvider auth) async {
     try {
       await AuthService().deleteAccount();
       await auth.signOut();
@@ -793,7 +793,7 @@ Account: $email
     }
   }
 
-  Future<void> _confirmSignOut(BuildContext context, AuthProvider auth) async {
+  Future<void> _confirmSignOut(BuildContext context, AccountProvider auth) async {
     final confirm = await showAdaptiveDialog<bool>(
       context: context,
       builder: (_) => AppAlertDialog(
@@ -820,7 +820,7 @@ Account: $email
     }
   }
 
-  void _showEditProfile(BuildContext context, AuthProvider auth) {
+  void _showEditProfile(BuildContext context, AccountProvider auth) {
     final nameController = TextEditingController(text: auth.currentUser?.name);
     final specialtyController = TextEditingController(
       text: auth.currentUser?.specialty ?? '',
@@ -889,7 +889,7 @@ Account: $email
   }
 
   /// Self-service doctor ↔ nurse switch (admin is never self-assigned).
-  Future<void> _chooseRole(BuildContext context, AuthProvider auth) async {
+  Future<void> _chooseRole(BuildContext context, AccountProvider auth) async {
     final role = await showAdaptiveDialog<UserRole>(
       context: context,
       builder: (ctx) => AppAlertDialog(

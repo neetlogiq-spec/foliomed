@@ -7,7 +7,7 @@ import 'package:uuid/uuid.dart';
 import '../../models/app_user.dart';
 import '../../models/note.dart';
 import '../../models/note_reply.dart';
-import '../../providers/auth_provider.dart';
+import '../../providers/account_provider.dart';
 import '../../providers/ward_feed.dart';
 import '../../services/notes_repository.dart';
 import '../../utils/app_theme.dart';
@@ -51,7 +51,7 @@ class _NoteThreadSheetState extends State<_NoteThreadSheet> {
 
   Future<void> _send() async {
     final text = _draft.text.trim();
-    final me = context.read<AuthProvider>().currentUser;
+    final me = context.read<AccountProvider>().currentUser;
     if (text.isEmpty || me == null) return;
     setState(() => _sending = true);
     final messenger = ScaffoldMessenger.of(context);
@@ -91,7 +91,7 @@ class _NoteThreadSheetState extends State<_NoteThreadSheet> {
   @override
   Widget build(BuildContext context) {
     final n = widget.note;
-    final me = context.read<AuthProvider>().currentUser;
+    final me = context.read<AccountProvider>().currentUser;
     final h = MediaQuery.sizeOf(context).height;
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),

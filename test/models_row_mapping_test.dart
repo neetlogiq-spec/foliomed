@@ -51,11 +51,13 @@ void main() {
       expect(AppUser.fromRow({'role': 'superuser'}).role, UserRole.nurse);
     });
 
-    test('toRow uses snake_case columns', () {
-      final row = AppUser.fromRow({'id': 'u1', 'role': 'admin'}).toRow();
-      expect(row['role'], 'admin');
-      expect(row.containsKey('ward_ids'), isTrue);
-      expect(row.containsKey('wardIds'), isFalse);
+    test('roles carry their label and copyWith keeps identity', () {
+      final u = AppUser.fromRow({'id': 'u1', 'role': 'admin', 'name': 'A'});
+      expect(u.roleLabel, 'Admin');
+      final renamed = u.copyWith(name: 'B');
+      expect(renamed.uid, 'u1');
+      expect(renamed.name, 'B');
+      expect(renamed.role, UserRole.admin);
     });
   });
 

@@ -3,38 +3,22 @@ import 'package:flutter/material.dart';
 import '../utils/app_theme.dart';
 import 'row_parsing.dart';
 
-enum UserRole { doctor, nurse, admin }
+/// What someone does on the ward. Stored by [name] in `profiles.role`.
+enum UserRole {
+  doctor('Doctor', AppColors.doctorColor),
+  nurse('Nurse', AppColors.nurseColor),
+  admin('Admin', AppColors.adminColor);
 
-UserRole _roleFromString(String? value) {
-  switch (value) {
-    case 'doctor':
-      return UserRole.doctor;
-    case 'nurse':
-      return UserRole.nurse;
-    case 'admin':
-      return UserRole.admin;
-    default:
-      return UserRole.nurse;
-  }
+  const UserRole(this.label, this.color);
+  final String label;
+  final Color color;
+
+  /// Unknown values fall back to nurse, the least-privileged clinical role.
+  static UserRole parse(String? v) => values.firstWhere((r) => r.name == v, orElse: () => nurse);
 }
 
-String _roleToString(UserRole role) => role.name;
-
+/// A FolioMed account (`profiles` row).
 class AppUser {
-  final String uid;
-  final String name;
-  final String email;
-  final UserRole role;
-  final String wardId;
-  final List<String> wardIds;
-  final String? avatarUrl;
-  final String? avatarEmoji;
-  final String? specialty;
-  final DateTime createdAt;
-
-  /// False until the user has picked doctor/nurse once after first sign-in.
-  final bool roleConfirmed;
-
   const AppUser({
     required this.uid,
     required this.name,
@@ -49,55 +33,50 @@ class AppUser {
     this.roleConfirmed = true,
   });
 
-  /// Builds a user from a `profiles` row.
-  factory AppUser.fromRow(DbRow row) {
-    return AppUser(
-      uid: row['id'] as String? ?? '',
-      name: row['name'] as String? ?? '',
-      email: row['email'] as String? ?? '',
-      role: _roleFromString(row['role'] as String?),
-      wardId: row['ward_id'] as String? ?? '',
-      wardIds: parseStringList(row['ward_ids']),
-      avatarUrl: row['avatar_url'] as String?,
-      avatarEmoji: row['avatar_emoji'] as String?,
-      specialty: row['specialty'] as String?,
-      createdAt: parseTimestamp(row['created_at']),
-      roleConfirmed: row['role_confirmed'] as bool? ?? true,
-    );
-  }
+  final String uid;
+  final String name;
+  final String email;
+  final UserRole role;
 
-  DbRow toRow() {
-    return {
-      'name': name,
-      'email': email,
-      'role': _roleToString(role),
-      'ward_id': wardId,
-      'ward_ids': wardIds,
-      'avatar_url': avatarUrl,
-      'avatar_emoji': avatarEmoji,
-      'specialty': specialty,
-    };
-  }
+  /// Legacy "home" ward; [wardIds] is the full membership list.
+  final String wardId;
+  final List<String> wardIds;
+  final String? avatarUrl;
+  final String? avatarEmoji;
+  final String? specialty;
+  final DateTime createdAt;
 
-  String get roleLabel {
-    switch (role) {
-      case UserRole.doctor:
-        return 'Doctor';
-      case UserRole.nurse:
-        return 'Nurse';
-      case UserRole.admin:
-        return 'Admin';
-    }
-  }
+  /// Whether the person has chosen doctor or nurse after first sign-in.
+  final bool roleConfirmed;
 
-  Color get roleColor {
-    switch (role) {
-      case UserRole.doctor:
-        return AppColors.doctorColor;
-      case UserRole.nurse:
-        return AppColors.nurseColor;
-      case UserRole.admin:
-        return AppColors.adminColor;
-    }
-  }
+  String get roleLabel => role.label;
+  Color get roleColor => role.color;
+
+  AppUser copyWith({String? name, String? avatarUrl, String? avatarEmoji, String? specialty}) => AppUser(
+        uid: uid,
+        name: name ?? this.name,
+        email: email,
+        role: role,
+        wardId: wardId,
+        wardIds: wardIds,
+        avatarUrl: avatarUrl ?? this.avatarUrl,
+        avatarEmoji: avatarEmoji ?? this.avatarEmoji,
+        specialty: specialty ?? this.specialty,
+        createdAt: createdAt,
+        roleConfirmed: roleConfirmed,
+      );
+
+  factory AppUser.fromRow(DbRow r) => AppUser(
+        uid: r['id'] as String? ?? '',
+        name: r['name'] as String? ?? '',
+        email: r['email'] as String? ?? '',
+        role: UserRole.parse(r['role'] as String?),
+        wardId: r['ward_id'] as String? ?? '',
+        wardIds: parseStringList(r['ward_ids']),
+        avatarUrl: r['avatar_url'] as String?,
+        avatarEmoji: r['avatar_emoji'] as String?,
+        specialty: r['specialty'] as String?,
+        createdAt: parseTimestamp(r['created_at']),
+        roleConfirmed: r['role_confirmed'] as bool? ?? true,
+      );
 }

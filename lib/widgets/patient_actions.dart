@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../models/patient.dart';
 import '../models/ward.dart';
-import '../providers/auth_provider.dart';
+import '../providers/account_provider.dart';
 import '../providers/patient_provider.dart';
 import '../providers/unit_provider.dart';
 import '../services/patient_service.dart';
@@ -248,7 +248,7 @@ class PatientActionsButton extends StatelessWidget {
   }
 
   Future<void> _transfer(BuildContext context) async {
-    final myWards = context.read<AuthProvider>().currentUser?.wardIds ?? const [];
+    final myWards = context.read<AccountProvider>().currentUser?.wardIds ?? const [];
     final targets = myWards.where((id) => id != patient.wardId).toList();
     final result = await showAppSheet<_TransferRequest>(
       context: context,

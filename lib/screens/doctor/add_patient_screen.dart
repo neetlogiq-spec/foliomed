@@ -8,7 +8,7 @@ import '../../clinical/birth_summary.dart';
 import '../../models/newborn_screen.dart';
 import '../../models/patient.dart';
 import '../../models/ward.dart';
-import '../../providers/auth_provider.dart';
+import '../../providers/account_provider.dart';
 import '../../providers/patient_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/unit_provider.dart';
@@ -326,7 +326,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
 
   Widget _wardGroup() {
     final ids =
-        context.watch<AuthProvider>().currentUser?.wardIds ?? const <String>[];
+        context.watch<AccountProvider>().currentUser?.wardIds ?? const <String>[];
     return StreamBuilder<List<Ward>>(
       stream: ids.isEmpty
           ? Stream.value(const <Ward>[])

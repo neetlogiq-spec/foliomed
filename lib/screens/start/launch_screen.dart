@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../app/routes.dart';
-import '../../providers/auth_provider.dart';
+import '../../providers/account_provider.dart';
 import '../../services/push_registration.dart';
 import '../../services/push_service.dart';
 import '../../services/review_request.dart';
@@ -46,7 +46,7 @@ class _LaunchScreenState extends State<LaunchScreen> {
   }
 
   Future<void> _route() async {
-    final auth = context.read<AuthProvider>();
+    final auth = context.read<AccountProvider>();
     final signedIn = supabase.auth.currentUser != null;
     if (signedIn) {
       await auth.loadCurrentUser();

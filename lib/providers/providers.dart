@@ -1,4 +1,4 @@
-export 'auth_provider.dart';
+export 'account_provider.dart';
 export 'ward_feed.dart';
 export 'alert_inbox.dart';
 export 'patient_provider.dart';

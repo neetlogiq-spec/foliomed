@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../models/patient.dart';
 import '../../models/ward.dart';
-import '../../providers/auth_provider.dart';
+import '../../providers/account_provider.dart';
 import '../../providers/reminder_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../services/patient_service.dart';
@@ -71,7 +71,7 @@ class _PatientsScreenState extends State<PatientsScreen> {
   Widget build(BuildContext context) {
     context.watch<ThemeProvider>();
     final ids =
-        context.watch<AuthProvider>().currentUser?.wardIds ?? const <String>[];
+        context.watch<AccountProvider>().currentUser?.wardIds ?? const <String>[];
     return Scaffold(
       backgroundColor: AppColors.surface,
       body: StreamBuilder<List<Ward>>(

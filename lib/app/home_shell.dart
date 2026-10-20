@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/app_user.dart';
-import '../providers/auth_provider.dart';
+import '../providers/account_provider.dart';
 import '../providers/ward_feed.dart';
 import '../providers/patient_provider.dart';
 import '../providers/reminder_provider.dart';
@@ -116,7 +116,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         context.read<PatientProvider>().pauseStream();
       case AppLifecycleState.resumed:
         AccessibilitySettings.refresh();
-        final ids = context.read<AuthProvider>().currentUser?.wardIds ?? const <String>[];
+        final ids = context.read<AccountProvider>().currentUser?.wardIds ?? const <String>[];
         context.read<WardFeed>().watchWards(ids);
         context.read<PatientProvider>().subscribeForWards(ids);
         context.read<ReminderProvider>().checkDue();
@@ -128,7 +128,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     context.watch<ThemeProvider>();
-    _syncWards(context.select<AuthProvider, List<String>>(
+    _syncWards(context.select<AccountProvider, List<String>>(
         (a) => a.currentUser?.wardIds ?? const <String>[]));
     return Scaffold(
       // Pages scroll beneath the translucent bar (see withBottomBarInset).

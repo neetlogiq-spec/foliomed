@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../models/ward.dart';
-import '../../providers/auth_provider.dart';
+import '../../providers/account_provider.dart';
 import '../../providers/patient_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../services/supabase_service.dart';
@@ -65,7 +65,7 @@ class _WardsScreenState extends State<WardsScreen> {
   Widget build(BuildContext context) {
     context.watch<ThemeProvider>();
     final ids =
-        context.watch<AuthProvider>().currentUser?.wardIds ?? const <String>[];
+        context.watch<AccountProvider>().currentUser?.wardIds ?? const <String>[];
     return Scaffold(
       backgroundColor: AppColors.surface,
       body: CustomScrollView(

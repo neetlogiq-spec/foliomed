@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../models/ward.dart';
-import '../providers/auth_provider.dart';
+import '../providers/account_provider.dart';
 import '../services/ward_service.dart';
 import '../utils/app_theme.dart';
 import '../utils/friendly_error.dart';
@@ -22,7 +22,7 @@ class WardActions {
   }
 
   static Future<void> share(BuildContext context, Ward w) async {
-    final me = context.read<AuthProvider>().currentUser;
+    final me = context.read<AccountProvider>().currentUser;
     final byLine = me == null ? '' : '\nShared by ${me.name}';
     final text = 'Join my ward on FolioMed!$byLine\n\n${w.name}\n'
         'Ward code: ${w.id}\n\n'
@@ -62,7 +62,7 @@ class WardActions {
       },
     );
     if (code == null || code.isEmpty || !context.mounted) return;
-    final auth = context.read<AuthProvider>();
+    final auth = context.read<AccountProvider>();
     try {
       final joined = await WardService().joinWard(code);
       if (!joined) {
@@ -119,7 +119,7 @@ class WardActions {
       },
     );
     if (result == null || result.$1.isEmpty || !context.mounted) return;
-    final auth = context.read<AuthProvider>();
+    final auth = context.read<AccountProvider>();
     try {
       // Claims a random free 5-digit code and joins the creator.
       final id = await WardService().createWard(
@@ -159,7 +159,7 @@ class WardActions {
       ),
     );
     if (confirm != true || !context.mounted) return false;
-    final auth = context.read<AuthProvider>();
+    final auth = context.read<AccountProvider>();
     try {
       await WardService().leaveWard(w.id);
       await auth.loadCurrentUser();
@@ -196,7 +196,7 @@ class WardActions {
       ),
     );
     if (confirm != true || !context.mounted) return false;
-    final auth = context.read<AuthProvider>();
+    final auth = context.read<AccountProvider>();
     try {
       // Patients, notes and comments cascade in Postgres; a trigger strips
       // the code from every member's profile.

@@ -4,7 +4,7 @@ import 'package:timeago/timeago.dart' as timeago;
 
 import '../../models/app_user.dart';
 import '../../models/note.dart';
-import '../../providers/auth_provider.dart';
+import '../../providers/account_provider.dart';
 import '../../providers/ward_feed.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/app_typography.dart';
@@ -44,7 +44,7 @@ class FeedNote extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final me = context.read<AuthProvider>().currentUser;
+    final me = context.read<AccountProvider>().currentUser;
     final feed = context.read<WardFeed>();
     final nurse = me?.role == UserRole.nurse;
     final mayDelete = !nurse || (me != null && me.uid == note.authorId);
