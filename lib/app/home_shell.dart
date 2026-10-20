@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../models/app_user.dart';
 import '../providers/auth_provider.dart';
-import '../providers/note_provider.dart';
+import '../providers/ward_feed.dart';
 import '../providers/patient_provider.dart';
 import '../providers/reminder_provider.dart';
 import '../providers/theme_provider.dart';
@@ -60,7 +60,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       : [
           _Tab('Today', Icons.today_outlined, Icons.today,
               TodayScreen(onOpenPatients: () => _select(1)),
-              badge: (c) => c.watch<NoteProvider>().unacknowledgedCount),
+              badge: (c) => c.watch<WardFeed>().pendingCount),
           const _Tab('Patients', Icons.people_outline, Icons.people, PatientsScreen()),
           const _Tab('Wards', Icons.corporate_fare_outlined, Icons.corporate_fare, WardsScreen()),
           const _Tab('Profile', Icons.account_circle_outlined, Icons.account_circle, ProfileScreen()),
@@ -112,12 +112,12 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       case AppLifecycleState.paused:
       case AppLifecycleState.detached:
         // Nobody is looking: stop paying for live reads.
-        context.read<NoteProvider>().pauseStreams();
+        context.read<WardFeed>().pause();
         context.read<PatientProvider>().pauseStream();
       case AppLifecycleState.resumed:
         AccessibilitySettings.refresh();
         final ids = context.read<AuthProvider>().currentUser?.wardIds ?? const <String>[];
-        context.read<NoteProvider>().subscribeForWards(ids);
+        context.read<WardFeed>().watchWards(ids);
         context.read<PatientProvider>().subscribeForWards(ids);
         context.read<ReminderProvider>().checkDue();
       default:

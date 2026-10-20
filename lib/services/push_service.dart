@@ -5,7 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../main.dart' show navigatorKey, scaffoldMessengerKey;
 import '../models/note.dart';
-import '../providers/notification_provider.dart';
+import '../providers/alert_inbox.dart';
 import '../utils/app_theme.dart';
 import 'supabase_service.dart';
 
@@ -58,7 +58,7 @@ class PushService {
   static void _showInApp(String title, String body) {
     final ctx = navigatorKey.currentContext;
     if (ctx != null) {
-      ctx.read<NotificationProvider>().add(title, body);
+      ctx.read<AlertInbox>().add(title, body);
     }
     scaffoldMessengerKey.currentState?.showSnackBar(
       SnackBar(

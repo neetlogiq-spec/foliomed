@@ -7,12 +7,11 @@ import 'package:provider/provider.dart';
 
 import '../../models/note.dart';
 import '../../models/patient.dart';
-import '../../providers/note_provider.dart';
+import '../../providers/ward_feed.dart';
 import '../../utils/app_theme.dart';
 import '../../services/patient_service.dart';
 import '../../widgets/patient_actions.dart';
-import '../../widgets/note_card.dart';
-import 'add_note_screen.dart';
+import '../notes/compose_note_sheet.dart';
 import '../../providers/theme_provider.dart';
 import '../../widgets/large_title_app_bar.dart';
 import '../../widgets/empty_state.dart';
@@ -22,7 +21,7 @@ import '../../widgets/newborn_section.dart';
 import '../../widgets/tip_card.dart';
 import '../../widgets/newborn_tracking_section.dart';
 import '../../providers/unit_provider.dart';
-import '../../widgets/note_list_items.dart';
+import '../notes/note_actions.dart';
 import '../../utils/app_utils.dart';
 
 class PatientDetailScreen extends StatefulWidget {
@@ -39,7 +38,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
   late TabController _tabController;
   // Captured once so we can safely call it from dispose without touching
   // `context` after the widget tree is torn down.
-  NoteProvider? _noteProvider;
+  WardFeed? _noteProvider;
 
   @override
   void initState() {
@@ -47,8 +46,8 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
     _tabController = TabController(length: 2, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _noteProvider = context.read<NoteProvider>();
-      _noteProvider!.subscribeToPatient(widget.patientId);
+      _noteProvider = context.read<WardFeed>();
+      _noteProvider!.watchPatient(widget.patientId);
     });
   }
 
@@ -57,7 +56,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
     _tabController.dispose();
     // Stop the per-patient notes stream so it doesn't keep billing reads
     // after the user leaves this screen.
-    _noteProvider?.unsubscribeFromPatient();
+    _noteProvider?.stopWatchingPatient();
     super.dispose();
   }
 
@@ -113,8 +112,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
                 ChromeIconButton(
                   icon: Icons.edit_square,
                   tooltip: 'New note',
-                  onPressed: () => showAddNoteBottomSheet(context,
-                      preselectedPatient: patient),
+                  onPressed: () => showComposeNote(context, patient: patient),
                 ),
               PatientActionsButton(patient: patient),
             ],
@@ -289,9 +287,9 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
   }
 
   Widget _notesTab(Patient patient) {
-    return Consumer<NoteProvider>(
+    return Consumer<WardFeed>(
       builder: (context, provider, _) {
-        final notes = provider.patientNotes;
+        final notes = provider.timeline;
         if (notes.isEmpty) {
           return EmptyState(
             icon: Icons.notes_outlined,
@@ -299,7 +297,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
             subtitle: 'Notes about ${patient.name} will appear here.',
             buttonLabel: patient.isActive ? 'New note' : null,
             onButtonTap: patient.isActive
-                ? () => showAddNoteBottomSheet(context, preselectedPatient: patient)
+                ? () => showComposeNote(context, patient: patient)
                 : null,
           );
         }
@@ -310,7 +308,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
           ),
           itemCount: notes.length,
           separatorBuilder: (_, __) => const SizedBox(height: 10),
-          itemBuilder: (_, i) => WiredNoteCard(note: notes[i]),
+          itemBuilder: (_, i) => FeedNote(note: notes[i]),
         );
       },
     );
@@ -327,9 +325,9 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
   }
 
   Widget _historyTab() {
-    return Consumer<NoteProvider>(
+    return Consumer<WardFeed>(
       builder: (context, provider, _) {
-        final notes = provider.patientNotes;
+        final notes = provider.timeline;
         if (notes.isEmpty) {
           return const EmptyState(
             icon: Icons.history,
@@ -363,7 +361,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen>
               for (final n in entry.value)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 10),
-                  child: NoteCard(note: n),
+                  child: FeedNote(note: n),
                 ),
             ],
           ],

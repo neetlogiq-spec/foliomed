@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:foliomed/models/app_user.dart';
 import 'package:foliomed/models/note.dart';
-import 'package:foliomed/models/note_comment.dart';
+import 'package:foliomed/models/note_reply.dart';
 import 'package:foliomed/models/patient.dart';
 import 'package:foliomed/models/row_parsing.dart';
 import 'package:foliomed/models/ward.dart';
@@ -141,14 +141,15 @@ void main() {
     });
   });
 
-  group('NoteComment', () {
-    test('toRow attaches the parent note id', () {
-      final c = NoteComment.fromRow({
+  group('NoteReply', () {
+    test('toRow attaches the parent note id and keeps the confirmation flag', () {
+      final c = NoteReply.fromRow({
         'id': 'c1',
         'text': 'Seen',
         'author_id': 'u2',
         'is_acknowledgement': true,
       });
+      expect(c.isConfirmation, isTrue);
       final row = c.toRow('n1');
       expect(row['note_id'], 'n1');
       expect(row['is_acknowledgement'], isTrue);

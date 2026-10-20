@@ -7,11 +7,12 @@ import '../../models/note.dart';
 import '../../models/patient.dart';
 import '../../models/ward.dart';
 import '../../providers/ward_provider.dart';
-import '../../services/note_service.dart';
+import '../../services/notes_repository.dart';
+import '../notes/note_thread_sheet.dart';
 import '../../services/patient_service.dart';
 import '../../services/ward_service.dart';
 import '../../utils/app_theme.dart';
-import '../../widgets/note_card.dart';
+import '../../widgets/note_tile.dart';
 import '../../widgets/patient_card.dart';
 import '../../widgets/role_badge.dart';
 import 'add_staff_bottom_sheet.dart';
@@ -35,7 +36,7 @@ class _WardDetailScreenState extends State<WardDetailScreen>
   late final Stream<List<Patient>> _patientsStream =
       PatientService().getPatientsByWard(widget.wardId);
   late final Stream<List<Note>> _notesStream =
-      NoteService().getNotesByWard(widget.wardId);
+      NotesRepository().wardFeed(widget.wardId);
 
   @override
   void initState() {
@@ -408,7 +409,7 @@ class _WardDetailScreenState extends State<WardDetailScreen>
           padding: const EdgeInsets.all(16),
           itemCount: notes.length,
           separatorBuilder: (_, __) => const SizedBox(height: 10),
-          itemBuilder: (_, i) => NoteCard(note: notes[i]),
+          itemBuilder: (_, i) => NoteTile(note: notes[i], onOpen: () => showNoteThread(context, notes[i])),
         );
       },
     );

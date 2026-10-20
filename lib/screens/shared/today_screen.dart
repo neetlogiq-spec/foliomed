@@ -8,8 +8,8 @@ import '../../models/app_user.dart';
 import '../../models/note.dart';
 import '../../models/patient_reminder.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/note_provider.dart';
-import '../../providers/notification_provider.dart';
+import '../../providers/ward_feed.dart';
+import '../../providers/alert_inbox.dart';
 import '../../providers/patient_provider.dart';
 import '../../providers/reminder_provider.dart';
 import '../../providers/theme_provider.dart';
@@ -20,15 +20,15 @@ import '../../utils/haptics.dart';
 import '../../utils/layout.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/large_title_app_bar.dart';
-import '../../widgets/note_list_items.dart';
-import '../../widgets/notifications_panel.dart';
+import '../notes/note_actions.dart';
+import '../../widgets/alert_inbox_sheet.dart';
 import '../../widgets/pressable.dart';
 import '../../widgets/tip_card.dart';
 import '../../widgets/scope_button.dart';
 import '../../providers/unit_provider.dart';
 import '../../utils/scope_filter.dart';
 import '../../widgets/reminder_widgets.dart';
-import '../doctor/add_note_screen.dart';
+import '../notes/compose_note_sheet.dart';
 import '../doctor/add_patient_screen.dart';
 import '../doctor/patient_detail_screen.dart';
 
@@ -94,7 +94,7 @@ class _TodayScreenState extends State<TodayScreen> {
 
   void _subscribe() {
     if (!mounted) return;
-    context.read<NoteProvider>().subscribeForWards(_subscribedWardIds);
+    context.read<WardFeed>().watchWards(_subscribedWardIds);
     context.read<PatientProvider>().subscribeForWards(_subscribedWardIds);
   }
 
@@ -138,8 +138,8 @@ class _TodayScreenState extends State<TodayScreen> {
                 ChromeIconButton(
                   icon: Icons.notifications_outlined,
                   tooltip: 'Notifications',
-                  badgeCount: context.watch<NotificationProvider>().items.length,
-                  onPressed: () => showNotificationsPanel(context),
+                  badgeCount: context.watch<AlertInbox>().unread,
+                  onPressed: () => showAlertInbox(context),
                 ),
                 ChromeIconButton(
                   icon: Icons.person_add_alt,
@@ -152,7 +152,7 @@ class _TodayScreenState extends State<TodayScreen> {
                   ChromeIconButton(
                     icon: Icons.edit_square,
                     tooltip: 'New note',
-                    onPressed: () => showAddNoteBottomSheet(context),
+                    onPressed: () => showComposeNote(context),
                   ),
               ],
             ),
@@ -198,15 +198,15 @@ class _TodayScreenState extends State<TodayScreen> {
     final f = _filter();
     final patients =
         context.watch<PatientProvider>().patients.where(f.patient).length;
-    final notes = context.watch<NoteProvider>();
-    final urgentOpen = notes.urgentNotes
+    final notes = context.watch<WardFeed>();
+    final urgentOpen = notes.urgent
         .where((n) => !n.isAcknowledged && f.note(n))
         .length;
     // The provider's pending count covers every note; a scoped count has
     // to come from the (recent) notes list.
     final pending = f.scope.isAll
-        ? notes.unacknowledgedCount
-        : notes.notes.where((n) => !n.isAcknowledged && f.note(n)).length;
+        ? notes.pendingCount
+        : notes.feed.where((n) => !n.isAcknowledged && f.note(n)).length;
     return Row(
       children: [
         _Tile(
@@ -259,12 +259,12 @@ class _TodayScreenState extends State<TodayScreen> {
   }
 
   Widget _feedList() {
-    final np = context.watch<NoteProvider>();
+    final np = context.watch<WardFeed>();
     final f = _filter();
     final List<Note> all = switch (_feed) {
-      _Feed.pending => np.notes.where((n) => !n.isAcknowledged).toList(),
-      _Feed.urgent => np.urgentNotes,
-      _Feed.all => np.notes,
+      _Feed.pending => np.feed.where((n) => !n.isAcknowledged).toList(),
+      _Feed.urgent => np.urgent,
+      _Feed.all => np.feed,
     }.where(f.note).toList();
     final visible = all.take(_shown).toList();
     return Column(
@@ -294,8 +294,8 @@ class _TodayScreenState extends State<TodayScreen> {
             Padding(
               padding: EdgeInsets.only(bottom: _compact ? 8 : 10),
               child: _compact
-                  ? CollapsibleNote(key: ValueKey('c${n.id}'), note: n)
-                  : WiredNoteCard(key: ValueKey('f${n.id}'), note: n),
+                  ? NoteLine(key: ValueKey('c${n.id}'), note: n)
+                  : FeedNote(key: ValueKey('f${n.id}'), note: n),
             ),
         if (all.length > visible.length)
           TextButton(
@@ -318,7 +318,7 @@ class _TodayScreenState extends State<TodayScreen> {
       _Feed.pending => (
           Icons.check_circle_outline,
           'All caught up',
-          'Every note on your wards has been acknowledged.'
+          'Every note on your wards has been confirmed.'
         ),
       _Feed.urgent => (
           Icons.verified_outlined,

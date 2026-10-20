@@ -5,7 +5,7 @@ import 'package:foliomed/models/patient.dart';
 import 'package:foliomed/providers/theme_provider.dart';
 import 'package:foliomed/services/accessibility_settings.dart';
 import 'package:foliomed/widgets/large_title_app_bar.dart';
-import 'package:foliomed/widgets/note_card.dart';
+import 'package:foliomed/widgets/note_tile.dart';
 import 'package:foliomed/widgets/patient_card.dart';
 import 'package:provider/provider.dart';
 
@@ -113,36 +113,39 @@ void main() {
     expect(timeOfDayGreeting(DateTime(2026, 1, 1, 21)), 'Good evening');
   });
 
-  group('NoteCard', () {
-    testWidgets('acknowledged notes get a checkmark, not a dimmed card',
-        (tester) async {
-      await tester.pumpWidget(_app(NoteCard(note: _note(acknowledged: true))));
-      expect(find.bySemanticsLabel(RegExp('Acknowledged')), findsOneWidget);
+  group('NoteTile', () {
+    testWidgets('says who confirmed it, without dimming the whole card', (tester) async {
+      await tester.pumpWidget(_app(NoteTile(note: _note(acknowledged: true))));
+      expect(find.textContaining('Confirmed by'), findsOneWidget);
       final dims = tester
-          .widgetList<Opacity>(find.descendant(
-              of: find.byType(NoteCard), matching: find.byType(Opacity)))
+          .widgetList<Opacity>(find.descendant(of: find.byType(NoteTile), matching: find.byType(Opacity)))
           .where((o) => o.opacity < 1 && o.opacity > 0);
       expect(dims, isEmpty, reason: 'no blanket opacity on the card');
     });
 
-    testWidgets('priority is announced via the edge indicator',
-        (tester) async {
-      await tester.pumpWidget(_app(NoteCard(note: _note())));
-      expect(find.bySemanticsLabel(RegExp('Urgent priority')), findsOneWidget);
+    testWidgets('pending notes say so and offer Confirm', (tester) async {
+      var confirmed = false;
+      await tester.pumpWidget(_app(NoteTile(note: _note(), onConfirm: () => confirmed = true)));
+      expect(find.text('Waiting for confirmation'), findsOneWidget);
+      await tester.tap(find.text('Confirm'));
+      expect(confirmed, isTrue);
     });
 
-    testWidgets('long notes expand and collapse', (tester) async {
-      await tester.pumpWidget(_app(SingleChildScrollView(
-          child: NoteCard(note: _note(content: 'x ' * 200)))));
-      expect(find.text('Show more'), findsOneWidget);
-      await tester.tap(find.text('Show more'));
+    testWidgets('urgency is announced to screen readers', (tester) async {
+      await tester.pumpWidget(_app(NoteTile(note: _note())));
+      expect(find.bySemanticsLabel(RegExp('^Urgent')), findsOneWidget);
+    });
+
+    testWidgets('long notes open with More and close with Less', (tester) async {
+      await tester.pumpWidget(_app(SingleChildScrollView(child: NoteTile(note: _note(content: 'x ' * 200)))));
+      await tester.tap(find.text('More'));
       await tester.pumpAndSettle();
-      expect(find.text('Show less'), findsOneWidget);
+      expect(find.text('Less'), findsOneWidget);
     });
 
-    testWidgets('renders at 2x text size without overflow', (tester) async {
+    testWidgets('fits at 2x text size', (tester) async {
       await tester.pumpWidget(_app(
-        SingleChildScrollView(child: NoteCard(note: _note(acknowledged: true))),
+        SingleChildScrollView(child: NoteTile(note: _note(acknowledged: true))),
         textScale: 2,
       ));
       expect(tester.takeException(), isNull);
