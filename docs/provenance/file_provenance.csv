@@ -60,7 +60,7 @@ docs/AAP_DATA_VERIFICATION.md,,text,39,0,new
 docs/APP_STORE_DEPLOY_PROMPT.md,docs/APP_STORE_DEPLOY_PROMPT.md,text,114,97,original (largely retained)
 docs/LEGACY_NEXTJS_APP.md,,text,27,0,new
 docs/PUSH_SETUP.md,,text,57,0,new
-docs/provenance/PROVENANCE_AUDIT.md,,text,72,0,new
+docs/provenance/PROVENANCE_AUDIT.md,,text,73,0,new
 docs/provenance/compare.py,,binary,,0,new/changed binary
 docs/provenance/file_provenance.csv,,binary,,0,new/changed binary
 env.example.json,,text,9,0,new
@@ -122,8 +122,11 @@ landing/site.css,,text,241,2,new
 landing/site.js,,text,25,8,new
 landing/sitemap.xml,landing/sitemap.xml,text,11,64,modified original
 landing/supabase-public.js,,text,28,4,new
-lib/app/home_shell.dart,,text,128,5,new
+lib/app/app_keys.dart,lib/main.dart,text,2,50,modified original
+lib/app/foliomed_app.dart,lib/main.dart,text,43,33,mostly rewritten
+lib/app/home_shell.dart,,text,128,4,new
 lib/app/routes.dart,,text,19,0,new
+lib/app/startup.dart,,text,15,0,new
 lib/clinical/bilirubin.dart,,text,220,0,new
 lib/clinical/bilirubin_assess.dart,,text,58,0,new
 lib/clinical/birth_summary.dart,,text,45,0,new
@@ -131,9 +134,8 @@ lib/clinical/handover.dart,,text,84,2,new
 lib/clinical/lab_report_parser.dart,,text,78,0,new
 lib/config/firebase_config.dart,,text,24,0,new
 lib/config/supabase_config.dart,,text,10,0,new
-lib/main.dart,lib/main.dart,text,63,44,modified original
-lib/models/.gitkeep,lib/widgets/.gitkeep,binary,,100,identical binary
-lib/models/app_user.dart,lib/models/app_user.dart,text,73,47,modified original
+lib/main.dart,lib/main.dart,text,4,25,mostly rewritten
+lib/models/app_user.dart,lib/models/app_user.dart,text,56,30,mostly rewritten
 lib/models/models.dart,lib/models/models.dart,text,0,,trivial/empty
 lib/models/newborn_screen.dart,,text,173,1,new
 lib/models/newborn_tracking.dart,,text,91,2,new
@@ -142,52 +144,45 @@ lib/models/note_reply.dart,,text,31,19,mostly rewritten
 lib/models/patient.dart,lib/models/patient.dart,text,213,13,mostly rewritten
 lib/models/patient_reminder.dart,,text,58,2,new
 lib/models/row_parsing.dart,,text,13,0,new
-lib/models/ward.dart,lib/models/ward.dart,text,35,43,modified original
+lib/models/ward.dart,lib/models/ward.dart,text,34,41,modified original
 lib/models/ward_unit.dart,,text,65,3,new
-lib/providers/.gitkeep,lib/widgets/.gitkeep,binary,,100,identical binary
+lib/providers/account_provider.dart,,text,42,19,mostly rewritten
 lib/providers/alert_inbox.dart,,text,50,10,mostly rewritten
-lib/providers/auth_provider.dart,lib/providers/auth_provider.dart,text,87,75,original (largely retained)
-lib/providers/patient_provider.dart,lib/providers/patient_provider.dart,text,110,34,mostly rewritten
+lib/providers/appearance_provider.dart,,text,60,3,new
+lib/providers/patient_roster.dart,,text,46,4,new
 lib/providers/providers.dart,lib/providers/providers.dart,text,0,,trivial/empty
 lib/providers/reminder_provider.dart,,text,86,3,new
-lib/providers/text_scale_provider.dart,lib/providers/text_scale_provider.dart,text,19,74,original (largely retained)
-lib/providers/theme_provider.dart,lib/providers/theme_provider.dart,text,25,72,original (largely retained)
 lib/providers/unit_provider.dart,,text,76,0,new
 lib/providers/ward_feed.dart,,text,65,2,new
-lib/screens/admin/.gitkeep,lib/widgets/.gitkeep,binary,,100,identical binary
+lib/screens/account/account_screen.dart,,text,304,7,new
+lib/screens/account/edit_account_sheet.dart,,text,84,11,mostly rewritten
 lib/screens/admin/admin_overview_screen.dart,,text,131,10,mostly rewritten
 lib/screens/admin/admin_people_screen.dart,,text,87,5,new
 lib/screens/admin/admin_ward_screen.dart,,text,115,5,new
-lib/screens/auth/.gitkeep,lib/widgets/.gitkeep,binary,,100,identical binary
-lib/screens/auth/login_screen.dart,lib/screens/auth/login_screen.dart,text,153,18,mostly rewritten
-lib/screens/auth/role_choice_screen.dart,,text,104,6,new
-lib/screens/doctor/.gitkeep,lib/widgets/.gitkeep,binary,,100,identical binary
-lib/screens/doctor/add_patient_screen.dart,lib/screens/doctor/add_patient_screen.dart,text,512,8,new
-lib/screens/doctor/patient_detail_screen.dart,lib/screens/doctor/patient_detail_screen.dart,text,288,17,mostly rewritten
 lib/screens/help/help_center_screen.dart,,text,65,6,new
 lib/screens/help/help_topics.dart,,text,59,0,new
-lib/screens/notes/compose_note_sheet.dart,,text,205,8,new
-lib/screens/notes/confirm_note_sheet.dart,,text,88,10,mostly rewritten
-lib/screens/notes/note_actions.dart,,text,68,4,new
-lib/screens/notes/note_thread_sheet.dart,,text,174,9,new
-lib/screens/nurse/.gitkeep,lib/widgets/.gitkeep,binary,,100,identical binary
-lib/screens/shared/.gitkeep,lib/widgets/.gitkeep,binary,,100,identical binary
-lib/screens/shared/census_screen.dart,,text,221,7,new
+lib/screens/notes/compose_note_sheet.dart,,text,205,7,new
+lib/screens/notes/confirm_note_sheet.dart,,text,88,9,new
+lib/screens/notes/note_actions.dart,,text,68,3,new
+lib/screens/notes/note_thread_sheet.dart,,text,174,7,new
+lib/screens/patients/patient_form_screen.dart,,text,512,7,new
+lib/screens/patients/patient_screen.dart,,text,203,5,new
+lib/screens/shared/census_screen.dart,,text,221,6,new
 lib/screens/shared/newborn_results_screen.dart,,text,308,5,new
-lib/screens/shared/patients_screen.dart,,text,270,8,new
-lib/screens/shared/profile_screen.dart,lib/screens/shared/profile_screen.dart,text,519,38,modified original
+lib/screens/shared/patients_screen.dart,,text,270,7,new
 lib/screens/shared/today_screen.dart,,text,297,9,new
 lib/screens/shared/ward_page.dart,,text,268,6,new
 lib/screens/shared/wards_screen.dart,lib/screens/shared/wards_screen.dart,text,118,7,new
 lib/screens/start/alert_setup_screen.dart,,text,130,10,mostly rewritten
 lib/screens/start/launch_decision.dart,,text,12,0,new
 lib/screens/start/launch_screen.dart,,text,49,6,new
+lib/screens/start/role_screen.dart,,text,100,7,new
+lib/screens/start/sign_in_screen.dart,,text,155,3,new
 lib/screens/start/welcome_screen.dart,,text,118,2,new
-lib/services/.gitkeep,lib/widgets/.gitkeep,binary,,100,identical binary
 lib/services/a11y/reduce_transparency_stub.dart,,text,1,0,new
 lib/services/a11y/reduce_transparency_web.dart,,text,8,0,new
 lib/services/accessibility_settings.dart,,text,26,4,new
-lib/services/auth_service.dart,lib/services/auth_service.dart,text,123,30,mostly rewritten
+lib/services/account_service.dart,,text,86,7,new
 lib/services/device_power_settings.dart,,text,59,5,new
 lib/services/metrics_service.dart,lib/services/metrics_service.dart,text,8,25,mostly rewritten
 lib/services/newborn_screen_service.dart,,text,30,0,new
@@ -204,24 +199,21 @@ lib/services/text_scan_service.dart,,text,43,2,new
 lib/services/tracking_service.dart,,text,77,0,new
 lib/services/unit_service.dart,,text,31,3,new
 lib/services/ward_service.dart,lib/services/ward_service.dart,text,69,19,mostly rewritten
-lib/utils/.gitkeep,lib/widgets/.gitkeep,binary,,100,identical binary
-lib/utils/app_theme.dart,lib/utils/app_theme.dart,text,288,19,mostly rewritten
+lib/utils/app_theme.dart,lib/utils/app_theme.dart,text,244,11,mostly rewritten
 lib/utils/app_typography.dart,,text,140,1,new
-lib/utils/app_utils.dart,lib/utils/app_utils.dart,text,29,90,original (largely retained)
-lib/utils/friendly_error.dart,lib/utils/friendly_error.dart,text,92,60,modified original
+lib/utils/formatting.dart,,text,23,17,mostly rewritten
+lib/utils/friendly_error.dart,lib/utils/friendly_error.dart,text,46,2,new
 lib/utils/haptics.dart,,text,7,0,new
 lib/utils/layout.dart,,text,2,0,new
 lib/utils/oauth_error.dart,,text,21,0,new
 lib/utils/scope_filter.dart,,text,13,0,new
-lib/utils/share_helper.dart,lib/utils/share_helper.dart,text,32,53,modified original
 lib/utils/stream_cache.dart,,text,11,0,new
-lib/widgets/.gitkeep,lib/widgets/.gitkeep,binary,,100,identical binary
 lib/widgets/alert_inbox_sheet.dart,,text,61,8,new
 lib/widgets/app_alert_dialog.dart,,text,66,6,new
 lib/widgets/app_sheet.dart,,text,208,2,new
 lib/widgets/bilirubin_chart.dart,,text,154,6,new
 lib/widgets/birth_time_field.dart,,text,117,3,new
-lib/widgets/empty_state.dart,lib/widgets/empty_state.dart,text,32,31,mostly rewritten
+lib/widgets/empty_state.dart,lib/widgets/empty_state.dart,text,28,32,mostly rewritten
 lib/widgets/foliomed_brand.dart,lib/widgets/wardly_brand.dart,text,26,19,mostly rewritten
 lib/widgets/inset_group.dart,,text,199,11,mostly rewritten
 lib/widgets/large_title_app_bar.dart,,text,198,6,new
@@ -229,12 +221,12 @@ lib/widgets/newborn_flow.dart,,text,134,4,new
 lib/widgets/newborn_section.dart,,text,119,7,new
 lib/widgets/newborn_tracking_section.dart,,text,385,5,new
 lib/widgets/note_tile.dart,,text,133,8,new
-lib/widgets/patient_actions.dart,,text,259,7,new
+lib/widgets/patient_actions.dart,,text,259,5,new
 lib/widgets/pressable.dart,,text,51,8,new
 lib/widgets/reminder_widgets.dart,,text,173,6,new
 lib/widgets/scope_button.dart,,text,77,3,new
 lib/widgets/tip_card.dart,,text,59,7,new
-lib/widgets/ward_actions.dart,,text,129,14,mostly rewritten
+lib/widgets/ward_actions.dart,,text,129,13,mostly rewritten
 lib/widgets/widgets.dart,lib/widgets/widgets.dart,text,0,,trivial/empty
 linux/.gitignore,linux/.gitignore,binary,,100,identical binary
 linux/CMakeLists.txt,linux/CMakeLists.txt,text,65,95,original (largely retained)
@@ -314,10 +306,11 @@ test/apple_design_test.dart,,text,64,2,new
 test/bilirubin_test.dart,,text,41,0,new
 test/birth_summary_test.dart,,text,41,0,new
 test/birth_time_field_test.dart,,text,37,0,new
+test/friendly_error_test.dart,,text,18,0,new
 test/guideline_reference_test.dart,,text,54,0,new
 test/hig_components_test.dart,,text,125,2,new
 test/lab_report_parser_test.dart,,text,40,0,new
-test/models_row_mapping_test.dart,,text,106,2,new
+test/models_row_mapping_test.dart,,text,108,2,new
 test/newborn_reminders_test.dart,,text,100,0,new
 test/newborn_results_test.dart,,text,46,0,new
 test/newborn_tracking_test.dart,,text,80,0,new

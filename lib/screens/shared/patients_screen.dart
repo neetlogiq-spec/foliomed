@@ -7,12 +7,12 @@ import '../../models/patient.dart';
 import '../../models/ward.dart';
 import '../../providers/account_provider.dart';
 import '../../providers/reminder_provider.dart';
-import '../../providers/theme_provider.dart';
+import '../../providers/appearance_provider.dart';
 import '../../services/patient_service.dart';
 import '../../services/ward_service.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/app_typography.dart';
-import '../../utils/app_utils.dart';
+import '../../utils/formatting.dart';
 import '../../utils/haptics.dart';
 import '../../utils/layout.dart';
 import '../../utils/stream_cache.dart';
@@ -21,8 +21,8 @@ import '../../widgets/scope_button.dart';
 import '../../widgets/tip_card.dart';
 import '../../providers/unit_provider.dart';
 import '../../widgets/large_title_app_bar.dart';
-import '../doctor/add_patient_screen.dart';
-import '../doctor/patient_detail_screen.dart';
+import '../patients/patient_form_screen.dart';
+import '../patients/patient_screen.dart';
 import 'census_screen.dart';
 
 /// Every patient on the user's wards, grouped by ward, with search, a ward
@@ -60,7 +60,7 @@ class _PatientsScreenState extends State<PatientsScreen> {
 
   void _addPatient(List<Ward> wards) {
     Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => AddPatientScreen(
+      builder: (_) => PatientFormScreen(
         initialWardId: context.read<UnitProvider>().scope.wardId ??
             (wards.isEmpty ? null : wards.first.id),
       ),
@@ -69,7 +69,7 @@ class _PatientsScreenState extends State<PatientsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    context.watch<ThemeProvider>();
+    context.watch<AppearanceProvider>();
     final ids =
         context.watch<AccountProvider>().currentUser?.wardIds ?? const <String>[];
     return Scaffold(
@@ -368,7 +368,7 @@ class PatientRow extends StatelessWidget {
           .where((r) => r.patientId == p.id && r.isOverdueAt(now))
           .length;
     });
-    final color = getAvatarColor(p.name);
+    final color = tintForName(p.name);
     final meta = [
       p.ageLabel,
       if (p.gender.isNotEmpty) p.gender,
@@ -382,7 +382,7 @@ class PatientRow extends StatelessWidget {
       type: MaterialType.transparency,
       child: InkWell(
         onTap: () => Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => PatientDetailScreen(patientId: p.id),
+          builder: (_) => PatientScreen(patientId: p.id),
         )),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 10, 10, 10),

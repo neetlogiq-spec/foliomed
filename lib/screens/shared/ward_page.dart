@@ -11,13 +11,13 @@ import '../../services/unit_service.dart';
 import '../../utils/friendly_error.dart';
 import '../../utils/haptics.dart';
 import '../../widgets/app_alert_dialog.dart';
-import '../../providers/patient_provider.dart';
-import '../../providers/theme_provider.dart';
+import '../../providers/patient_roster.dart';
+import '../../providers/appearance_provider.dart';
 import '../../services/supabase_service.dart';
 import '../../services/ward_service.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/app_typography.dart';
-import '../../utils/app_utils.dart';
+import '../../utils/formatting.dart';
 import '../../widgets/inset_group.dart';
 import '../../widgets/large_title_app_bar.dart';
 import '../../widgets/ward_actions.dart';
@@ -51,10 +51,10 @@ class _WardPageState extends State<WardPage> {
 
   @override
   Widget build(BuildContext context) {
-    context.watch<ThemeProvider>();
+    context.watch<AppearanceProvider>();
     final w = widget.ward;
     final patients = context
-        .watch<PatientProvider>()
+        .watch<PatientRoster>()
         .patients
         .where((p) => p.wardId == w.id)
         .length;
@@ -98,7 +98,7 @@ class _WardPageState extends State<WardPage> {
                       icon: Icons.event_outlined,
                       iconColor: AppColors.warning,
                       title: 'Created',
-                      value: formatDate(w.createdAt),
+                      value: formatDay(w.createdAt),
                     ),
                   ],
                 ),
@@ -151,7 +151,7 @@ class _WardPageState extends State<WardPage> {
     final units = context.watch<UnitProvider>();
     final list = units.unitsOf(w.id);
     final admitted = context
-        .watch<PatientProvider>()
+        .watch<PatientRoster>()
         .patients
         .where((p) => p.wardId == w.id)
         .toList();
@@ -408,7 +408,7 @@ class _MemberRow extends StatelessWidget {
             backgroundColor: m.roleColor.withValues(alpha: 0.15),
             child: m.avatarEmoji != null && m.avatarEmoji!.isNotEmpty
                 ? Text(m.avatarEmoji!, style: const TextStyle(fontSize: 18))
-                : Text(getInitials(name),
+                : Text(initialsOf(name),
                     style: AppTypography.footnote(
                         color: m.roleColor, weight: FontWeight.w700)),
           ),

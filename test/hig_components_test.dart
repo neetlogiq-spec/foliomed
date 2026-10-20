@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:foliomed/models/note.dart';
 import 'package:foliomed/models/patient.dart';
-import 'package:foliomed/providers/theme_provider.dart';
+import 'package:foliomed/providers/appearance_provider.dart';
 import 'package:foliomed/services/accessibility_settings.dart';
 import 'package:foliomed/widgets/large_title_app_bar.dart';
 import 'package:foliomed/widgets/note_tile.dart';
@@ -30,7 +30,7 @@ Note _note({bool acknowledged = false, String content = 'BP 120/80'}) => Note(
 
 Widget _app(Widget child, {double textScale = 1}) =>
     ChangeNotifierProvider(
-      create: (_) => ThemeProvider(),
+      create: (_) => AppearanceProvider(),
       child: MaterialApp(
         home: MediaQuery(
           data: MediaQueryData(

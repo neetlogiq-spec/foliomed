@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/app_user.dart';
-import '../../services/auth_service.dart';
+import '../../services/account_service.dart';
 import '../../services/supabase_service.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/app_typography.dart';
@@ -55,7 +55,7 @@ class _AdminPeopleScreenState extends State<AdminPeopleScreen> {
     }
     final messenger = ScaffoldMessenger.of(context);
     try {
-      await AuthService().setUserRole(p.uid, role.name);
+      await AccountService().setUserRole(p.uid, role.name);
       Haptics.success();
       setState(() => _people = _fetch());
       messenger.showSnackBar(SnackBar(content: Text('${p.name} is now ${_roleTitle(role).toLowerCase()}')));

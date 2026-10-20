@@ -7,7 +7,7 @@ import 'package:uuid/uuid.dart';
 import '../../models/note.dart';
 import '../../models/patient.dart';
 import '../../providers/account_provider.dart';
-import '../../providers/patient_provider.dart';
+import '../../providers/patient_roster.dart';
 import '../../providers/ward_feed.dart';
 import '../../services/review_request.dart';
 import '../../services/text_scan_service.dart';
@@ -16,7 +16,7 @@ import '../../utils/app_typography.dart';
 import '../../utils/friendly_error.dart';
 import '../../widgets/app_sheet.dart';
 import '../../widgets/inset_group.dart';
-import '../doctor/add_patient_screen.dart';
+import '../patients/patient_form_screen.dart';
 
 /// Write a note for one patient. The patient decides the ward, so there is
 /// no separate ward step.
@@ -270,7 +270,7 @@ class _PatientPickerState extends State<_PatientPicker> {
 
   @override
   Widget build(BuildContext context) {
-    final all = context.watch<PatientProvider>().patients;
+    final all = context.watch<PatientRoster>().patients;
     final q = _q.toLowerCase();
     final shown = [
       for (final p in all)
@@ -317,7 +317,7 @@ class _PatientPickerState extends State<_PatientPicker> {
                           final navigator = Navigator.of(context);
                           await navigator.push(MaterialPageRoute(
                             fullscreenDialog: true,
-                            builder: (_) => const AddPatientScreen(),
+                            builder: (_) => const PatientFormScreen(),
                           ));
                         },
                       ),

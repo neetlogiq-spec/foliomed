@@ -6,14 +6,14 @@ import 'package:provider/provider.dart';
 import '../models/app_user.dart';
 import '../providers/account_provider.dart';
 import '../providers/ward_feed.dart';
-import '../providers/patient_provider.dart';
+import '../providers/patient_roster.dart';
 import '../providers/reminder_provider.dart';
-import '../providers/theme_provider.dart';
+import '../providers/appearance_provider.dart';
 import '../providers/unit_provider.dart';
 import '../screens/admin/admin_overview_screen.dart';
 import '../screens/admin/admin_people_screen.dart';
 import '../screens/shared/patients_screen.dart';
-import '../screens/shared/profile_screen.dart';
+import '../screens/account/account_screen.dart';
 import '../screens/shared/today_screen.dart';
 import '../screens/shared/wards_screen.dart';
 import '../services/accessibility_settings.dart';
@@ -55,7 +55,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
           _Tab('Overview', Icons.space_dashboard_outlined, Icons.space_dashboard, AdminHomeScreen()),
           _Tab('Wards', Icons.corporate_fare_outlined, Icons.corporate_fare, WardsScreen()),
           _Tab('People', Icons.badge_outlined, Icons.badge, AdminPeopleScreen()),
-          _Tab('Profile', Icons.account_circle_outlined, Icons.account_circle, ProfileScreen()),
+          _Tab('Profile', Icons.account_circle_outlined, Icons.account_circle, AccountScreen()),
         ]
       : [
           _Tab('Today', Icons.today_outlined, Icons.today,
@@ -63,7 +63,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
               badge: (c) => c.watch<WardFeed>().pendingCount),
           const _Tab('Patients', Icons.people_outline, Icons.people, PatientsScreen()),
           const _Tab('Wards', Icons.corporate_fare_outlined, Icons.corporate_fare, WardsScreen()),
-          const _Tab('Profile', Icons.account_circle_outlined, Icons.account_circle, ProfileScreen()),
+          const _Tab('Profile', Icons.account_circle_outlined, Icons.account_circle, AccountScreen()),
         ];
 
   @override
@@ -113,12 +113,12 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       case AppLifecycleState.detached:
         // Nobody is looking: stop paying for live reads.
         context.read<WardFeed>().pause();
-        context.read<PatientProvider>().pauseStream();
+        context.read<PatientRoster>().pause();
       case AppLifecycleState.resumed:
         AccessibilitySettings.refresh();
         final ids = context.read<AccountProvider>().currentUser?.wardIds ?? const <String>[];
         context.read<WardFeed>().watchWards(ids);
-        context.read<PatientProvider>().subscribeForWards(ids);
+        context.read<PatientRoster>().watchWards(ids);
         context.read<ReminderProvider>().checkDue();
       default:
         break;
@@ -127,7 +127,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    context.watch<ThemeProvider>();
+    context.watch<AppearanceProvider>();
     _syncWards(context.select<AccountProvider, List<String>>(
         (a) => a.currentUser?.wardIds ?? const <String>[]));
     return Scaffold(

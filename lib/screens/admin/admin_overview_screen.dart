@@ -5,7 +5,7 @@ import 'package:timeago/timeago.dart' as timeago;
 
 import '../../models/row_parsing.dart';
 import '../../models/ward.dart';
-import '../../providers/theme_provider.dart';
+import '../../providers/appearance_provider.dart';
 import '../../services/supabase_service.dart';
 import '../../services/ward_service.dart';
 import '../../utils/app_theme.dart';
@@ -68,7 +68,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    context.watch<ThemeProvider>();
+    context.watch<AppearanceProvider>();
     return Scaffold(
       backgroundColor: AppColors.surface,
       body: RefreshIndicator.adaptive(

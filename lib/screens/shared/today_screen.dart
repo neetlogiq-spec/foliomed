@@ -10,12 +10,12 @@ import '../../models/patient_reminder.dart';
 import '../../providers/account_provider.dart';
 import '../../providers/ward_feed.dart';
 import '../../providers/alert_inbox.dart';
-import '../../providers/patient_provider.dart';
+import '../../providers/patient_roster.dart';
 import '../../providers/reminder_provider.dart';
-import '../../providers/theme_provider.dart';
+import '../../providers/appearance_provider.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/app_typography.dart';
-import '../../utils/app_utils.dart';
+import '../../utils/formatting.dart';
 import '../../utils/haptics.dart';
 import '../../utils/layout.dart';
 import '../../widgets/empty_state.dart';
@@ -29,8 +29,8 @@ import '../../providers/unit_provider.dart';
 import '../../utils/scope_filter.dart';
 import '../../widgets/reminder_widgets.dart';
 import '../notes/compose_note_sheet.dart';
-import '../doctor/add_patient_screen.dart';
-import '../doctor/patient_detail_screen.dart';
+import '../patients/patient_form_screen.dart';
+import '../patients/patient_screen.dart';
 
 enum _Feed { pending, all, urgent }
 
@@ -95,7 +95,7 @@ class _TodayScreenState extends State<TodayScreen> {
   void _subscribe() {
     if (!mounted) return;
     context.read<WardFeed>().watchWards(_subscribedWardIds);
-    context.read<PatientProvider>().subscribeForWards(_subscribedWardIds);
+    context.read<PatientRoster>().watchWards(_subscribedWardIds);
   }
 
   static bool _sameList(List<String> a, List<String> b) =>
@@ -105,7 +105,7 @@ class _TodayScreenState extends State<TodayScreen> {
   void _addPatient() {
     final wardIds = context.read<AccountProvider>().currentUser?.wardIds ?? [];
     Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => AddPatientScreen(
+      builder: (_) => PatientFormScreen(
         initialWardId: wardIds.isNotEmpty ? wardIds.first : null,
       ),
     ));
@@ -113,7 +113,7 @@ class _TodayScreenState extends State<TodayScreen> {
 
   @override
   Widget build(BuildContext context) {
-    context.watch<ThemeProvider>();
+    context.watch<AppearanceProvider>();
     final user = context.watch<AccountProvider>().currentUser;
     final isDoctor = user?.role == UserRole.doctor;
     final now = DateTime.now();
@@ -192,12 +192,12 @@ class _TodayScreenState extends State<TodayScreen> {
   // ─────────────────────────── Summary tiles ───────────────────────────
 
   ScopeFilter _filter() => ScopeFilter(context.watch<UnitProvider>().scope,
-      context.watch<PatientProvider>().patients);
+      context.watch<PatientRoster>().patients);
 
   Widget _summary() {
     final f = _filter();
     final patients =
-        context.watch<PatientProvider>().patients.where(f.patient).length;
+        context.watch<PatientRoster>().patients.where(f.patient).length;
     final notes = context.watch<WardFeed>();
     final urgentOpen = notes.urgent
         .where((n) => !n.isAcknowledged && f.note(n))
@@ -419,7 +419,7 @@ class _RemindersBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     final rp = context.watch<ReminderProvider>();
     final f = ScopeFilter(context.watch<UnitProvider>().scope,
-        context.watch<PatientProvider>().patients);
+        context.watch<PatientRoster>().patients);
     final open = rp.open.where(f.reminder).toList();
     final now = DateTime.now();
     final due = open.where((r) => r.isOverdueAt(now)).toList();
@@ -471,7 +471,7 @@ class _ReminderRow extends StatelessWidget {
     final rp = context.read<ReminderProvider>();
     return InkWell(
       onTap: () => Navigator.of(context).push(MaterialPageRoute(
-        builder: (_) => PatientDetailScreen(patientId: r.patientId),
+        builder: (_) => PatientScreen(patientId: r.patientId),
       )),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 10, 8, 10),

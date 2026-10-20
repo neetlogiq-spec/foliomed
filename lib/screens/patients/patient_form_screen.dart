@@ -9,8 +9,8 @@ import '../../models/newborn_screen.dart';
 import '../../models/patient.dart';
 import '../../models/ward.dart';
 import '../../providers/account_provider.dart';
-import '../../providers/patient_provider.dart';
-import '../../providers/theme_provider.dart';
+import '../../providers/patient_roster.dart';
+import '../../providers/appearance_provider.dart';
 import '../../providers/unit_provider.dart';
 import '../../services/patient_service.dart';
 import '../../services/newborn_screen_service.dart';
@@ -18,7 +18,7 @@ import '../../services/reminder_notifications.dart';
 import '../../services/ward_service.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/app_typography.dart';
-import '../../utils/app_utils.dart';
+import '../../utils/formatting.dart';
 import '../../utils/friendly_error.dart';
 import '../../utils/stream_cache.dart';
 import '../../widgets/birth_time_field.dart';
@@ -28,20 +28,20 @@ import '../../widgets/inset_group.dart';
 /// Add/Save in the navigation bar, inset grouped sections. Setting a birth
 /// time reveals the newborn investigation plan (48 h or 72 h, with an 8 h
 /// or 12 h heads-up). The ward is changed only via Transfer.
-class AddPatientScreen extends StatefulWidget {
+class PatientFormScreen extends StatefulWidget {
   final String? initialWardId;
   final Patient? existing;
 
-  const AddPatientScreen({super.key, this.initialWardId, this.existing});
+  const PatientFormScreen({super.key, this.initialWardId, this.existing});
 
   @override
-  State<AddPatientScreen> createState() => _AddPatientScreenState();
+  State<PatientFormScreen> createState() => _PatientFormScreenState();
 }
 
 /// When to send the newborn investigations.
 enum _Plan { h48, h72, none }
 
-class _AddPatientScreenState extends State<AddPatientScreen> {
+class _PatientFormScreenState extends State<PatientFormScreen> {
   static const _bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
   final _wardStreams = StreamCache<List<Ward>>();
@@ -211,7 +211,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
     final wardId = _wardId ?? '';
     if (!_editing && wardId.isEmpty) return;
     setState(() => _saving = true);
-    final provider = context.read<PatientProvider>();
+    final provider = context.read<PatientRoster>();
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
     final askPlan = _askPlan;
@@ -241,7 +241,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
       messenger.showSnackBar(SnackBar(
         backgroundColor: AppColors.danger,
         content: Text(
-            "Couldn't save — ${friendlyError(provider.error ?? 'unknown error')}"),
+            "Couldn't save — ${friendlyError(provider.lastError ?? 'unknown error')}"),
       ));
       return;
     }
@@ -266,7 +266,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
 
   @override
   Widget build(BuildContext context) {
-    context.watch<ThemeProvider>();
+    context.watch<AppearanceProvider>();
     return Scaffold(
       backgroundColor: AppColors.surface,
       appBar: AppBar(

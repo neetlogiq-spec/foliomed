@@ -1,17 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../utils/app_typography.dart';
 
 import '../utils/app_theme.dart';
-import '../providers/theme_provider.dart';
+import '../utils/app_typography.dart';
 
+/// "Nothing here yet" — a symbol, a one-line title, a hint about what to
+/// do, and optionally the button that does it.
 class EmptyState extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final String? buttonLabel;
-  final VoidCallback? onButtonTap;
-
   const EmptyState({
     super.key,
     required this.icon,
@@ -21,42 +15,33 @@ class EmptyState extends StatelessWidget {
     this.onButtonTap,
   });
 
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final String? buttonLabel;
+  final VoidCallback? onButtonTap;
+
   @override
   Widget build(BuildContext context) {
-    context.watch<ThemeProvider>(); // rebuild on theme change
-
-    // Apple's first-party empty state: a large muted symbol, a short
-    // explanation and — when there is an obvious next step — one button.
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ExcludeSemantics(
-              child: Icon(icon, size: 44, color: AppColors.tertiaryLabel),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              title,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 36),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 44, color: AppColors.tertiaryLabel),
+          const SizedBox(height: 14),
+          Text(title,
               textAlign: TextAlign.center,
-              style: AppTypography.title3(color: AppColors.textPrimary),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              subtitle,
+              style: AppTypography.title3(color: AppColors.textPrimary)),
+          const SizedBox(height: 6),
+          Text(subtitle,
               textAlign: TextAlign.center,
-              style: AppTypography.subheadline(color: AppColors.textSecondary),
-            ),
-            if (buttonLabel != null && onButtonTap != null) ...[
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: onButtonTap,
-                child: Text(buttonLabel!),
-              ),
-            ],
+              style: AppTypography.subheadline(color: AppColors.textSecondary)),
+          if (buttonLabel != null && onButtonTap != null) ...[
+            const SizedBox(height: 18),
+            FilledButton.tonal(onPressed: onButtonTap, child: Text(buttonLabel!)),
           ],
-        ),
+        ],
       ),
     );
   }

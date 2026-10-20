@@ -12,7 +12,7 @@ import '../../models/patient.dart';
 import '../../services/newborn_screen_service.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/app_typography.dart';
-import '../../utils/app_utils.dart';
+import '../../utils/formatting.dart';
 import '../../utils/friendly_error.dart';
 import '../../utils/haptics.dart';
 import '../../widgets/birth_time_field.dart';

@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/patient.dart';
 import '../models/ward.dart';
 import '../providers/account_provider.dart';
-import '../providers/patient_provider.dart';
+import '../providers/patient_roster.dart';
 import '../providers/unit_provider.dart';
 import '../services/patient_service.dart';
 import '../utils/haptics.dart';
@@ -16,7 +16,7 @@ import '../utils/friendly_error.dart';
 import 'app_alert_dialog.dart';
 import 'app_sheet.dart';
 import 'large_title_app_bar.dart';
-import '../screens/doctor/add_patient_screen.dart';
+import '../screens/patients/patient_form_screen.dart';
 
 /// "•••" in the patient's navigation bar: transfer, discharge or readmit.
 class PatientActionsButton extends StatelessWidget {
@@ -115,7 +115,7 @@ class PatientActionsButton extends StatelessWidget {
         await _readmit(context);
       case _Action.edit:
         await Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => AddPatientScreen(existing: patient),
+          builder: (_) => PatientFormScreen(existing: patient),
         ));
       case _Action.delete:
         await _delete(context);
@@ -173,7 +173,7 @@ class PatientActionsButton extends StatelessWidget {
       ),
     );
     if (confirmed != true || !context.mounted) return;
-    final provider = context.read<PatientProvider>();
+    final provider = context.read<PatientRoster>();
     final navigator = Navigator.of(context);
     final ok = await provider.deletePatient(patient.id);
     if (!context.mounted) return;
@@ -218,7 +218,7 @@ class PatientActionsButton extends StatelessWidget {
       ),
     );
     if (confirmed != true || !context.mounted) return;
-    final provider = context.read<PatientProvider>();
+    final provider = context.read<PatientRoster>();
     final ok = await provider.dischargePatient(patient.id, summary: summary.text);
     if (context.mounted) _report(context, ok, '${patient.name} discharged', provider);
   }
@@ -242,7 +242,7 @@ class PatientActionsButton extends StatelessWidget {
       ),
     );
     if (confirmed != true || !context.mounted) return;
-    final provider = context.read<PatientProvider>();
+    final provider = context.read<PatientRoster>();
     final ok = await provider.readmitPatient(patient.id);
     if (context.mounted) _report(context, ok, '${patient.name} readmitted', provider);
   }
@@ -256,7 +256,7 @@ class PatientActionsButton extends StatelessWidget {
       builder: (_) => _TransferSheet(patient: patient, wardIds: targets),
     );
     if (result == null || !context.mounted) return;
-    final provider = context.read<PatientProvider>();
+    final provider = context.read<PatientRoster>();
     final ok = await provider.transferPatient(
       patient.id,
       targetWardId: result.ward.id,
@@ -268,12 +268,12 @@ class PatientActionsButton extends StatelessWidget {
     }
   }
 
-  void _report(BuildContext context, bool ok, String done, PatientProvider provider) {
+  void _report(BuildContext context, bool ok, String done, PatientRoster provider) {
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       backgroundColor: ok ? null : AppColors.danger,
       content: Text(ok
           ? done
-          : friendlyError(provider.lastException ?? 'Something went wrong')),
+          : friendlyError(provider.lastError ?? 'Something went wrong')),
     ));
   }
 }

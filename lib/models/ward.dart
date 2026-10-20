@@ -1,15 +1,7 @@
 import 'row_parsing.dart';
 
+/// A ward (team space). Its [id] is the 5-digit join code people share.
 class Ward {
-  final String id;
-  final String name;
-  final String floor;
-  final int capacity;
-  final String headDoctorName;
-  final String creatorId;
-  final String creatorEmail;
-  final DateTime createdAt;
-
   const Ward({
     required this.id,
     required this.name,
@@ -21,31 +13,39 @@ class Ward {
     required this.createdAt,
   });
 
-  /// Builds a ward from a `wards` row.
-  factory Ward.fromRow(DbRow row) {
-    return Ward(
-      id: row['id'] as String? ?? '',
-      name: row['name'] as String? ?? '',
-      floor: row['floor'] as String? ?? '',
-      capacity: (row['capacity'] as num?)?.toInt() ?? 0,
-      headDoctorName: row['head_doctor_name'] as String? ?? '',
-      creatorId: row['creator_id'] as String? ?? '',
-      creatorEmail: row['creator_email'] as String? ?? '',
-      createdAt: parseTimestamp(row['created_at']),
-    );
-  }
+  final String id;
+  final String name;
 
-  /// Columns written on insert/update. `id` is included so a new ward can
-  /// claim its 5-digit code; Postgres rejects duplicates via the PK.
-  DbRow toRow() {
-    return {
-      'id': id,
-      'name': name,
-      'floor': floor,
-      'capacity': capacity,
-      'head_doctor_name': headDoctorName,
-      'creator_id': creatorId.isEmpty ? null : creatorId,
-      'creator_email': creatorEmail,
-    };
-  }
+  /// Free text: floor, block or unit name.
+  final String floor;
+  final int capacity;
+
+  /// Owner's display name, captured when the ward was created.
+  final String headDoctorName;
+  final String creatorId;
+  final String creatorEmail;
+  final DateTime createdAt;
+
+  factory Ward.fromRow(DbRow r) => Ward(
+        id: r['id'] as String? ?? '',
+        name: r['name'] as String? ?? '',
+        floor: r['floor'] as String? ?? '',
+        capacity: (r['capacity'] as num?)?.toInt() ?? 0,
+        headDoctorName: r['head_doctor_name'] as String? ?? '',
+        creatorId: r['creator_id'] as String? ?? '',
+        creatorEmail: r['creator_email'] as String? ?? '',
+        createdAt: parseTimestamp(r['created_at']),
+      );
+
+  /// Includes [id]: a new ward claims its code on insert (the primary key
+  /// rejects a code already taken).
+  DbRow toRow() => {
+        'id': id,
+        'name': name,
+        'floor': floor,
+        'capacity': capacity,
+        'head_doctor_name': headDoctorName,
+        'creator_id': creatorId.isEmpty ? null : creatorId,
+        'creator_email': creatorEmail,
+      };
 }

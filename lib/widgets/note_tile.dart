@@ -4,7 +4,7 @@ import 'package:timeago/timeago.dart' as timeago;
 import '../models/note.dart';
 import '../utils/app_theme.dart';
 import '../utils/app_typography.dart';
-import '../utils/app_utils.dart';
+import '../utils/formatting.dart';
 import 'inset_group.dart';
 import 'pressable.dart';
 
@@ -200,7 +200,7 @@ class _Status extends StatelessWidget {
   Widget build(BuildContext context) {
     final n = note;
     if (n.isConfirmed) {
-      final when = n.acknowledgedAt == null ? '' : ' · ${formatTime(n.acknowledgedAt!.toLocal())}';
+      final when = n.acknowledgedAt == null ? '' : ' · ${formatClock(n.acknowledgedAt!.toLocal())}';
       return Row(children: [
         Icon(Icons.check_circle, size: 16, color: AppColors.accent),
         const SizedBox(width: 5),

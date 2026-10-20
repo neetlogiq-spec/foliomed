@@ -9,7 +9,7 @@ import '../../clinical/handover.dart';
 import '../../models/newborn_tracking.dart';
 import '../../models/patient.dart';
 import '../../models/ward.dart';
-import '../../providers/patient_provider.dart';
+import '../../providers/patient_roster.dart';
 import '../../providers/reminder_provider.dart';
 import '../../providers/unit_provider.dart';
 import '../../services/patient_service.dart';
@@ -22,7 +22,7 @@ import '../../widgets/empty_state.dart';
 import '../../widgets/inset_group.dart';
 import '../../widgets/large_title_app_bar.dart';
 import '../../widgets/scope_button.dart';
-import '../doctor/patient_detail_screen.dart';
+import '../patients/patient_screen.dart';
 
 enum _Mode { census, handover }
 
@@ -48,7 +48,7 @@ class _CensusScreenState extends State<CensusScreen> {
     final units = context.watch<UnitProvider>();
     final scope = units.scope;
     final active = context
-        .watch<PatientProvider>()
+        .watch<PatientRoster>()
         .patients
         .where((p) => scope.includes(wardId: p.wardId, unitId: p.unitId))
         .toList();
@@ -324,7 +324,7 @@ class _HandoverCard extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(AppRadii.card),
         onTap: () => Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => PatientDetailScreen(patientId: p.id),
+          builder: (_) => PatientScreen(patientId: p.id),
         )),
         child: Padding(
           padding: const EdgeInsets.all(14),

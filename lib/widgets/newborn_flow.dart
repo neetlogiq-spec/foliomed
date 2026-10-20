@@ -9,7 +9,7 @@ import '../services/newborn_screen_service.dart';
 import '../services/patient_service.dart';
 import '../services/reminder_notifications.dart';
 import '../utils/app_theme.dart';
-import '../utils/app_utils.dart';
+import '../utils/formatting.dart';
 import '../utils/friendly_error.dart';
 import '../utils/haptics.dart';
 import 'app_alert_dialog.dart';

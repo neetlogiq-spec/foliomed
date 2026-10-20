@@ -70,25 +70,26 @@ Firestore → Postgres mapping: `users`→`profiles`, `wards`, `patients`,
 Test the schema locally without Docker: `supabase/tests/README.md` (suites 10–95).
 
 ## User Roles & tabs
-- **Doctor / Nurse** — Today (`today_screen.dart`: tiles, reminders, collapsible Pending/All/Urgent note feed), Patients (`patients_screen.dart`, grouped by ward), Wards (`wards_screen.dart` → `ward_page.dart`), Profile. Doctors get the compose button in the nav bar; nurses acknowledge through the acknowledge sheet (`WiredNoteCard`).
+- **Doctor / Nurse** — Today (`today_screen.dart`: tiles, reminders, collapsible Pending/All/Urgent note feed), Patients (`patients_screen.dart`, grouped by ward), Wards (`wards_screen.dart` → `ward_page.dart`), Profile. Doctors get the compose button in the nav bar; nurses confirm through the confirm sheet (`FeedNote`). UI says "confirm"; the DB column is still `is_acknowledged`.
 - **Admin** — dashboard analytics, wards, staff list, profile
-- Patient edits reuse `AddPatientScreen(existing:)`; the ward is changed only via Transfer.
+- Patient edits reuse `PatientFormScreen(existing:)`; the ward is changed only via Transfer.
 - List UI uses `InsetGroup` / `SettingsRow` (`lib/widgets/inset_group.dart`) — iOS inset-grouped rows.
 
 ---
 
 ## Important File Locations
-- `lib/main.dart` — `Supabase.initialize`, providers
-- `lib/config/supabase_config.dart` — dart-define config
-- `lib/services/supabase_service.dart` — `supabase` client getter, table/bucket names
-- `lib/services/auth_service.dart` — email, Google, Apple sign-in; reset; delete account
-- `lib/services/{note,patient,ward}_service.dart` — CRUD + realtime streams
-- `lib/services/push_service.dart` — realtime in-app alerts; `push_registration.dart` — FCM device token
-- `lib/services/metrics_service.dart` — `bump_metric` RPC
-- `lib/utils/stream_cache.dart` — keep one realtime stream per key across rebuilds
-- `lib/utils/friendly_error.dart` — maps Supabase errors to plain English
-- `lib/models/row_parsing.dart` — timestamp / list helpers for rows
+- `lib/main.dart` → `lib/app/startup.dart` (`prepareApp`, each step isolated) and `lib/app/foliomed_app.dart` (providers, theme, routes)
+- `lib/app/routes.dart` — `Routes` (launch, welcome, sign-in, role, alert setup, home); `lib/app/home_shell.dart` — tab bar (`HomeShell`)
+- `lib/screens/start/` — launch decision (`decideLaunch`), welcome, sign in, role, alert setup
+- `lib/screens/patients/` — `PatientScreen` (summary, newborn, reminders, timeline by day), `PatientFormScreen` (add/edit)
+- `lib/screens/notes/` — compose sheet, reply thread, confirm sheet, note actions (`FeedNote`, `NoteLine`)
+- `lib/screens/account/` — `AccountScreen` (Profile tab), edit sheet; `lib/screens/help/` — help centre + topics; `lib/screens/admin/` — Overview, People, admin ward page
+- Providers: `AccountProvider`, `PatientRoster`, `WardFeed`, `ReminderProvider`, `UnitProvider`, `AlertInbox`, `AppearanceProvider` (theme + extra text size on top of the phone's)
+- Services: `AccountService` (Google/Apple via Supabase), `NotesRepository`, `PatientService`, `WardService`, `ReminderService`, `TrackingService`, `NewbornScreenService`, `UnitService`, `PushService` (in-app realtime alerts), `PushRegistration` (FCM)
+- `lib/config/supabase_config.dart` / `firebase_config.dart` — dart-define config
+- `lib/utils/formatting.dart`, `friendly_error.dart` (all UI errors go through it), `stream_cache.dart`, `app_theme.dart` (palette-based Apple semantic colours)
 - `landing/`, `status/` — static pages; `landing/supabase-public.js` shared reader
+- `docs/provenance/` — Wardly provenance audit, per-file CSV and `compare.py` (re-run after big rewrites)
 
 ## Design system (Apple HIG)
 - Text: `appText(...)` / `appMonoText(...)` (`lib/utils/app_typography.dart`) — system font + size-specific tracking. Don't add Google Fonts.
@@ -106,8 +107,7 @@ Test the schema locally without Docker: `supabase/tests/README.md` (suites 10–
 - Realtime `.stream()` accepts **one** filter — extra filters (e.g. `is_active`) are applied client-side.
 - Create streams once per key (`StreamCache` or `late final`), never inline in `build`, or every rebuild opens a new channel.
 - An UPDATE/DELETE blocked by RLS returns **zero rows, not an error** — use `.select()` and check the result where it matters (see `admin_staff_screen.dart`).
-- Note comments sheet uses `resizeToAvoidBottomInset: false` — keyboard handling is manual.
-- SharedPreferences keys are versioned (`onboarding_complete_v2`, …) — renaming re-shows that tutorial.
+- SharedPreferences keys are versioned (`welcome_seen_v1`, `tips_dismissed_v1`, …) — bumping one re-shows that screen/tip.
 - Apple Sign-In button is gated to iOS — never show on Android/Web.
 - `ios/Runner/Runner.entitlements` → `aps-environment` must stay `production` for TestFlight/App Store builds.
 

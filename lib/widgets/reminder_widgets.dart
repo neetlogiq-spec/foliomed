@@ -8,7 +8,7 @@ import '../services/reminder_notifications.dart';
 import '../services/reminder_service.dart';
 import '../utils/app_theme.dart';
 import '../utils/app_typography.dart';
-import '../utils/app_utils.dart';
+import '../utils/formatting.dart';
 import '../utils/friendly_error.dart';
 import 'app_alert_dialog.dart';
 import 'app_sheet.dart';

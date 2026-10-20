@@ -3,8 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../../models/ward.dart';
 import '../../providers/account_provider.dart';
-import '../../providers/patient_provider.dart';
-import '../../providers/theme_provider.dart';
+import '../../providers/patient_roster.dart';
+import '../../providers/appearance_provider.dart';
 import '../../services/supabase_service.dart';
 import '../../services/ward_service.dart';
 import '../../utils/app_theme.dart';
@@ -63,7 +63,7 @@ class _WardsScreenState extends State<WardsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    context.watch<ThemeProvider>();
+    context.watch<AppearanceProvider>();
     final ids =
         context.watch<AccountProvider>().currentUser?.wardIds ?? const <String>[];
     return Scaffold(
@@ -122,7 +122,7 @@ class _WardsScreenState extends State<WardsScreen> {
 
   Widget _wardList(List<Ward> wards) {
     final myId = supabase.auth.currentUser?.id ?? '';
-    final patients = context.watch<PatientProvider>().patients;
+    final patients = context.watch<PatientRoster>().patients;
     final owned = wards.where((w) => w.creatorId == myId).toList();
     final joined = wards.where((w) => w.creatorId != myId).toList();
 

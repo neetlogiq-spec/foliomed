@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../models/patient.dart';
 import '../utils/app_theme.dart';
 import '../utils/app_typography.dart';
-import '../utils/app_utils.dart';
+import '../utils/formatting.dart';
 import 'app_sheet.dart';
 
 /// Optional exact date + time of birth (newborns / PNC). A read-only

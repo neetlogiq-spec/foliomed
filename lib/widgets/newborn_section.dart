@@ -8,7 +8,7 @@ import '../models/patient.dart';
 import '../services/newborn_screen_service.dart';
 import '../utils/app_theme.dart';
 import '../utils/app_typography.dart';
-import '../utils/app_utils.dart';
+import '../utils/formatting.dart';
 import 'inset_group.dart';
 import 'newborn_flow.dart';
 

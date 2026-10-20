@@ -11,7 +11,7 @@ import '../services/patient_service.dart';
 import '../services/tracking_service.dart';
 import '../utils/app_theme.dart';
 import '../utils/app_typography.dart';
-import '../utils/app_utils.dart';
+import '../utils/formatting.dart';
 import '../utils/friendly_error.dart';
 import '../utils/haptics.dart';
 import 'app_alert_dialog.dart';

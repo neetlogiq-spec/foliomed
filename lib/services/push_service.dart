@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../main.dart' show navigatorKey, scaffoldMessengerKey;
+import '../app/app_keys.dart';
 import '../models/note.dart';
 import '../providers/alert_inbox.dart';
 import '../utils/app_theme.dart';

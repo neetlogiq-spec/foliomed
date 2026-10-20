@@ -3,403 +3,321 @@ import 'package:flutter/material.dart';
 
 import 'app_typography.dart';
 
-/// FolioMed colour system, modelled on Apple's semantic colours:
-/// grouped backgrounds, label / secondary-label text, hairline separators
-/// and the iOS system palette for status. The brand blue stays the tint.
-class AppColors {
-  static bool isDark = false;
+/// One appearance's semantic colours, after Apple's system colours:
+/// grouped background → grouped secondary background (cards), label and
+/// secondary label, separator, fills, translucent chrome.
+@immutable
+class _Palette {
+  const _Palette({
+    required this.tint,
+    required this.onTint,
+    required this.groupedBackground,
+    required this.groupedCard,
+    required this.raisedCard,
+    required this.label,
+    required this.secondaryLabel,
+    required this.tertiaryLabel,
+    required this.separator,
+    required this.fill,
+    required this.quaternaryFill,
+    required this.chrome,
+  });
 
-  // ── Brand + system tints ────────────────────────────────────────────
-  static const Color primary = Color(0xFF0F6D99);
-  static const Color darkPrimary = Color(0xFF5AADDB);
-  static const Color accent = Color(0xFF00C7BE); // systemMint
-  static const Color secondary = accent;
-  static const Color danger = Color(0xFFFF3B30); // systemRed
-  static const Color warning = Color(0xFFFF9500); // systemOrange
-  static const Color doctorColor = Color(0xFF007AFF); // systemBlue
-  static const Color nurseColor = Color(0xFF30B0C7); // systemTeal
-  static const Color adminColor = Color(0xFFAF52DE); // systemPurple
+  final Color tint;
+  final Color onTint;
+  final Color groupedBackground;
+  final Color groupedCard;
+  final Color raisedCard;
+  final Color label;
+  final Color secondaryLabel;
+  final Color tertiaryLabel;
+  final Color separator;
+  final Color fill;
+  final Color quaternaryFill;
+  final Color chrome;
 
-  // ── Clinical severity ───────────────────────────────────────────────
-  static const Color critical = danger;
-  static const Color warningColor = warning;
-  static const Color stable = Color(0xFF34C759); // systemGreen
-  static const Color criticalBg = Color(0xFFFFE9E7);
-  static const Color warningBg = Color(0xFFFFF2DE);
-  static const Color stableBg = Color(0xFFE5F7E9);
-  static const Color darkCriticalBg = Color(0xFF3A1513);
-  static const Color darkWarningBg = Color(0xFF3A2A0D);
-  static const Color darkStableBg = Color(0xFF11301B);
+  static const light = _Palette(
+    tint: Color(0xFF0F6D99),
+    onTint: Colors.white,
+    groupedBackground: Color(0xFFF2F2F7),
+    groupedCard: Colors.white,
+    raisedCard: Colors.white,
+    label: Color(0xFF1C1C1E),
+    secondaryLabel: Color(0xFF636366),
+    tertiaryLabel: Color(0xFFC7C7CC),
+    separator: Color(0xFFD1D1D6),
+    fill: Color(0x1F767680),
+    quaternaryFill: Color(0x14747480),
+    chrome: Color(0xD9F9F9F9),
+  );
 
-  // ── Light: systemGroupedBackground / label / separator ──────────────
-  static const Color lightSurface = Color(0xFFF2F2F7);
-  static const Color lightCard = Color(0xFFFFFFFF);
-  static const Color lightTextPrimary = Color(0xFF1C1C1E);
-  static const Color lightTextSecondary = Color(0xFF636366); // secondaryLabel
-  static const Color lightDivider = Color(0xFFD1D1D6);
-
-  // ── Dark: true black base, elevated greys ───────────────────────────
-  static const Color darkScaffold = Color(0xFF000000);
-  static const Color darkCard = Color(0xFF1C1C1E);
-  static const Color darkCardElevated = Color(0xFF2C2C2E);
-  static const Color darkAppBar = Color(0xFF000000);
-  static const Color darkDivider = Color(0xFF38383A);
-  static const Color darkTextPrimary = Color(0xFFFFFFFF);
-  static const Color darkTextSecondary = Color(0xFF8E8E93); // secondaryLabel
-
-  /// Grouped content relies on background contrast, not heavy shadows.
-  static List<BoxShadow> get cardShadow => isDark
-      ? const []
-      : [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 2),
-          ),
-        ];
-
-  static double get iconChipOpacity => isDark ? 0.20 : 0.12;
-
-  static Color get surface => isDark ? darkScaffold : lightSurface;
-  static Color get background => surface;
-  static Color get card => isDark ? darkCard : lightCard;
-  static Color get appBarBg => isDark ? darkAppBar : lightSurface;
-  static Color get textPrimary =>
-      isDark ? darkTextPrimary : lightTextPrimary;
-  static Color get textSecondary =>
-      isDark ? darkTextSecondary : lightTextSecondary;
-  static Color get divider => isDark ? darkDivider : lightDivider;
-  static Color get criticalBackground => isDark ? darkCriticalBg : criticalBg;
-  static Color get warningBackground => isDark ? darkWarningBg : warningBg;
-  static Color get stableBackground => isDark ? darkStableBg : stableBg;
-
-  /// iOS tertiaryLabel. Decorative only (icons, grabbers): at 1.7:1 it is
-  /// too faint for text — use [textSecondary] for timestamps/metadata.
-  static Color get tertiaryLabel =>
-      isDark ? const Color(0xFF48484A) : const Color(0xFFC7C7CC);
-
-  /// iOS quaternarySystemFill — inline badges and soft backgrounds.
-  static Color get quaternaryFill =>
-      isDark ? const Color(0x29747480) : const Color(0x14747480);
-
-  /// Text/icons placed on a [primary]-filled surface. White fails contrast
-  /// on the lighter dark-mode tint (2.5:1), so dark mode uses black (8.4:1).
-  static Color get onPrimary => isDark ? Colors.black : Colors.white;
-
-  /// iOS "tertiarySystemFill" — input fields and inset controls.
-  static Color get fill =>
-      isDark ? const Color(0x3D767680) : const Color(0x1F767680);
-
-  /// Translucent chrome (nav bars) — content scrolls underneath.
-  static Color get chrome =>
-      isDark ? const Color(0xB81C1C1E) : const Color(0xD9F9F9F9);
+  static const dark = _Palette(
+    tint: Color(0xFF5AADDB),
+    // White on the lighter dark-mode tint is only 2.5:1; black is 8.4:1.
+    onTint: Colors.black,
+    groupedBackground: Color(0xFF000000),
+    groupedCard: Color(0xFF1C1C1E),
+    raisedCard: Color(0xFF2C2C2E),
+    label: Colors.white,
+    secondaryLabel: Color(0xFF8E8E93),
+    tertiaryLabel: Color(0xFF48484A),
+    separator: Color(0xFF38383A),
+    fill: Color(0x3D767680),
+    quaternaryFill: Color(0x29747480),
+    chrome: Color(0xB81C1C1E),
+  );
 }
 
-/// Shared radii (continuous-looking rounded rectangles).
-class AppRadii {
-  AppRadii._();
+/// Colour tokens for the current appearance. [isDark] is kept in step by
+/// `AppearanceProvider`; status colours are the iOS system colours and
+/// read well in both appearances.
+abstract final class AppColors {
+  static bool isDark = false;
+  static _Palette get _p => isDark ? _Palette.dark : _Palette.light;
+
+  // System colours (fixed).
+  static const Color primary = Color(0xFF0F6D99); // FolioMed blue (light tint)
+  static const Color darkPrimary = Color(0xFF5AADDB);
+  static const Color accent = Color(0xFF00C7BE); // mint
+  static const Color secondary = accent;
+  static const Color danger = Color(0xFFFF3B30); // red
+  static const Color critical = danger;
+  static const Color warning = Color(0xFFFF9500); // orange
+  static const Color stable = Color(0xFF34C759); // green
+  static const Color doctorColor = Color(0xFF007AFF); // blue
+  static const Color nurseColor = Color(0xFF30B0C7); // teal
+  static const Color adminColor = Color(0xFFAF52DE); // purple
+
+  // Fixed light/dark values, for the rare place that needs one explicitly.
+  static const Color lightSurface = Color(0xFFF2F2F7);
+  static const Color lightCard = Colors.white;
+  static const Color lightTextPrimary = Color(0xFF1C1C1E);
+  static const Color lightTextSecondary = Color(0xFF636366);
+  static const Color lightDivider = Color(0xFFD1D1D6);
+  static const Color darkScaffold = Color(0xFF000000);
+  static const Color darkAppBar = darkScaffold;
+  static const Color darkCard = Color(0xFF1C1C1E);
+  static const Color darkCardElevated = Color(0xFF2C2C2E);
+  static const Color darkTextPrimary = Colors.white;
+  static const Color darkTextSecondary = Color(0xFF8E8E93);
+  static const Color darkDivider = Color(0xFF38383A);
+
+  // Semantic (follow the appearance).
+  static Color get surface => _p.groupedBackground;
+  static Color get card => _p.groupedCard;
+  static Color get textPrimary => _p.label;
+  static Color get textSecondary => _p.secondaryLabel;
+
+  /// Decorative only (icons, grabbers) — too faint for text.
+  static Color get tertiaryLabel => _p.tertiaryLabel;
+  static Color get divider => _p.separator;
+  static Color get fill => _p.fill;
+  static Color get quaternaryFill => _p.quaternaryFill;
+
+  /// Text and icons on a tint-filled surface.
+  static Color get onPrimary => _p.onTint;
+
+  /// Translucent bars that content scrolls under.
+  static Color get chrome => _p.chrome;
+}
+
+/// Corner radii — rounded rectangles sized like iOS controls and cards.
+abstract final class AppRadii {
   static const double control = 12;
   static const double card = 14;
   static const double sheet = 16;
   static const double dialog = 14;
 }
 
-/// Motion tokens. Apple defaults: critically damped, ~0.3–0.4s response;
-/// momentum interactions only get a little bounce.
-class AppMotion {
-  AppMotion._();
+/// Motion. Critically damped, quick to settle; honour Reduce Motion.
+abstract final class AppMotion {
   static const Duration press = Duration(milliseconds: 100);
   static const Duration quick = Duration(milliseconds: 200);
   static const Duration standard = Duration(milliseconds: 350);
   static const Curve standardCurve = Curves.easeOutCubic;
 
-  /// Honour the OS "Reduce Motion" setting.
-  static bool reduced(BuildContext context) =>
-      MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+  static bool reduced(BuildContext context) => MediaQuery.maybeDisableAnimationsOf(context) ?? false;
 }
 
-class AppTheme {
-  static ThemeData get light => lightTheme;
-  static ThemeData get dark => darkTheme;
+/// Material widgets dressed to behave and look like their iOS counterparts.
+abstract final class AppTheme {
+  static final ThemeData light = _themeFor(Brightness.light, _Palette.light);
+  static final ThemeData dark = _themeFor(Brightness.dark, _Palette.dark);
 
-  static ThemeData get darkTheme => _build(
-        brightness: Brightness.dark,
-        tint: AppColors.darkPrimary,
-        background: AppColors.darkScaffold,
-        card: AppColors.darkCard,
-        textPrimary: AppColors.darkTextPrimary,
-        textSecondary: AppColors.darkTextSecondary,
-        divider: AppColors.darkDivider,
-        fill: const Color(0x3D767680),
-        chrome: AppColors.darkAppBar,
-      );
-
-  static ThemeData get lightTheme => _build(
-        brightness: Brightness.light,
-        tint: AppColors.primary,
-        background: AppColors.lightSurface,
-        card: AppColors.lightCard,
-        textPrimary: AppColors.lightTextPrimary,
-        textSecondary: AppColors.lightTextSecondary,
-        divider: AppColors.lightDivider,
-        fill: const Color(0x1F767680),
-        chrome: AppColors.lightSurface,
-      );
-
-  static ThemeData _build({
-    required Brightness brightness,
-    required Color tint,
-    required Color background,
-    required Color card,
-    required Color textPrimary,
-    required Color textSecondary,
-    required Color divider,
-    required Color fill,
-    required Color chrome,
-  }) {
-    final isDark = brightness == Brightness.dark;
-    final base = isDark ? ThemeData.dark() : ThemeData.light();
-    final textTheme = AppTypography.textTheme(base.textTheme).apply(
-      bodyColor: textPrimary,
-      displayColor: textPrimary,
-    );
-    final onTint = isDark ? Colors.black : Colors.white;
-    final colorScheme = (isDark ? const ColorScheme.dark() : const ColorScheme.light())
-        .copyWith(
-      primary: tint,
-      onPrimary: onTint,
-      secondary: AppColors.accent,
-      onSecondary: Colors.white,
-      error: AppColors.danger,
-      onError: Colors.white,
-      surface: card,
-      onSurface: textPrimary,
-      outline: divider,
-      outlineVariant: divider,
-    );
-    final controlShape = RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(AppRadii.control),
-    );
-    final buttonText = appText(fontSize: 17, fontWeight: FontWeight.w600);
-    final noBorder = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(AppRadii.control),
-      borderSide: BorderSide.none,
-    );
+  static ThemeData _themeFor(Brightness brightness, _Palette p) {
+    final dark = brightness == Brightness.dark;
+    final text = AppTypography.textTheme((dark ? ThemeData.dark() : ThemeData.light()).textTheme)
+        .apply(bodyColor: p.label, displayColor: p.label);
+    final rounded = RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.control));
+    final buttonLabel = appText(fontSize: 17, fontWeight: FontWeight.w600);
+    OutlineInputBorder field([Color? edge, double width = 1.5]) => OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadii.control),
+          borderSide: edge == null ? BorderSide.none : BorderSide(color: edge, width: width),
+        );
 
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
-      colorScheme: colorScheme,
-      scaffoldBackgroundColor: background,
-      canvasColor: background,
-      textTheme: textTheme,
-      primaryTextTheme: textTheme,
+      colorScheme: (dark ? const ColorScheme.dark() : const ColorScheme.light()).copyWith(
+        primary: p.tint,
+        onPrimary: p.onTint,
+        secondary: AppColors.accent,
+        onSecondary: Colors.white,
+        error: AppColors.danger,
+        onError: Colors.white,
+        surface: p.groupedCard,
+        onSurface: p.label,
+        outline: p.separator,
+        outlineVariant: p.separator,
+      ),
+      scaffoldBackgroundColor: p.groupedBackground,
+      canvasColor: p.groupedBackground,
+      textTheme: text,
+      primaryTextTheme: text,
+      iconTheme: IconThemeData(color: p.label),
+      dividerColor: p.separator,
+      dividerTheme: DividerThemeData(color: p.separator, thickness: 0.5, space: 1),
 
-      // Apple feedback: an instant highlight on press, no Material ripple.
+      // iOS feedback: a highlight while pressed, no Material ink ripple.
       splashFactory: NoSplash.splashFactory,
       splashColor: Colors.transparent,
-      highlightColor: textPrimary.withOpacity(isDark ? 0.10 : 0.06),
-      hoverColor: textPrimary.withOpacity(0.04),
+      highlightColor: p.label.withValues(alpha: dark ? 0.10 : 0.06),
+      hoverColor: p.label.withValues(alpha: 0.04),
 
-      // Same path in and out, with edge-swipe back, on every platform.
-      pageTransitionsTheme: const PageTransitionsTheme(
-        builders: {
-          TargetPlatform.android: CupertinoPageTransitionsBuilder(),
-          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-          TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
-          TargetPlatform.windows: CupertinoPageTransitionsBuilder(),
-          TargetPlatform.linux: CupertinoPageTransitionsBuilder(),
-        },
-      ),
+      // Push/pop slide with edge-swipe back on every platform.
+      pageTransitionsTheme: PageTransitionsTheme(builders: {
+        for (final platform in TargetPlatform.values) platform: const CupertinoPageTransitionsBuilder(),
+      }),
       cupertinoOverrideTheme: CupertinoThemeData(
         brightness: brightness,
-        primaryColor: tint,
-        scaffoldBackgroundColor: background,
+        primaryColor: p.tint,
+        scaffoldBackgroundColor: p.groupedBackground,
       ),
 
-      dividerColor: divider,
-      dividerTheme: DividerThemeData(color: divider, thickness: 0.5, space: 1),
-
       appBarTheme: AppBarTheme(
-        backgroundColor: chrome,
-        foregroundColor: textPrimary,
+        backgroundColor: dark ? AppColors.darkAppBar : p.groupedBackground,
+        foregroundColor: p.label,
         elevation: 0,
         scrolledUnderElevation: 0,
         surfaceTintColor: Colors.transparent,
-        iconTheme: IconThemeData(color: tint),
-        actionsIconTheme: IconThemeData(color: tint),
-        titleTextStyle: appText(
-          color: textPrimary,
-          fontSize: 17,
-          fontWeight: FontWeight.w600,
-        ),
+        iconTheme: IconThemeData(color: p.tint),
+        actionsIconTheme: IconThemeData(color: p.tint),
+        titleTextStyle: appText(color: p.label, fontSize: 17, fontWeight: FontWeight.w600),
       ),
-
       cardTheme: CardThemeData(
-        color: card,
+        color: p.groupedCard,
         elevation: 0,
         margin: EdgeInsets.zero,
         surfaceTintColor: Colors.transparent,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadii.card),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.card)),
       ),
 
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: p.tint,
+          foregroundColor: p.onTint,
+          minimumSize: const Size(64, 50),
+          shape: rounded,
+          textStyle: buttonLabel,
+        ),
+      ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: tint,
-          foregroundColor: onTint,
+          backgroundColor: p.tint,
+          foregroundColor: p.onTint,
           elevation: 0,
           minimumSize: const Size(64, 50),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-          shape: controlShape,
-          textStyle: buttonText,
-        ).copyWith(
-          overlayColor:
-              WidgetStatePropertyAll(Colors.black.withOpacity(0.12)),
-        ),
-      ),
-      filledButtonTheme: FilledButtonThemeData(
-        style: FilledButton.styleFrom(
-          backgroundColor: tint,
-          foregroundColor: onTint,
-          minimumSize: const Size(64, 50),
-          shape: controlShape,
-          textStyle: buttonText,
-        ),
-      ),
-      textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(
-          foregroundColor: tint,
-          shape: controlShape,
-          textStyle: appText(fontSize: 17, fontWeight: FontWeight.w500),
+          shape: rounded,
+          textStyle: buttonLabel,
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: tint,
-          backgroundColor: fill,
+          foregroundColor: p.tint,
+          backgroundColor: p.fill,
           minimumSize: const Size(64, 50),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
           side: BorderSide.none,
-          shape: controlShape,
-          textStyle: buttonText,
+          shape: rounded,
+          textStyle: buttonLabel,
         ),
       ),
-      iconButtonTheme: IconButtonThemeData(
-        style: IconButton.styleFrom(foregroundColor: tint),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: p.tint,
+          shape: rounded,
+          textStyle: appText(fontSize: 17, fontWeight: FontWeight.w500),
+        ),
       ),
+      iconButtonTheme: IconButtonThemeData(style: IconButton.styleFrom(foregroundColor: p.tint)),
 
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: fill,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        hintStyle: appText(color: textSecondary, fontSize: 17),
-        labelStyle: appText(color: textSecondary, fontSize: 17),
-        floatingLabelStyle: appText(color: tint, fontSize: 15),
-        border: noBorder,
-        enabledBorder: noBorder,
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadii.control),
-          borderSide: BorderSide(color: tint, width: 1.5),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadii.control),
-          borderSide: const BorderSide(color: AppColors.danger),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadii.control),
-          borderSide: const BorderSide(color: AppColors.danger, width: 1.5),
-        ),
+        fillColor: p.fill,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        hintStyle: appText(color: p.secondaryLabel, fontSize: 17),
+        labelStyle: appText(color: p.secondaryLabel, fontSize: 17),
+        floatingLabelStyle: appText(color: p.tint, fontSize: 15),
+        border: field(),
+        enabledBorder: field(),
+        focusedBorder: field(p.tint),
+        errorBorder: field(AppColors.danger, 1),
+        focusedErrorBorder: field(AppColors.danger),
       ),
-
       chipTheme: ChipThemeData(
-        backgroundColor: fill,
+        backgroundColor: p.fill,
         side: BorderSide.none,
-        labelStyle: appText(
-          color: textPrimary,
-          fontSize: 13,
-          fontWeight: FontWeight.w500,
-        ),
         shape: const StadiumBorder(),
+        labelStyle: appText(color: p.label, fontSize: 13, fontWeight: FontWeight.w500),
       ),
-
       listTileTheme: ListTileThemeData(
-        iconColor: tint,
-        titleTextStyle: appText(color: textPrimary, fontSize: 17),
-        subtitleTextStyle: appText(color: textSecondary, fontSize: 15),
+        iconColor: p.tint,
+        titleTextStyle: appText(color: p.label, fontSize: 17),
+        subtitleTextStyle: appText(color: p.secondaryLabel, fontSize: 15),
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: const WidgetStatePropertyAll(Colors.white),
+        trackColor: WidgetStateProperty.resolveWith(
+            (s) => s.contains(WidgetState.selected) ? AppColors.stable : p.fill),
+        trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
       ),
 
       dialogTheme: DialogThemeData(
-        backgroundColor: card,
+        backgroundColor: p.groupedCard,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadii.dialog),
-        ),
-        titleTextStyle: appText(
-          color: textPrimary,
-          fontSize: 17,
-          fontWeight: FontWeight.w600,
-        ),
-        contentTextStyle: appText(color: textPrimary, fontSize: 15),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.dialog)),
+        titleTextStyle: appText(color: p.label, fontSize: 17, fontWeight: FontWeight.w600),
+        contentTextStyle: appText(color: p.label, fontSize: 15),
       ),
-
       bottomSheetTheme: BottomSheetThemeData(
-        backgroundColor: card,
-        modalBackgroundColor: card,
+        backgroundColor: p.groupedCard,
+        modalBackgroundColor: p.groupedCard,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        modalBarrierColor: Colors.black.withOpacity(0.35),
+        modalBarrierColor: Colors.black.withValues(alpha: 0.35),
         showDragHandle: false, // sheets draw their own grabber
-        dragHandleColor: isDark ? const Color(0xFF48484A) : const Color(0xFFC7C7CC),
+        dragHandleColor: p.tertiaryLabel,
         dragHandleSize: const Size(36, 5),
         shape: const RoundedRectangleBorder(
-          borderRadius:
-              BorderRadius.vertical(top: Radius.circular(AppRadii.sheet)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadii.sheet)),
         ),
       ),
-
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: isDark ? AppColors.darkCardElevated : textPrimary,
-        contentTextStyle: appText(
-          color: Colors.white,
-          fontSize: 15,
-          fontWeight: FontWeight.w500,
-        ),
+        backgroundColor: dark ? p.raisedCard : p.label,
+        contentTextStyle: appText(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
         behavior: SnackBarBehavior.floating,
         elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadii.card),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.card)),
       ),
-
-      switchTheme: SwitchThemeData(
-        thumbColor: const WidgetStatePropertyAll(Colors.white),
-        trackColor: WidgetStateProperty.resolveWith((states) =>
-            states.contains(WidgetState.selected) ? AppColors.stable : fill),
-        trackOutlineColor:
-            const WidgetStatePropertyAll(Colors.transparent),
-      ),
-
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: tint,
-        foregroundColor: onTint,
+        backgroundColor: p.tint,
+        foregroundColor: p.onTint,
         elevation: 2,
         highlightElevation: 2,
         shape: const StadiumBorder(),
       ),
-
-      navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: Colors.transparent,
-        indicatorColor: Colors.transparent,
-        elevation: 0,
-      ),
-
-      iconTheme: IconThemeData(color: textPrimary),
-      progressIndicatorTheme: ProgressIndicatorThemeData(color: tint),
-      scrollbarTheme: const ScrollbarThemeData(radius: Radius.circular(8)),
     );
   }
 }

@@ -1,16 +1,16 @@
 import 'package:flutter/foundation.dart';
 
 import '../models/app_user.dart';
-import '../services/auth_service.dart';
+import '../services/account_service.dart';
 import '../services/push_registration.dart';
 
 /// The signed-in person: sign-in and sign-out, their profile, and their
 /// one-time role choice. Screens read [currentUser]; failures land in
 /// [error] for the UI to explain.
 class AccountProvider extends ChangeNotifier {
-  AccountProvider({AuthService? service}) : _service = service ?? AuthService();
+  AccountProvider({AccountService? service}) : _service = service ?? AccountService();
 
-  final AuthService _service;
+  final AccountService _service;
 
   AppUser? _user;
   bool _busy = false;
