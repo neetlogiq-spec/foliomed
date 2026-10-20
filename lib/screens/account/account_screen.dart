@@ -26,7 +26,12 @@ import '../../widgets/app_sheet.dart';
 import '../../widgets/inset_group.dart';
 import '../../widgets/large_title_app_bar.dart';
 import '../../widgets/tip_card.dart';
+import '../../models/ward.dart';
+import '../../providers/patient_roster.dart';
+import '../../services/ward_service.dart';
+import '../../widgets/ward_actions.dart';
 import '../help/help_center_screen.dart';
+import '../shared/ward_page.dart';
 import '../start/alert_setup_screen.dart';
 import 'edit_account_sheet.dart';
 
@@ -34,7 +39,8 @@ const _supportEmail = 'kashyap2k007@gmail.com';
 const _siteUrl = 'https://www.foliomed.app/';
 const _privacyUrl = 'https://www.foliomed.app/privacy.html';
 
-/// The signed-in person's page, laid out like iOS Settings.
+/// The signed-in person: who they are at the top (like an Apple Account
+/// card), their wards, then settings, support and about.
 class AccountScreen extends StatelessWidget {
   const AccountScreen({super.key});
 
@@ -50,28 +56,19 @@ class AccountScreen extends StatelessWidget {
             const SliverFillRemaining(child: Center(child: CircularProgressIndicator.adaptive()))
           else
             SliverPadding(
-              padding: withBottomBarInset(context, const EdgeInsets.fromLTRB(16, 4, 16, 24)),
+              padding: withBottomBarInset(context, const EdgeInsets.fromLTRB(16, 0, 16, 24)),
               sliver: SliverList.list(
                 children: [
-                  _IdentityCard(me: me),
-                  const SizedBox(height: 24),
-                  _RoleGroup(me: me),
+                  _Hero(me: me),
+                  const SizedBox(height: 28),
+                  if (me.role != UserRole.admin) ...[
+                    _WardsGroup(me: me),
+                    const SizedBox(height: 24),
+                  ],
+                  _SettingsGroup(me: me),
                   const SizedBox(height: 24),
                   const _AppearanceGroup(),
                   const SizedBox(height: 24),
-                  if (AlertSetupScreen.applies) ...[
-                    InsetGroup(children: [
-                      SettingsRow(
-                        icon: Icons.notifications_active_outlined,
-                        iconColor: AppColors.danger,
-                        title: 'Alert Setup',
-                        subtitle: 'Get alerts even when FolioMed is closed',
-                        onTap: () => Navigator.of(context)
-                            .push(MaterialPageRoute(builder: (_) => const AlertSetupScreen())),
-                      ),
-                    ]),
-                    const SizedBox(height: 24),
-                  ],
                   _HelpGroup(me: me),
                   const SizedBox(height: 24),
                   const _AboutGroup(),
@@ -86,56 +83,142 @@ class AccountScreen extends StatelessWidget {
   }
 }
 
-class _IdentityCard extends StatelessWidget {
-  const _IdentityCard({required this.me});
+/// Avatar, name, role and email, centred; tap Edit to change them.
+class _Hero extends StatelessWidget {
+  const _Hero({required this.me});
   final AppUser me;
 
   @override
   Widget build(BuildContext context) {
     final emoji = me.emoji;
-    return Material(
-      color: AppColors.card,
-      borderRadius: BorderRadius.circular(AppRadii.card),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(AppRadii.card),
-        onTap: () => showEditAccount(context),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              CircleAvatar(
-                radius: 30,
-                backgroundColor: me.roleColor.withValues(alpha: 0.16),
-                child: emoji != null && emoji.isNotEmpty
-                    ? Text(emoji, style: const TextStyle(fontSize: 30))
-                    : Text(initialsOf(me.name),
-                        style: AppTypography.title3(color: me.roleColor, weight: FontWeight.w700)),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(me.name.isEmpty ? 'Add your name' : me.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTypography.title3(color: AppColors.textPrimary)),
-                    Text(
-                      [me.roleLabel, if ((me.speciality ?? '').isNotEmpty) me.speciality!].join(' · '),
-                      style: AppTypography.subheadline(color: me.roleColor),
-                    ),
-                    Text(me.email,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTypography.footnote(color: AppColors.textSecondary)),
-                  ],
-                ),
-              ),
-              Text('Edit', style: AppTypography.body(color: AppColors.primary)),
-            ],
+    return Column(
+      children: [
+        Semantics(
+          button: true,
+          label: 'Edit profile',
+          child: GestureDetector(
+            onTap: () => showEditAccount(context),
+            child: CircleAvatar(
+              radius: 44,
+              backgroundColor: me.roleColor.withValues(alpha: 0.16),
+              child: emoji != null && emoji.isNotEmpty
+                  ? Text(emoji, style: const TextStyle(fontSize: 44))
+                  : Text(initialsOf(me.name),
+                      style: AppTypography.title1(color: me.roleColor)),
+            ),
           ),
         ),
-      ),
+        const SizedBox(height: 12),
+        Text(me.name.isEmpty ? 'Add your name' : me.name,
+            textAlign: TextAlign.center, style: AppTypography.title2(color: AppColors.textPrimary)),
+        const SizedBox(height: 4),
+        Text(
+          [me.roleLabel, if ((me.speciality ?? '').isNotEmpty) me.speciality!].join(' · '),
+          textAlign: TextAlign.center,
+          style: AppTypography.subheadline(color: me.roleColor, weight: FontWeight.w600),
+        ),
+        Text(me.email, textAlign: TextAlign.center, style: AppTypography.footnote(color: AppColors.textSecondary)),
+        const SizedBox(height: 12),
+        FilledButton.tonal(
+          onPressed: () => showEditAccount(context),
+          child: const Text('Edit Profile'),
+        ),
+      ],
+    );
+  }
+}
+
+/// The wards you belong to, with today's head count; tap to open.
+class _WardsGroup extends StatefulWidget {
+  const _WardsGroup({required this.me});
+  final AppUser me;
+
+  @override
+  State<_WardsGroup> createState() => _WardsGroupState();
+}
+
+class _WardsGroupState extends State<_WardsGroup> {
+  late Stream<List<Ward>> _wards = _open();
+  String _key = '';
+
+  Stream<List<Ward>> _open() {
+    _key = widget.me.wards.join(',');
+    return widget.me.wards.isEmpty ? Stream.value(const []) : WardService().wardsForUser(widget.me.wards);
+  }
+
+  @override
+  void didUpdateWidget(_WardsGroup old) {
+    super.didUpdateWidget(old);
+    if (widget.me.wards.join(',') != _key) _wards = _open();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final patients = context.watch<PatientRoster>().patients;
+    return StreamBuilder<List<Ward>>(
+      stream: _wards,
+      builder: (context, snap) {
+        final wards = snap.data ?? const <Ward>[];
+        return InsetGroup(
+          header: 'Your wards',
+          footer: wards.isEmpty ? 'Set up or join a ward from the Wards tab.' : null,
+          children: [
+            for (final w in wards)
+              SettingsRow(
+                icon: Icons.corporate_fare,
+                iconColor: w.ownedBy(widget.me.uid) ? AppColors.primary : AppColors.accent,
+                title: w.name,
+                subtitle: w.ownedBy(widget.me.uid) ? 'Owner' : null,
+                value: '${patients.where((p) => p.wardId == w.id).length} admitted',
+                onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => WardPage(ward: w))),
+              ),
+            if (wards.isEmpty && snap.hasData)
+              SettingsRow(icon: Icons.login, title: 'Join a Ward', onTap: () => WardActions.join(context)),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// Role, alerts and tips.
+class _SettingsGroup extends StatelessWidget {
+  const _SettingsGroup({required this.me});
+  final AppUser me;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _RoleGroup(me: me),
+        const SizedBox(height: 24),
+        InsetGroup(
+          header: 'Alerts',
+          children: [
+            if (AlertSetupScreen.applies)
+              SettingsRow(
+                icon: Icons.notifications_active_outlined,
+                iconColor: AppColors.danger,
+                title: 'Alert Setup',
+                subtitle: 'Get alerts even when FolioMed is closed',
+                onTap: () =>
+                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const AlertSetupScreen())),
+              ),
+            SettingsRow(
+              icon: Icons.lightbulb_outline,
+              iconColor: AppColors.warning,
+              title: 'Show Tips Again',
+              onTap: () async {
+                final messenger = ScaffoldMessenger.of(context);
+                await TipStore.reset();
+                Haptics.success();
+                messenger.showSnackBar(const SnackBar(content: Text('Tips will show again as you go.')));
+              },
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -269,7 +352,7 @@ class _HelpGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InsetGroup(
-      header: 'Help & feedback',
+      header: 'Support',
       children: [
         SettingsRow(
           icon: Icons.help_outline,
@@ -277,19 +360,9 @@ class _HelpGroup extends StatelessWidget {
           onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const HelpCenterScreen())),
         ),
         SettingsRow(
-          icon: Icons.lightbulb_outline,
-          iconColor: AppColors.warning,
-          title: 'Show tips again',
-          onTap: () async {
-            final messenger = ScaffoldMessenger.of(context);
-            await TipStore.reset();
-            messenger.showSnackBar(const SnackBar(content: Text('Tips will show again as you go.')));
-          },
-        ),
-        SettingsRow(
           icon: Icons.mail_outline,
           iconColor: AppColors.accent,
-          title: 'Send feedback',
+          title: 'Send Feedback',
           subtitle: 'Ideas, problems, anything',
           onTap: () => _feedback(context),
         ),
@@ -312,7 +385,7 @@ class _HelpGroup extends StatelessWidget {
         ),
         SettingsRow(
           icon: Icons.ios_share,
-          title: 'Tell a colleague',
+          title: 'Tell a Colleague',
           onTap: () => Share.share(
             'I use FolioMed for ward notes and newborn follow-ups — ${_siteUrl}app/'
             '${me.name.isEmpty ? '' : '\n\n— ${me.name}'}',
@@ -413,10 +486,19 @@ class _LeaveGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InsetGroup(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SettingsRow(title: 'Sign Out', destructive: true, onTap: () => _signOut(context)),
-        SettingsRow(title: 'Delete Account', destructive: true, onTap: () => _delete(context)),
+        InsetGroup(children: [
+          SettingsRow(title: 'Sign Out', destructive: true, showChevron: false, onTap: () => _signOut(context)),
+        ]),
+        const SizedBox(height: 12),
+        Center(
+          child: TextButton(
+            onPressed: () => _delete(context),
+            child: Text('Delete Account…', style: AppTypography.footnote(color: AppColors.danger)),
+          ),
+        ),
       ],
     );
   }

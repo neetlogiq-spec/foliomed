@@ -86,75 +86,114 @@ class _SignInScreenState extends State<SignInScreen> {
       backgroundColor: AppColors.surface,
       body: SafeArea(
         child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(28, 24, 28, 24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 400),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Center(child: FolioMedMark(size: 64)),
-                  const SizedBox(height: 22),
-                  Text('Sign in',
-                      textAlign: TextAlign.center,
-                      style: AppTypography.title1(color: AppColors.textPrimary)),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Use an account you already have. There’s no FolioMed password to remember.',
-                    textAlign: TextAlign.center,
-                    style: AppTypography.body(color: AppColors.textSecondary),
-                  ),
-                  const SizedBox(height: 36),
-                  if (_offerApple) ...[
-                    _ProviderButton(
-                      label: 'Continue with Apple',
-                      icon: Icons.apple,
-                      background: dark ? Colors.white : Colors.black,
-                      foreground: dark ? Colors.black : Colors.white,
-                      onPressed: busy ? null : () => _go((a) => a.signInWithApple()),
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-                  _ProviderButton(
-                    label: 'Sign in with Google',
-                    icon: Icons.g_mobiledata_rounded,
-                    background: AppColors.card,
-                    foreground: AppColors.textPrimary,
-                    outlined: true,
-                    onPressed: busy ? null : () => _go((a) => a.signInWithGoogle()),
-                  ),
-                  if (busy) ...[
-                    const SizedBox(height: 20),
-                    const Center(child: CupertinoActivityIndicator()),
-                  ],
-                  const SizedBox(height: 32),
-                  Text.rich(
-                    TextSpan(
-                      text: 'Notes and patient details are shared only with the wards you join. ',
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 440),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // What FolioMed is, and why signing in is safe.
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(28, 40, 28, 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        WidgetSpan(
-                          alignment: PlaceholderAlignment.baseline,
-                          baseline: TextBaseline.alphabetic,
-                          child: GestureDetector(
-                            onTap: () => launchUrl(Uri.parse('https://www.foliomed.app/privacy.html'),
-                                mode: LaunchMode.externalApplication),
-                            child: Text('Privacy Policy',
-                                style: AppTypography.footnote(color: AppColors.primary)),
-                          ),
+                        const FolioMedMark(size: 56),
+                        const SizedBox(height: 20),
+                        Text('FolioMed', style: AppTypography.largeTitle(color: AppColors.textPrimary)),
+                        const SizedBox(height: 6),
+                        Text('Ward notes, jobs and newborn care, shared live with your team.',
+                            style: AppTypography.title3(color: AppColors.textSecondary, weight: FontWeight.w400)),
+                        const SizedBox(height: 32),
+                        const _Promise(
+                          icon: Icons.key_off_outlined,
+                          title: 'No new password',
+                          text: 'Sign in with the Google or Apple account you already use.',
+                        ),
+                        const _Promise(
+                          icon: Icons.lock_outline,
+                          title: 'Only your wards',
+                          text: 'Patients and notes are visible only to people in the same ward.',
+                        ),
+                        const _Promise(
+                          icon: Icons.volunteer_activism_outlined,
+                          title: 'Free for the whole team',
+                          text: 'No subscriptions, no ads.',
                         ),
                       ],
                     ),
-                    textAlign: TextAlign.center,
-                    style: AppTypography.footnote(color: AppColors.textSecondary),
                   ),
-                ],
-              ),
+                ),
+                // Actions sit at the bottom, within thumb reach.
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (_offerApple) ...[
+                        _ProviderButton(
+                          label: 'Continue with Apple',
+                          icon: Icons.apple,
+                          background: dark ? Colors.white : Colors.black,
+                          foreground: dark ? Colors.black : Colors.white,
+                          onPressed: busy ? null : () => _go((a) => a.signInWithApple()),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                      _ProviderButton(
+                        label: 'Sign in with Google',
+                        icon: Icons.g_mobiledata_rounded,
+                        background: AppColors.card,
+                        foreground: AppColors.textPrimary,
+                        outlined: true,
+                        onPressed: busy ? null : () => _go((a) => a.signInWithGoogle()),
+                      ),
+                      SizedBox(
+                        height: 36,
+                        child: busy ? const Center(child: CupertinoActivityIndicator()) : null,
+                      ),
+                      Center(
+                        child: TextButton(
+                          onPressed: () => launchUrl(Uri.parse('https://www.foliomed.app/privacy.html'),
+                              mode: LaunchMode.externalApplication),
+                          child: Text('How FolioMed handles your data',
+                              style: AppTypography.footnote(color: AppColors.primary)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ),
       ),
     );
   }
+}
+
+/// One reassurance on the sign-in page.
+class _Promise extends StatelessWidget {
+  const _Promise({required this.icon, required this.title, required this.text});
+  final IconData icon;
+  final String title;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(bottom: 20),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Icon(icon, size: 28, color: AppColors.primary),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(title, style: AppTypography.headline(color: AppColors.textPrimary)),
+              const SizedBox(height: 2),
+              Text(text, style: AppTypography.subheadline(color: AppColors.textSecondary)),
+            ]),
+          ),
+        ]),
+      );
 }
 
 class _ProviderButton extends StatelessWidget {
