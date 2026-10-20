@@ -17,7 +17,7 @@ const List<HelpSection> kHelpSections = [
     HelpTopic('How do I get my team on FolioMed?',
         'Open Wards, tap +, and create a ward. You get a 5-digit code — share it from the ward page with Invite. Colleagues tap + → Join a Ward and type it in.'),
     HelpTopic('What do the four tabs do?',
-        'Today is what needs doing now: your jobs, reminders, pending and urgent notes. Patients lists everyone on your wards. Wards is where you create, join and manage wards and units. Profile holds your details and settings.'),
+        'Today shows Up Next — overdue reminders, urgent notes and your jobs, most pressing first — then counts that open the full lists, and the latest notes. Patients lists everyone on your wards. Wards is where you create, join and manage wards and units. Profile holds your details and settings.'),
     HelpTopic('Doctor or nurse — what changes?',
         'Both see the same patients and notes. Doctors post notes from the compose button; nurses confirm notes through the confirm sheet, which records what was done. You can switch role in Profile.'),
   ]),
@@ -41,7 +41,7 @@ const List<HelpSection> kHelpSections = [
   ]),
   HelpSection('Jobs', [
     HelpTopic('What is the job list?',
-        'The day’s tasks for each patient, such as “Repeat TSB” or “Paeds review”, shared by the whole ward. Add one from Today (Jobs → Add) or from the patient’s page. Tap the circle to tick it off; FolioMed records who did it and when.'),
+        'The day’s tasks for each patient, such as “Repeat TSB” or “Paeds review”, shared by the whole ward. Add one from Today (+ → New Job) or from the patient’s page. Tap the circle to tick it off; FolioMed records who did it and when.'),
     HelpTopic('How do I give a job to someone?',
         'When adding a job, set For to a colleague on the ward and they get a notification. Leave it as Anyone for whoever is free. On any job, tap it and choose I’ll Do It or Assign To….'),
     HelpTopic('Where do finished and old jobs go?',
@@ -50,8 +50,8 @@ const List<HelpSection> kHelpSections = [
   HelpSection('Notes and reminders', [
     HelpTopic('Who sees a note?',
         'Everyone in that patient’s ward, in real time. Urgent notes are highlighted and alert the team.'),
-    HelpTopic('Can I make the feed shorter?',
-        'On Today, tap the ⇕ button next to Ward notes to show one line per note. Tap a line to read it in full.'),
+    HelpTopic('Where are all the notes?',
+        'On Today, tap Show All next to Latest Notes (or Notes to Confirm). The ⇕ button there switches between one line per note and full notes.'),
     HelpTopic('How do reminders follow up?',
         'When a reminder is due, FolioMed asks "has this been done?". Yes closes it for the whole ward; Not yet asks again in an hour.'),
   ]),

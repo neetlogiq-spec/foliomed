@@ -15,7 +15,7 @@ import '../screens/admin/admin_overview_screen.dart';
 import '../screens/admin/admin_people_screen.dart';
 import '../screens/shared/patients_screen.dart';
 import '../screens/account/account_screen.dart';
-import '../screens/shared/today_screen.dart';
+import '../screens/today/today_screen.dart';
 import '../screens/shared/wards_tab.dart';
 import '../services/accessibility_settings.dart';
 import '../screens/patients/patient_screen.dart';
