@@ -20,6 +20,11 @@ class PushRegistration {
   bool _firebaseReady = false;
   String? _token;
   StreamSubscription<String>? _refreshSub;
+  StreamSubscription<RemoteMessage>? _openedSub;
+
+  /// Set by the signed-in shell: opens a patient when a notification
+  /// about them (note, reminder or job) is tapped.
+  void Function(String patientId)? onOpenPatient;
 
   /// True when server push will deliver alerts to this device.
   final ValueNotifier<bool> isLive = ValueNotifier(false);
@@ -59,11 +64,19 @@ class PushRegistration {
       if (token == null) return;
       await _save(token);
       _refreshSub ??= messaging.onTokenRefresh.listen(_save);
+      _openedSub ??= FirebaseMessaging.onMessageOpenedApp.listen(_opened);
+      final launchedFrom = await messaging.getInitialMessage();
+      if (launchedFrom != null) _opened(launchedFrom);
       isLive.value = true;
     } catch (e) {
       debugPrint('Push registration failed: $e');
       isLive.value = false;
     }
+  }
+
+  void _opened(RemoteMessage message) {
+    final patientId = message.data['patient_id'];
+    if (patientId is String && patientId.isNotEmpty) onOpenPatient?.call(patientId);
   }
 
   Future<void> _save(String token) async {

@@ -19,6 +19,7 @@ class FolioMedApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => PatientRoster()),
         ChangeNotifierProvider(create: (_) => WardFeed()),
         ChangeNotifierProvider(create: (_) => ReminderProvider()),
+        ChangeNotifierProvider(create: (_) => JobBoard()),
         ChangeNotifierProvider(create: (_) => UnitProvider()),
         ChangeNotifierProvider(create: (_) => AlertInbox()),
       ],

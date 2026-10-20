@@ -7,7 +7,6 @@ import 'package:uuid/uuid.dart';
 import '../../models/note.dart';
 import '../../models/patient.dart';
 import '../../providers/account_provider.dart';
-import '../../providers/patient_roster.dart';
 import '../../providers/ward_feed.dart';
 import '../../services/review_request.dart';
 import '../../services/text_scan_service.dart';
@@ -16,7 +15,7 @@ import '../../utils/app_typography.dart';
 import '../../utils/friendly_error.dart';
 import '../../widgets/app_sheet.dart';
 import '../../widgets/inset_group.dart';
-import '../patients/patient_form_screen.dart';
+import '../../widgets/patient_picker.dart';
 
 /// Write a note for one patient. The patient decides the ward, so there is
 /// no separate ward step.
@@ -53,11 +52,7 @@ class _ComposeNoteSheetState extends State<_ComposeNoteSheet> {
   bool get _ready => !_posting && _patient != null && _text.text.trim().isNotEmpty;
 
   Future<void> _choosePatient() async {
-    final picked = await showAppSheet<Patient>(
-      context: context,
-      isScrollControlled: true,
-      builder: (_) => const _PatientPicker(),
-    );
+    final picked = await showPatientPicker(context);
     if (picked != null) setState(() => _patient = picked);
   }
 
@@ -251,89 +246,6 @@ class _ComposeNoteSheetState extends State<_ComposeNoteSheet> {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Search the admitted patients on your wards; or admit someone new.
-class _PatientPicker extends StatefulWidget {
-  const _PatientPicker();
-
-  @override
-  State<_PatientPicker> createState() => _PatientPickerState();
-}
-
-class _PatientPickerState extends State<_PatientPicker> {
-  String _q = '';
-
-  @override
-  Widget build(BuildContext context) {
-    final all = context.watch<PatientRoster>().patients;
-    final q = _q.toLowerCase();
-    final shown = [
-      for (final p in all)
-        if (q.isEmpty ||
-            p.name.toLowerCase().contains(q) ||
-            p.bedNumber.toLowerCase().contains(q) ||
-            p.patientCode.toLowerCase().contains(q) ||
-            (p.motherName?.toLowerCase().contains(q) ?? false))
-          p,
-    ]..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-    return SafeArea(
-      child: SizedBox(
-        height: MediaQuery.sizeOf(context).height * 0.7,
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-              child: CupertinoSearchTextField(
-                autofocus: true,
-                placeholder: 'Name, bed, mother or ID',
-                onChanged: (v) => setState(() => _q = v.trim()),
-              ),
-            ),
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                children: [
-                  InsetGroup(
-                    dividerIndent: 16,
-                    children: [
-                      for (final p in shown)
-                        SettingsRow(
-                          title: p.name,
-                          subtitle: [if (p.bedNumber.isNotEmpty) 'Bed ${p.bedNumber}', p.ageLabel, p.patientCode]
-                              .where((s) => s.isNotEmpty)
-                              .join(' · '),
-                          onTap: () => Navigator.pop(context, p),
-                          showChevron: false,
-                        ),
-                      SettingsRow(
-                        icon: Icons.person_add_alt,
-                        title: 'Admit a new patient',
-                        onTap: () async {
-                          final navigator = Navigator.of(context);
-                          await navigator.push(MaterialPageRoute(
-                            fullscreenDialog: true,
-                            builder: (_) => const PatientFormScreen(),
-                          ));
-                        },
-                      ),
-                    ],
-                  ),
-                  if (shown.isEmpty && q.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Text('Nobody matches “$_q”.',
-                          textAlign: TextAlign.center,
-                          style: AppTypography.footnote(color: AppColors.textSecondary)),
-                    ),
-                ],
-              ),
-            ),
-          ],
         ),
       ),
     );

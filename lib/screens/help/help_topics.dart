@@ -15,11 +15,11 @@ class HelpSection {
 const List<HelpSection> kHelpSections = [
   HelpSection('Getting started', [
     HelpTopic('How do I get my team on FolioMed?',
-        'Open Wards, tap +, and create a ward. You get a 5-digit code — share it from the ward page with Invite. Colleagues tap + → Join with a code and type it in.'),
+        'Open Wards, tap +, and create a ward. You get a 5-digit code — share it from the ward page with Invite. Colleagues tap + → Join a Ward and type it in.'),
     HelpTopic('What do the four tabs do?',
-        'Today is what needs doing now: reminders, pending and urgent notes. Patients lists everyone on your wards. Wards is where you create, join and manage wards and units. Profile holds your details and settings.'),
+        'Today is what needs doing now: your jobs, reminders, pending and urgent notes. Patients lists everyone on your wards. Wards is where you create, join and manage wards and units. Profile holds your details and settings.'),
     HelpTopic('Doctor or nurse — what changes?',
-        'Both see the same patients and notes. Doctors post notes from the compose button; nurses confirm notes through the acknowledgement sheet, which records what was done. You can switch role in Profile.'),
+        'Both see the same patients and notes. Doctors post notes from the compose button; nurses confirm notes through the confirm sheet, which records what was done. You can switch role in Profile.'),
   ]),
   HelpSection('Patients', [
     HelpTopic('How do I admit a patient?',
@@ -38,6 +38,14 @@ const List<HelpSection> kHelpSections = [
         'The chart plots each reading against the phototherapy and exchange lines for the baby’s gestation (and, for AAP, neurotoxicity risk factors). Switch between AAP 2022 and NICE above the chart. This is decision support only — always confirm against the guideline and your clinical judgement.'),
     HelpTopic('Why does AAP ask about risk factors?',
         'AAP 2022 uses lower thresholds when a baby has a neurotoxicity risk factor such as haemolysis, G6PD deficiency or sepsis. Record them (or "none") under Bilirubin on the patient page; until then FolioMed won’t apply AAP lines.'),
+  ]),
+  HelpSection('Jobs', [
+    HelpTopic('What is the job list?',
+        'The day’s tasks for each patient, such as “Repeat TSB” or “Paeds review”, shared by the whole ward. Add one from Today (Jobs → Add) or from the patient’s page. Tap the circle to tick it off; FolioMed records who did it and when.'),
+    HelpTopic('How do I give a job to someone?',
+        'When adding a job, set For to a colleague on the ward and they get a notification. Leave it as Anyone for whoever is free. On any job, tap it and choose I’ll Do It or Assign To….'),
+    HelpTopic('Where do finished and old jobs go?',
+        'Ticked jobs stay under Jobs → Done until midnight and on the patient’s page for 24 hours. Jobs move with the patient on transfer and drop off the list once the patient is discharged.'),
   ]),
   HelpSection('Notes and reminders', [
     HelpTopic('Who sees a note?',

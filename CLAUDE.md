@@ -68,7 +68,9 @@ Firestore → Postgres mapping: `users`→`profiles`, `wards`, `patients`,
 
 - Newborn tracking (migration `20261021000000`): `bilirubin_readings` (results add one per screen), `phototherapy_sessions` (one running per baby; start/stop on timeline), `weights`, mother name/age/G-P. UI: `NewbornTrackingSection`, `BilirubinChart` (CustomPainter vs NICE lines), `CensusScreen` (census + shareable handover; logic in `lib/clinical/handover.dart`). Lab-report OCR → results fields: `lib/clinical/lab_report_parser.dart`.
 
-Test the schema locally without Docker: `supabase/tests/README.md` (suites 10–95).
+- Ward jobs (migration `20261023000000`): `ward_jobs` (patient required; optional `due_by`, `assigned_to`; creator/assignee/completer names stamped by trigger `stamp_ward_job`; assignee must be a ward member; jobs follow the patient's ward via a `patients` trigger, dropping non-member assignees). Assigning someone else queues a push with `push_outbox.only_user` (push-dispatch honours it). App: `WardJob`, `JobService`, `JobBoard` (live, done-since-midnight), `JobRow`, `JobsScreen` (Mine/Ward/Done), `showAddJob`, `PatientJobsSection`, Today `_JobsBlock`. `ScopeFilter.job` hides jobs of patients no longer admitted. Notification taps open the patient (`PushRegistration.onOpenPatient`).
+
+Test the schema locally without Docker: `supabase/tests/README.md` (suites 10–96).
 
 ## User Roles & tabs
 - **Doctor / Nurse** — Today (`today_screen.dart`: tiles, reminders, collapsible Pending/All/Urgent note feed), Patients (`patients_screen.dart`, grouped by ward), Wards (`wards_tab.dart` → `ward_page.dart`), Profile. Doctors get the compose button in the nav bar; nurses confirm through the confirm sheet (`FeedNote`). UI says "confirm"; the DB column is still `is_acknowledged`.

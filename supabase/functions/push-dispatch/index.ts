@@ -16,6 +16,7 @@ type OutboxRow = {
   id: number;
   ward_id: string;
   exclude_user: string | null;
+  only_user: string | null; // set → just this ward member (job assignments)
   title: string;
   body: string;
   data: Record<string, unknown>;
@@ -71,7 +72,7 @@ async function dispatch() {
   let sent = 0;
   for (const row of rows as OutboxRow[]) {
     try {
-      const tokens = await tokensForWard(row.ward_id, row.exclude_user);
+      const tokens = await tokensForWard(row.ward_id, row.exclude_user, row.only_user);
       for (const token of tokens) {
         await sendOne(account.project_id, accessToken, token, row);
       }
@@ -88,11 +89,14 @@ async function dispatch() {
   return { sent, batch: rows.length };
 }
 
-async function tokensForWard(wardId: string, exclude: string | null): Promise<string[]> {
+async function tokensForWard(
+  wardId: string, exclude: string | null, only: string | null = null,
+): Promise<string[]> {
   const { data: ward, error } = await supabase
     .from("wards").select("member_ids").eq("id", wardId).maybeSingle();
   if (error) throw error;
-  const members = ((ward?.member_ids ?? []) as string[]).filter((m) => m !== exclude);
+  const members = ((ward?.member_ids ?? []) as string[])
+    .filter((m) => m !== exclude && (only === null || m === only));
   if (!members.length) return [];
   const { data: tokens, error: tErr } = await supabase
     .from("push_tokens").select("token").in("user_id", members);

@@ -7,6 +7,7 @@ import '../models/app_user.dart';
 import '../providers/account_provider.dart';
 import '../providers/ward_feed.dart';
 import '../providers/patient_roster.dart';
+import '../providers/job_board.dart';
 import '../providers/reminder_provider.dart';
 import '../providers/appearance_provider.dart';
 import '../providers/unit_provider.dart';
@@ -17,6 +18,8 @@ import '../screens/account/account_screen.dart';
 import '../screens/shared/today_screen.dart';
 import '../screens/shared/wards_tab.dart';
 import '../services/accessibility_settings.dart';
+import '../screens/patients/patient_screen.dart';
+import '../services/push_registration.dart';
 import '../services/reminder_notifications.dart';
 import '../utils/app_theme.dart';
 import '../utils/app_typography.dart';
@@ -77,12 +80,17 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     ReminderNotifications.instance.onTap = (_) {
       if (mounted) reminders.checkDue();
     };
+    PushRegistration.instance.onOpenPatient = (patientId) {
+      if (!mounted) return;
+      Navigator.of(context).push(MaterialPageRoute(builder: (_) => PatientScreen(patientId: patientId)));
+    };
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     ReminderNotifications.instance.onTap = null;
+    PushRegistration.instance.onOpenPatient = null;
     super.dispose();
   }
 
@@ -99,6 +107,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       context.read<ReminderProvider>().subscribe(wardIds);
+      context.read<JobBoard>().watchWards(wardIds);
       context.read<UnitProvider>().subscribe(wardIds);
     });
   }
@@ -114,11 +123,13 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         // Nobody is looking: stop paying for live reads.
         context.read<WardFeed>().pause();
         context.read<PatientRoster>().pause();
+        context.read<JobBoard>().pause();
       case AppLifecycleState.resumed:
         AccessibilitySettings.refresh();
         final ids = context.read<AccountProvider>().currentUser?.wards ?? const <String>[];
         context.read<WardFeed>().watchWards(ids);
         context.read<PatientRoster>().watchWards(ids);
+        context.read<JobBoard>().resume();
         context.read<ReminderProvider>().checkDue();
       default:
         break;

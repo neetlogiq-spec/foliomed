@@ -31,6 +31,10 @@ import '../../widgets/reminder_widgets.dart';
 import '../notes/compose_note_sheet.dart';
 import '../patients/patient_form_screen.dart';
 import '../patients/patient_screen.dart';
+import '../jobs/add_job_sheet.dart';
+import '../jobs/jobs_screen.dart';
+import '../../providers/job_board.dart';
+import '../../widgets/job_row.dart';
 
 enum _Feed { pending, all, urgent }
 
@@ -170,6 +174,7 @@ class _TodayScreenState extends State<TodayScreen> {
                   const SizedBox(height: 6),
                   _summary(),
                   const SizedBox(height: 24),
+                  const _JobsBlock(),
                   const _RemindersBlock(),
                   const TipCard(
                     id: 'today_collapse',
@@ -412,6 +417,91 @@ class _Tile extends StatelessWidget {
 }
 
 /// Due and upcoming (next 24 h) reminders across the user's wards.
+/// Today's jobs: yours first, otherwise the ward's most pressing, with a
+/// way into the full list.
+class _JobsBlock extends StatelessWidget {
+  const _JobsBlock();
+
+  static const _preview = 3;
+
+  @override
+  Widget build(BuildContext context) {
+    final uid = context.watch<AccountProvider>().currentUser?.uid ?? '';
+    final f = ScopeFilter(context.watch<UnitProvider>().scope, context.watch<PatientRoster>().patients);
+    final open = context.watch<JobBoard>().open().where(f.job).toList();
+    final mine = open.where((j) => j.isFor(uid)).toList();
+    final shown = (mine.isNotEmpty ? mine : open).take(_preview).toList();
+    void openList(JobsView view) => Navigator.of(context)
+        .push(MaterialPageRoute(builder: (_) => JobsScreen(initial: view)));
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(child: Text('Jobs', style: AppTypography.title3(color: AppColors.textPrimary))),
+              TextButton(
+                onPressed: () => showAddJob(context),
+                child: const Text('Add'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Container(
+            decoration: BoxDecoration(color: AppColors.card, borderRadius: BorderRadius.circular(AppRadii.card)),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (shown.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text('No open jobs on your wards.',
+                        style: AppTypography.subheadline(color: AppColors.textSecondary)),
+                  )
+                else ...[
+                  if (mine.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+                      child: Text('FOR YOU',
+                          style: AppTypography.caption1(color: AppColors.textSecondary, weight: FontWeight.w600)),
+                    ),
+                  for (final (i, j) in shown.indexed) ...[
+                    if (i > 0) const Divider(height: 0.5, thickness: 0.5, indent: 52),
+                    JobRow(key: ValueKey('today-${j.id}'), job: j),
+                  ],
+                ],
+                const Divider(height: 0.5, thickness: 0.5),
+                InkWell(
+                  onTap: () => openList(open.isEmpty ? JobsView.done : (mine.isNotEmpty ? JobsView.mine : JobsView.ward)),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            open.isEmpty
+                                ? 'See done today'
+                                : '${open.length} open on the ward${mine.isEmpty ? '' : ' · ${mine.length} for you'}',
+                            style: AppTypography.body(color: AppColors.primary),
+                          ),
+                        ),
+                        Icon(Icons.chevron_right, color: AppColors.tertiaryLabel),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _RemindersBlock extends StatelessWidget {
   const _RemindersBlock();
 

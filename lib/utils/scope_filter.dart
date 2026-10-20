@@ -1,6 +1,7 @@
 import '../models/note.dart';
 import '../models/patient.dart';
 import '../models/patient_reminder.dart';
+import '../models/ward_job.dart';
 import '../models/ward_unit.dart';
 
 /// Applies a [PatientScope] to notes and reminders, which carry a ward but
@@ -26,4 +27,10 @@ class ScopeFilter {
   bool note(Note n) => _about(n.patientId, n.wardId);
 
   bool reminder(PatientReminder r) => _about(r.patientId, r.wardId);
+
+  /// Jobs only count while their patient is admitted.
+  bool job(WardJob j) {
+    final p = _byId[j.patientId];
+    return p != null && patient(p);
+  }
 }
