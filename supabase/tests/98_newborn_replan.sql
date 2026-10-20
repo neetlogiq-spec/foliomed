@@ -45,4 +45,11 @@ do $$ declare n int; begin
   if n <> 0 then raise exception 'OPEN REMINDERS AFTER RESULTS: %', n; end if;
   raise notice 'after results: no open reminders';
 end $$;
+-- A stale "ask again in 6 h" after results must not create a reminder.
+select public.remind_newborn_results(:'second_plan'::uuid, 6);
+do $$ begin
+  if exists (select 1 from public.patient_reminders where done_at is null) then
+    raise exception 'REMINDER CREATED AFTER RESULTS'; end if;
+  raise notice 'late "ask again" after results → no new reminder';
+end $$;
 reset role;
