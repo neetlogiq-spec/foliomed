@@ -24,7 +24,7 @@ class WardActions {
         else 'You’re invited to ${ward.name} on FolioMed.',
         '',
         'Code: ${ward.id}',
-        'In the app: Wards → + → Join a Ward.',
+        'In FolioMed: Wards → Join a Ward.',
       ].join('\n'),
       subject: 'FolioMed: ${ward.name}',
     );

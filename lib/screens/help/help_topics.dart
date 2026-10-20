@@ -15,7 +15,7 @@ class HelpSection {
 const List<HelpSection> kHelpSections = [
   HelpSection('Getting started', [
     HelpTopic('How do I get my team on FolioMed?',
-        'Open Wards, tap +, and create a ward. You get a 5-digit code — share it from the ward page with Invite. Colleagues tap + → Join a Ward and type it in.'),
+        'On the Wards tab, tap Set Up a Ward. You get a 5-digit code — tap Invite to share it. Colleagues tap Join a Ward and type it in.'),
     HelpTopic('What do the four tabs do?',
         'Today shows Up Next — overdue reminders, urgent notes and your jobs, most pressing first — then counts that open the full lists, and the latest notes. Patients lists everyone on your wards. Wards is where you create, join and manage wards and units. Profile holds your details and settings.'),
     HelpTopic('Doctor or nurse — what changes?',

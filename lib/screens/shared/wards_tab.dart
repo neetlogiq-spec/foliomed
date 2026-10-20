@@ -3,22 +3,25 @@ import 'package:provider/provider.dart';
 
 import '../../models/ward.dart';
 import '../../providers/account_provider.dart';
-import '../../providers/patient_roster.dart';
 import '../../providers/appearance_provider.dart';
+import '../../providers/job_board.dart';
+import '../../providers/patient_roster.dart';
+import '../../providers/unit_provider.dart';
+import '../../providers/ward_feed.dart';
 import '../../services/supabase_service.dart';
 import '../../services/ward_service.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/app_typography.dart';
+import '../../utils/haptics.dart';
 import '../../utils/layout.dart';
 import '../../utils/stream_cache.dart';
-import '../../widgets/app_sheet.dart';
 import '../../widgets/empty_placeholder.dart';
-import '../../widgets/inset_group.dart';
 import '../../widgets/large_title_app_bar.dart';
 import '../../widgets/ward_actions.dart';
 import 'ward_page.dart';
 
-/// The user's wards as a grouped list; + creates or joins one.
+/// Your wards as cards (like rooms in Apple Home): live counts, units and
+/// the join code at a glance. Set up or join a ward from the buttons below.
 class WardsTab extends StatefulWidget {
   const WardsTab({super.key});
 
@@ -29,66 +32,23 @@ class WardsTab extends StatefulWidget {
 class _WardsTabState extends State<WardsTab> {
   final _wardStreams = StreamCache<List<Ward>>();
 
-  Future<void> _showAddMenu() async {
-    final choice = await showAppSheet<String>(
-      context: context,
-      builder: (ctx) => SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: InsetGroup(
-            children: [
-              SettingsRow(
-                icon: Icons.add_business_outlined,
-                title: 'Create a ward',
-                subtitle: 'You’ll get a code to invite colleagues',
-                onTap: () => Navigator.pop(ctx, 'create'),
-              ),
-              SettingsRow(
-                icon: Icons.login,
-                iconColor: AppColors.accent,
-                title: 'Join with a code',
-                subtitle: 'Ask a colleague for their ward code',
-                onTap: () => Navigator.pop(ctx, 'join'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-    if (!mounted) return;
-    if (choice == 'create') {
-      await WardActions.create(context);
-    } else if (choice == 'join') {
-      await WardActions.join(context);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     context.watch<AppearanceProvider>();
-    final ids =
-        context.watch<AccountProvider>().currentUser?.wards ?? const <String>[];
+    final ids = context.watch<AccountProvider>().currentUser?.wards ?? const <String>[];
     return Scaffold(
       backgroundColor: AppColors.surface,
       body: CustomScrollView(
         slivers: [
           LargeTitleAppBar(
             title: 'Wards',
-            actions: [
-              ChromeIconButton(
-                icon: Icons.add,
-                tooltip: 'Create or join a ward',
-                onPressed: _showAddMenu,
-              ),
-            ],
+            eyebrow: ids.isEmpty ? null : '${ids.length} ward${ids.length == 1 ? '' : 's'}',
           ),
           if (ids.isEmpty)
             SliverFillRemaining(hasScrollBody: false, child: _noWards())
           else
             StreamBuilder<List<Ward>>(
-              stream: _wardStreams.get(
-                  ids.join(','), () => WardService().wardsForUser(ids)),
+              stream: _wardStreams.get(ids.join(','), () => WardService().wardsForUser(ids)),
               builder: (context, snap) {
                 if (snap.hasError) {
                   return const SliverFillRemaining(
@@ -106,15 +66,15 @@ class _WardsTabState extends State<WardsTab> {
                     child: Center(child: CircularProgressIndicator.adaptive()),
                   );
                 }
-                final wards = snap.data!;
-                if (wards.isEmpty) {
-                  return SliverFillRemaining(
-                      hasScrollBody: false, child: _noWards());
-                }
+                final wards = [...snap.data!]..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+                if (wards.isEmpty) return SliverFillRemaining(hasScrollBody: false, child: _noWards());
                 return SliverPadding(
-                  padding: withBottomBarInset(
-                      context, const EdgeInsets.fromLTRB(16, 8, 16, 24)),
-                  sliver: SliverToBoxAdapter(child: _wardList(wards)),
+                  padding: withBottomBarInset(context, const EdgeInsets.fromLTRB(16, 4, 16, 24)),
+                  sliver: SliverList.list(children: [
+                    for (final w in wards) ...[_WardCard(ward: w), const SizedBox(height: 14)],
+                    const SizedBox(height: 8),
+                    const _AddButtons(),
+                  ]),
                 );
               },
             ),
@@ -123,88 +83,163 @@ class _WardsTabState extends State<WardsTab> {
     );
   }
 
-  Widget _wardList(List<Ward> wards) {
-    final myId = supabase.auth.currentUser?.id ?? '';
-    final patients = context.watch<PatientRoster>().patients;
-    final owned = wards.where((w) => w.ownerId == myId).toList();
-    final joined = wards.where((w) => w.ownerId != myId).toList();
-
-    Widget row(Ward w) {
-      final count = patients.where((p) => p.wardId == w.id).length;
-      return SettingsRow(
-        icon: Icons.corporate_fare,
-        iconColor: w.ownerId == myId ? AppColors.primary : AppColors.accent,
-        title: w.name,
-        subtitle: [
-          if (w.location.isNotEmpty) w.location,
-          '$count patient${count == 1 ? '' : 's'}',
-          if (w.ownerId != myId && w.ownerName.isNotEmpty)
-            'by ${w.ownerName}',
-        ].join(' · '),
-        trailing: Text(
-          w.id,
-          style: appMonoText(color: AppColors.textSecondary, fontSize: 15)
-              .copyWith(fontFeatures: AppTypography.tabular),
+  Widget _noWards() => const Padding(
+        padding: EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            EmptyPlaceholder(
+              icon: Icons.corporate_fare_outlined,
+              title: 'No wards yet',
+              subtitle: 'Set up a ward for your team, or join one with the 5-digit code a colleague shares.',
+            ),
+            SizedBox(height: 8),
+            _AddButtons(),
+          ],
         ),
-        showChevron: true,
-        onTap: () => Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => WardPage(ward: w),
-        )),
       );
-    }
+}
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (owned.isNotEmpty)
-          InsetGroup(
-            header: 'Wards you own',
-            children: [for (final w in owned) row(w)],
-          ),
-        if (owned.isNotEmpty && joined.isNotEmpty) const SizedBox(height: 24),
-        if (joined.isNotEmpty)
-          InsetGroup(
-            header: 'Wards you joined',
-            children: [for (final w in joined) row(w)],
-          ),
-        const SizedBox(height: 12),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            'Tap a ward for its code, members and settings.',
-            style: AppTypography.footnote(color: AppColors.textSecondary),
+class _AddButtons extends StatelessWidget {
+  const _AddButtons();
+
+  @override
+  Widget build(BuildContext context) => Row(children: [
+        Expanded(
+          child: FilledButton.tonalIcon(
+            onPressed: () => WardActions.create(context),
+            icon: const Icon(Icons.add_business_outlined, size: 18),
+            label: const Text('Set Up a Ward'),
           ),
         ),
-      ],
-    );
-  }
-
-  Widget _noWards() {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const EmptyPlaceholder(
-            icon: Icons.corporate_fare_outlined,
-            title: 'No wards yet',
-            subtitle:
-                'Create a ward for your team, or join one with the 5-digit code a colleague shares.',
-          ),
-          const SizedBox(height: 8),
-          FilledButton.icon(
-            onPressed: () => WardActions.create(context),
-            icon: const Icon(Icons.add),
-            label: const Text('Create a ward'),
-          ),
-          const SizedBox(height: 8),
-          TextButton.icon(
+        const SizedBox(width: 10),
+        Expanded(
+          child: FilledButton.tonalIcon(
             onPressed: () => WardActions.join(context),
-            icon: const Icon(Icons.login),
-            label: const Text('Join with a code'),
+            icon: const Icon(Icons.login, size: 18),
+            label: const Text('Join a Ward'),
           ),
-        ],
+        ),
+      ]);
+}
+
+/// One ward: who owns it, live counts, units and its code.
+class _WardCard extends StatelessWidget {
+  const _WardCard({required this.ward});
+  final Ward ward;
+
+  @override
+  Widget build(BuildContext context) {
+    final w = ward;
+    final mine = w.ownedBy(supabase.auth.currentUser?.id ?? '');
+    final admitted = context.watch<PatientRoster>().patients.where((p) => p.wardId == w.id).toList();
+    final toConfirm = context.watch<WardFeed>().feed.where((n) => n.wardId == w.id && !n.isConfirmed).length;
+    final jobs = context.watch<JobBoard>().open().where((j) => j.wardId == w.id).length;
+    final units = context.watch<UnitProvider>().unitsOf(w.id);
+    final tint = mine ? AppColors.primary : AppColors.accent;
+
+    return Semantics(
+      button: true,
+      label: '${w.name}. ${admitted.length} admitted, $toConfirm notes to confirm, $jobs open jobs. Code ${w.id}.',
+      excludeSemantics: true,
+      child: Material(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(AppRadii.card),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => WardPage(ward: w))),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 12, 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(color: tint.withValues(alpha: 0.14), shape: BoxShape.circle),
+                    child: Icon(Icons.corporate_fare, size: 20, color: tint),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(w.name, style: AppTypography.headline(color: AppColors.textPrimary)),
+                      Text(
+                        [
+                          if (w.location.isNotEmpty) w.location,
+                          mine ? 'You own this ward' : (w.ownerName.isEmpty ? 'Joined' : 'Owner: ${w.ownerName}'),
+                        ].join(' · '),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.footnote(color: AppColors.textSecondary),
+                      ),
+                    ]),
+                  ),
+                  Icon(Icons.chevron_right, color: AppColors.tertiaryLabel),
+                ]),
+                const SizedBox(height: 14),
+                Row(children: [
+                  _Count(value: admitted.length, label: 'Admitted'),
+                  _Count(value: toConfirm, label: 'To Confirm', highlight: toConfirm > 0),
+                  _Count(value: jobs, label: 'Open Jobs'),
+                ]),
+                if (units.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  Wrap(spacing: 6, runSpacing: 6, children: [
+                    for (final u in units)
+                      _Pill('${u.name} ${admitted.where((p) => p.unitId == u.id).length}'),
+                  ]),
+                ],
+                const Divider(height: 22),
+                Row(children: [
+                  Text('Code ', style: AppTypography.footnote(color: AppColors.textSecondary)),
+                  Text(w.id,
+                      style: appMonoText(color: AppColors.textPrimary, fontSize: 15, fontWeight: FontWeight.w600)
+                          .copyWith(fontFeatures: AppTypography.tabular, letterSpacing: 1.5)),
+                  const Spacer(),
+                  TextButton.icon(
+                    onPressed: () {
+                      Haptics.selection();
+                      WardActions.share(context, w);
+                    },
+                    icon: const Icon(Icons.ios_share, size: 16),
+                    label: const Text('Invite'),
+                  ),
+                ]),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
+}
+
+class _Count extends StatelessWidget {
+  const _Count({required this.value, required this.label, this.highlight = false});
+  final int value;
+  final String label;
+  final bool highlight;
+
+  @override
+  Widget build(BuildContext context) => Expanded(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('$value',
+              style: AppTypography.title2(color: highlight ? AppColors.warning : AppColors.textPrimary)
+                  .copyWith(fontFeatures: AppTypography.tabular)),
+          Text(label, style: AppTypography.caption1(color: AppColors.textSecondary)),
+        ]),
+      );
+}
+
+class _Pill extends StatelessWidget {
+  const _Pill(this.text);
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+        decoration: BoxDecoration(color: AppColors.fill, borderRadius: BorderRadius.circular(12)),
+        child: Text(text, style: AppTypography.caption1(color: AppColors.textSecondary, weight: FontWeight.w600)),
+      );
 }

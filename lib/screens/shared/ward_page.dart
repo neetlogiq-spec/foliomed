@@ -21,9 +21,13 @@ import '../../utils/formatting.dart';
 import '../../widgets/inset_group.dart';
 import '../../widgets/large_title_app_bar.dart';
 import '../../widgets/ward_actions.dart';
+import '../jobs/jobs_screen.dart';
+import '../notes/ward_notes_screen.dart';
+import '../../providers/job_board.dart';
+import '../../providers/ward_feed.dart';
 
-/// One ward: its join code (copy / share), details, members, and
-/// leave / delete.
+/// One ward: what's happening now, the invite code, units, members,
+/// details, and leave / delete.
 class WardPage extends StatefulWidget {
   const WardPage({super.key, required this.ward});
 
@@ -67,45 +71,27 @@ class _WardPageState extends State<WardPage> {
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
             sliver: SliverList.list(
               children: [
-                _codeCard(w),
+                _rightNow(w, patients),
                 const SizedBox(height: 24),
-                InsetGroup(
-                  header: 'Details',
-                  children: [
-                    if (w.location.isNotEmpty)
-                      SettingsRow(
-                        icon: Icons.layers_outlined,
-                        iconColor: AppColors.secondary,
-                        title: 'Floor / unit',
-                        value: w.location,
-                      ),
-                    SettingsRow(
-                      icon: Icons.bed_outlined,
-                      iconColor: AppColors.doctorColor,
-                      title: 'Admitted patients',
-                      value: '$patients',
-                    ),
-                    SettingsRow(
-                      icon: Icons.verified_user_outlined,
-                      iconColor: AppColors.accent,
-                      title: 'Owner',
-                      subtitle: w.ownerEmail.isEmpty ? null : w.ownerEmail,
-                      value: _isOwner
-                          ? 'You'
-                          : (w.ownerName.isEmpty ? '—' : w.ownerName),
-                    ),
-                    SettingsRow(
-                      icon: Icons.event_outlined,
-                      iconColor: AppColors.warning,
-                      title: 'Created',
-                      value: formatDay(w.createdAt),
-                    ),
-                  ],
-                ),
+                _codeCard(w),
                 const SizedBox(height: 24),
                 _unitsGroup(),
                 const SizedBox(height: 24),
                 _membersGroup(),
+                const SizedBox(height: 24),
+                InsetGroup(
+                  header: 'About',
+                  dividerIndent: 16,
+                  children: [
+                    if (w.location.isNotEmpty) SettingsRow(title: 'Where', value: w.location),
+                    SettingsRow(
+                      title: 'Owner',
+                      subtitle: w.ownerEmail.isEmpty || _isOwner ? null : w.ownerEmail,
+                      value: _isOwner ? 'You' : (w.ownerName.isEmpty ? '—' : w.ownerName),
+                    ),
+                    SettingsRow(title: 'Set up', value: formatDay(w.createdAt)),
+                  ],
+                ),
                 const SizedBox(height: 24),
                 InsetGroup(
                   footer: _isOwner
@@ -143,6 +129,38 @@ class _WardPageState extends State<WardPage> {
           ),
         ],
       ),
+    );
+  }
+
+  /// What's happening in this ward now; rows open the list with this ward
+  /// selected (the filter button there changes it back).
+  Widget _rightNow(Ward w, int admitted) {
+    final toConfirm = context.watch<WardFeed>().feed.where((n) => n.wardId == w.id && !n.isConfirmed).length;
+    final jobs = context.watch<JobBoard>().open().where((j) => j.wardId == w.id).length;
+    Future<void> open(Widget page) async {
+      await context.read<UnitProvider>().setScope(PatientScope.ward(w.id));
+      if (mounted) await Navigator.of(context).push(MaterialPageRoute(builder: (_) => page));
+    }
+
+    return InsetGroup(
+      header: 'Right now',
+      children: [
+        SettingsRow(icon: Icons.bed_outlined, iconColor: AppColors.doctorColor, title: 'Admitted', value: '$admitted'),
+        SettingsRow(
+          icon: Icons.mark_chat_unread_outlined,
+          iconColor: AppColors.warning,
+          title: 'Notes to Confirm',
+          value: '$toConfirm',
+          onTap: () => open(const WardNotesScreen(initial: NotesView.pending)),
+        ),
+        SettingsRow(
+          icon: Icons.checklist,
+          iconColor: AppColors.stable,
+          title: 'Open Jobs',
+          value: '$jobs',
+          onTap: () => open(const JobsScreen()),
+        ),
+      ],
     );
   }
 
@@ -326,7 +344,7 @@ class _WardPageState extends State<WardPage> {
             ).copyWith(fontFeatures: AppTypography.tabular),
           ),
           const SizedBox(height: 4),
-          Text('Colleagues join with this code from Wards → +',
+          Text('Colleagues tap Join a Ward on the Wards tab and enter this code',
               textAlign: TextAlign.center,
               style: AppTypography.footnote(color: AppColors.textSecondary)),
           const SizedBox(height: 10),

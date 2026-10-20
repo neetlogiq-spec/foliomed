@@ -146,3 +146,12 @@ confirmed, wards/primaryWard/speciality/emoji/photoUrl); ward actions
 rewritten around shared helpers; Wardly-specific class names renamed
 (AdminOverviewScreen, WardsTab, EmptyPlaceholder, UsageCounters,
 LiveNoteAlerts); the last 11 matching phrases reworded.
+
+### Re-check after the Patients / Wards / patient page redesign (2026-10-20)
+
+`deep_compare.py` now uses a fixed hash (zlib CRC-32) instead of Python's
+per-run randomised `hash()`, so results are repeatable (three identical
+runs). Structure, names ignored: 3.4% shared with Wardly vs 2.8% with
+unrelated Flutter code; with real names 1.8% vs 0.5%; **no file** shares
+notably more with Wardly than with the baseline; 0 identical or
+near-identical UI strings out of 651.

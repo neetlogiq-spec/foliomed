@@ -10,6 +10,7 @@
 4. Identical declared class / function names.
 """
 import difflib
+import zlib
 import os
 import re
 import sys
@@ -65,7 +66,8 @@ def fingerprints(toks, k, w):
     """Winnowing: hash every k-gram, keep the minimum of each window of w."""
     if len(toks) < k:
         return set()
-    hashes = [hash(' '.join(toks[i:i + k])) for i in range(len(toks) - k + 1)]
+    # Stable across runs (Python's hash() is randomised per process).
+    hashes = [zlib.crc32(' '.join(toks[i:i + k]).encode()) for i in range(len(toks) - k + 1)]
     fp = set()
     for i in range(max(1, len(hashes) - w + 1)):
         fp.add(min(hashes[i:i + w]))
