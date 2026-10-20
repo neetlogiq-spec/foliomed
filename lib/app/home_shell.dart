@@ -16,6 +16,7 @@ import '../screens/admin/admin_people_screen.dart';
 import '../screens/shared/patients_screen.dart';
 import '../screens/account/account_screen.dart';
 import '../screens/today/today_screen.dart';
+import '../screens/tools/tools_screen.dart';
 import '../screens/shared/wards_tab.dart';
 import '../services/accessibility_settings.dart';
 import '../screens/patients/patient_screen.dart';
@@ -66,6 +67,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
               badge: (c) => c.watch<WardFeed>().pendingCount),
           const _Tab('Patients', Icons.people_outline, Icons.people, PatientsScreen()),
           const _Tab('Wards', Icons.corporate_fare_outlined, Icons.corporate_fare, WardsTab()),
+          const _Tab('Tools', Icons.calculate_outlined, Icons.calculate, ToolsScreen()),
           const _Tab('Profile', Icons.account_circle_outlined, Icons.account_circle, AccountScreen()),
         ];
 

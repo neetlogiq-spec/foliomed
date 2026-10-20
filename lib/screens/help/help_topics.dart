@@ -41,6 +41,12 @@ const List<HelpSection> kHelpSections = [
     HelpTopic('Why does AAP ask about risk factors?',
         'AAP 2022 uses lower thresholds when a baby has a neurotoxicity risk factor such as haemolysis, G6PD deficiency or sepsis. Record them (or "none") under Bilirubin on the patient page; until then FolioMed won’t apply AAP lines.'),
   ]),
+  HelpSection('Tools', [
+    HelpTopic('What’s in the Tools tab?',
+        'Bedside calculators: fluids and GIR (with dextrose mixing), corrected age, exchange transfusion volumes, UVC/UAC and ETT, and infusion rates. Tap Fill from a Baby to fill in weight, day of life and gestation from an admitted patient, then check each value.'),
+    HelpTopic('Can I rely on the numbers?',
+        'Each tool shows its formula and source. Until your unit has checked them, every tool says so at the top — confirm against your own protocol, and have a second person check drug rates.'),
+  ]),
   HelpSection('Jobs', [
     HelpTopic('What is the job list?',
         'The day’s tasks for each patient, such as “Repeat TSB” or “Paeds review”, shared by the whole ward. Add one from Today (+ → New Job) or from the patient’s page. Tap the circle to tick it off; FolioMed records who did it and when.'),
