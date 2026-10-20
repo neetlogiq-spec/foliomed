@@ -8,6 +8,11 @@ import '../../widgets/inset_group.dart';
 import '../../widgets/large_title_app_bar.dart';
 import '../../tools/newborn_scores.dart';
 import 'age_tool.dart';
+import 'ballard_tool.dart';
+import 'bp_tool.dart';
+import 'electrolytes_tool.dart';
+import 'hypoglycaemia_tool.dart';
+import 'vaccines_tool.dart';
 import 'exchange_tool.dart';
 import 'fluids_tool.dart';
 import 'infusion_tool.dart';
@@ -47,17 +52,32 @@ class _ToolsScreenState extends State<ToolsScreen> {
     _Group('Fluids and glucose', [
       _Tool('Fluids & Glucose', 'Total fluids by day of life, pump rate, GIR, dextrose mixing', Icons.water_drop_outlined,
           AppColors.primary, 'fluid tfr maintenance gir glucose dextrose mix d10 d25 rate', FluidsTool.new),
+      _Tool('Low Blood Glucose', 'Dextrose bolus, then the infusion for a GIR', Icons.bloodtype_outlined,
+          AppColors.warning, 'hypoglycaemia hypoglycemia sugar glucose bolus d10 gir', HypoglycaemiaTool.new),
+      _Tool('Electrolytes', 'Sodium, potassium, calcium, magnesium, phosphate; anion gap', Icons.science_outlined,
+          AppColors.secondary, 'electrolyte sodium hyponatraemia potassium calcium magnesium phosphate anion gap osmolality',
+          ElectrolytesTool.new),
     ]),
     _Group('Scores', [
       for (final d in kNewbornScores)
         _Tool(d.name, d.purpose, Icons.checklist_rtl, AppColors.secondary, '${d.id} score ${d.purpose}',
             () => ScoreTool(definition: d)),
+      _Tool('New Ballard', 'Gestational age from 12 signs', Icons.child_care, AppColors.secondary,
+          'ballard gestation gestational age maturity dubowitz', BallardTool.new),
       _Tool('Modified Sarnat', 'HIE staging, with the NICHD moderate/severe criterion', Icons.psychology_outlined,
           AppColors.secondary, 'sarnat hie encephalopathy asphyxia cooling nichd stage', SarnatTool.new),
     ]),
     _Group('Age', [
       _Tool('Corrected Age', 'Postmenstrual and corrected age for preterm babies', Icons.event_outlined,
           AppColors.secondary, 'pma cga gestation corrected preterm weeks', AgeTool.new),
+    ]),
+    _Group('Monitoring', [
+      _Tool('Blood Pressure', 'Centiles by postmenstrual age', Icons.monitor_heart_outlined, AppColors.danger,
+          'bp blood pressure hypertension hypotension map centile dionne', BpTool.new),
+    ]),
+    _Group('Prevention', [
+      _Tool('Vaccines', 'National schedule: due, past window, upcoming', Icons.vaccines_outlined, AppColors.stable,
+          'vaccine vaccination immunisation immunization nis bcg opv hepatitis catch up', VaccinesTool.new),
     ]),
     _Group('Blood', [
       _Tool('Exchange Transfusion', 'Double-volume and partial exchange volumes', Icons.bloodtype_outlined,

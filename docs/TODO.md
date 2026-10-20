@@ -10,10 +10,8 @@
 ## Tools — next candidates (from the pediaid-flutter inventory, 2026-10-20)
 Write from primary sources only; never copy pediaid code, text or data.
 - Fenton 2013 growth chart → automatic AGA/SGA/LGA (check data terms of use)
-- Scores still to do: New Ballard (needs pictures). Done: Apgar, Downes, Silverman-Anderson, Thompson, LATCH, Modified Sarnat
-- Hypoglycaemia bolus (unit protocol), neonatal BP centiles (Zubrow 1995), blood volume, ponderal index
-- Electrolyte corrections (Na, K, Ca, Mg, PO4), anion gap, osmolality, TPN
-- Vaccine schedule (NIS / IAP) and catch-up
+- Done: all scores incl. New Ballard and Modified Sarnat; low glucose; electrolytes + gap; BP centiles (Dionne 2012); NIS vaccines
+- Still possible: ponderal index, TPN, IAP (private) vaccine schedule, saving vaccine doses to the patient
 - Do NOT use: pediaid formulary (NeoFax / Harriet Lane), NRP/PALS PDFs
 
 ## Waiting on Kashyap

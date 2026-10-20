@@ -29,6 +29,14 @@ flag to be flipped.
 | ☐ | LATCH items and bands | 0–5 needs support, 6–7 some support, 8–10 going well (bands are FolioMed's practical reading) | Jensen 1994 |
 
 | ☐ | Modified Sarnat | 6 areas graded; worst sign per area; stage = most common grade (tie → more severe); NICHD: ≥3 areas moderate/severe | Sarnat 1976; Shankaran 2005 |
+| ☐ | Low blood glucose | Bolus default 2 mL/kg of 10% (200 mg/kg); infusion rate = GIR × kg × 6 ÷ % (default GIR 6) | AAP COFN, Pediatrics 2011 |
+| ☐ | Sodium | Deficit = (target − Na) × water × kg (water default 0.7, target 135); 3% NaCl 0.513 mmol/mL; free water = water × kg × (Na/140 − 1); Katz correction 1.6 per 100 mg/dL | standard |
+| ☐ | Potassium / magnesium / phosphate | Volume = dose/kg × kg ÷ stock; no default doses; KCl 15% = 2 mmol/mL, MgSO₄ 50% = 500 mg/mL | standard |
+| ☐ | Calcium gluconate 10% | Default 2 mL/kg; 100 mg/mL salt, 9.3 mg/mL elemental | standard |
+| ☐ | Anion gap / osmolality | Na − (Cl + HCO₃) [+ K]; 2Na + glucose/18 + BUN/2.8, BUN = urea/2.14 | standard |
+| ☐ | Neonatal BP centiles | Table 2 of Dionne 2012 (26–44 wk, after 2 weeks of age); nearest row, lower on ties; ≥95th high, ≥99th very high | Dionne, Abitbol, Flynn, Pediatr Nephrol 2012 |
+| ☐ | Vaccines (NIS) | Birth/6/10/14 wk, 9–12 mo, 16–24 mo, 5–6 y; windows: BCG ≤1 y, Hep B ≤24 h, OPV-0 ≤15 d, OPV ≤5 y, Penta & RVV ≤1 y, measles ≤5 y | MoHFW / NHM National Immunization Schedule (check your state: PCV, JE, fIPV-3) |
+| ☐ | New Ballard | 12 items; physical wording from the official sheet; arm recoil 180/140–180/110–140/90–110/<90°; popliteal 180…<90°; weeks = (2 × score + 120) ÷ 5 | Ballard 1991; ballardscore.com |
 
 Score wording (`lib/tools/newborn_scores.dart`) is FolioMed's own summary of
 each item — check it reads as your unit teaches it.
