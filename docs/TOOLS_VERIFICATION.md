@@ -22,5 +22,13 @@ flag to be flipped.
 | ☐ | ETT depth by weight | kg + 6 cm at lip | Tochen 1979 |
 | ☐ | ETT depth by gestation | 23–24 wk 5.5 … 41–43 wk 9.0 cm | Kempley et al. 2008 |
 | ☐ | Infusion rate | mcg/kg/h × kg ÷ (mg × 1000 ÷ mL) | arithmetic |
+| ☐ | Apgar items and bands | 0–3 low, 4–6 moderately abnormal, 7–10 reassuring | Apgar 1953; AAP/ACOG 2015 |
+| ☐ | Downes items and bands | 0–3 mild, 4–7 moderate, 8–10 impending failure | Downes 1970 |
+| ☐ | Silverman-Anderson items and bands | 0 none, 1–3 mild, 4–6 moderate, 7–10 severe | Silverman & Andersen 1956 |
+| ☐ | Thompson items and bands | 0 normal, 1–10 mild, 11–14 moderate, 15–22 severe | Thompson 1997 |
+| ☐ | LATCH items and bands | 0–5 needs support, 6–7 some support, 8–10 going well (bands are FolioMed's practical reading) | Jensen 1994 |
+
+Score wording (`lib/tools/newborn_scores.dart`) is FolioMed's own summary of
+each item — check it reads as your unit teaches it.
 
 Checked by: ____________________  Date: __________

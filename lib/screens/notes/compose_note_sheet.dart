@@ -19,15 +19,19 @@ import '../../widgets/patient_picker.dart';
 
 /// Write a note for one patient. The patient decides the ward, so there is
 /// no separate ward step.
-Future<void> showComposeNote(BuildContext context, {Patient? patient}) => showAppSheet<void>(
+/// [text] and [kind] pre-fill the note (e.g. a score from Tools).
+Future<void> showComposeNote(BuildContext context, {Patient? patient, String? text, String? kind}) =>
+    showAppSheet<void>(
       context: context,
       isScrollControlled: true,
-      builder: (_) => _ComposeNoteSheet(initialPatient: patient),
+      builder: (_) => _ComposeNoteSheet(initialPatient: patient, initialText: text, initialKind: kind),
     );
 
 class _ComposeNoteSheet extends StatefulWidget {
-  const _ComposeNoteSheet({this.initialPatient});
+  const _ComposeNoteSheet({this.initialPatient, this.initialText, this.initialKind});
   final Patient? initialPatient;
+  final String? initialText;
+  final String? initialKind;
 
   @override
   State<_ComposeNoteSheet> createState() => _ComposeNoteSheetState();
@@ -36,9 +40,9 @@ class _ComposeNoteSheet extends StatefulWidget {
 class _ComposeNoteSheetState extends State<_ComposeNoteSheet> {
   static const _maxLength = 2000;
 
-  final _text = TextEditingController();
+  late final _text = TextEditingController(text: widget.initialText);
   late Patient? _patient = widget.initialPatient;
-  String _kind = kNoteKinds.first;
+  late String _kind = kNoteKinds.contains(widget.initialKind) ? widget.initialKind! : kNoteKinds.first;
   NoteUrgency _urgency = NoteUrgency.normal;
   bool _posting = false;
   bool _reading = false;

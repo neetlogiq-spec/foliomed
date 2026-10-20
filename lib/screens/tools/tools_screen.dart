@@ -6,11 +6,13 @@ import '../../utils/app_typography.dart';
 import '../../utils/layout.dart';
 import '../../widgets/inset_group.dart';
 import '../../widgets/large_title_app_bar.dart';
+import '../../tools/newborn_scores.dart';
 import 'age_tool.dart';
 import 'exchange_tool.dart';
 import 'fluids_tool.dart';
 import 'infusion_tool.dart';
 import 'lines_tool.dart';
+import 'score_tool.dart';
 
 class _Tool {
   const _Tool(this.title, this.subtitle, this.icon, this.color, this.keywords, this.build);
@@ -44,6 +46,11 @@ class _ToolsScreenState extends State<ToolsScreen> {
     _Group('Fluids and glucose', [
       _Tool('Fluids & Glucose', 'Total fluids by day of life, pump rate, GIR, dextrose mixing', Icons.water_drop_outlined,
           AppColors.primary, 'fluid tfr maintenance gir glucose dextrose mix d10 d25 rate', FluidsTool.new),
+    ]),
+    _Group('Scores', [
+      for (final d in kNewbornScores)
+        _Tool(d.name, d.purpose, Icons.checklist_rtl, AppColors.secondary, '${d.id} score ${d.purpose}',
+            () => ScoreTool(definition: d)),
     ]),
     _Group('Age', [
       _Tool('Corrected Age', 'Postmenstrual and corrected age for preterm babies', Icons.event_outlined,

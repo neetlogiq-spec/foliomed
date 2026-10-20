@@ -43,7 +43,7 @@ const List<HelpSection> kHelpSections = [
   ]),
   HelpSection('Tools', [
     HelpTopic('What’s in the Tools tab?',
-        'Bedside calculators: fluids and GIR (with dextrose mixing), corrected age, exchange transfusion volumes, UVC/UAC and ETT, and infusion rates. Tap Fill from a Baby to fill in weight, day of life and gestation from an admitted patient, then check each value.'),
+        'Bedside calculators — fluids and GIR (with dextrose mixing), corrected age, exchange transfusion volumes, UVC/UAC and ETT, infusion rates — and newborn scores: Apgar, Downes, Silverman-Anderson, Thompson and LATCH. A finished score can be copied or added to the baby’s notes. Tap Fill from a Baby to fill in weight, day of life and gestation from an admitted patient, then check each value.'),
     HelpTopic('Can I rely on the numbers?',
         'Each tool shows its formula and source. Until your unit has checked them, every tool says so at the top — confirm against your own protocol, and have a second person check drug rates.'),
   ]),
