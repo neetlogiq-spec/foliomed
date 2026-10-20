@@ -77,7 +77,7 @@ Firestore → Postgres mapping: `users`→`profiles`, `wards`, `patients`,
 Test the schema locally without Docker: `supabase/tests/README.md` (suites 10–98).
 
 ## User Roles & tabs
-- **Doctor / Nurse** — Today (`lib/screens/today/`: Up Next list from `upNext()` — overdue/soon reminders, urgent unconfirmed notes, my + urgent/overdue jobs; At a Glance rows; Latest Notes → `WardNotesScreen` with To Confirm/All/Urgent; one + menu), Patients (`patients_screen.dart`, grouped by ward), Wards (`wards_tab.dart` → `ward_page.dart`), Profile. Doctors get the compose button in the nav bar; nurses confirm through the confirm sheet (`FeedNote`). UI says "confirm"; the DB column is still `is_acknowledged`.
+- **Doctor / Nurse** — Today (`lib/screens/today/`: Up Next list from `upNext()` — overdue/soon reminders, urgent unconfirmed notes, my + urgent/overdue jobs; At a Glance rows; Latest Notes → `WardNotesScreen` with To Confirm/All/Urgent; one + menu), Patients (`lib/screens/patients/patients_screen.dart`: ward board — `PatientRow` with bed column + `PatientSignals` marks, filter chips Admitted/Needs Attention/Newborns/Phototherapy/Discharged, sort menu; logic in `patient_board.dart`), Wards (`wards_tab.dart` → `ward_page.dart`), Profile. Doctors get the compose button in the nav bar; nurses confirm through the confirm sheet (`FeedNote`). UI says "confirm"; the DB column is still `is_acknowledged`.
 - **Admin** — dashboard analytics, wards, staff list, profile
 - Patient edits reuse `PatientFormScreen(existing:)`; the ward is changed only via Transfer.
 - List UI uses `InsetGroup` / `SettingsRow` (`lib/widgets/inset_group.dart`) — iOS inset-grouped rows.
@@ -88,7 +88,7 @@ Test the schema locally without Docker: `supabase/tests/README.md` (suites 10–
 - `lib/main.dart` → `lib/app/startup.dart` (`prepareApp`, each step isolated) and `lib/app/foliomed_app.dart` (providers, theme, routes)
 - `lib/app/routes.dart` — `Routes` (launch, welcome, sign-in, role, alert setup, home); `lib/app/home_shell.dart` — tab bar (`HomeShell`)
 - `lib/screens/start/` — launch decision (`decideLaunch`), welcome, sign in, role, alert setup
-- `lib/screens/patients/` — `PatientScreen` (summary, newborn, reminders, timeline by day), `PatientFormScreen` (add/edit)
+- `lib/screens/patients/` — `PatientScreen` (contact-card header + Note/Job/Reminder buttons; Overview | Timeline), `PatientFormScreen` (add/edit)
 - `lib/screens/notes/` — compose sheet, reply thread, confirm sheet, note actions (`FeedNote`, `NoteLine`)
 - `lib/screens/account/` — `AccountScreen` (Profile tab), edit sheet; `lib/screens/help/` — help centre + topics; `lib/screens/admin/` — Overview, People, admin ward page
 - Providers: `AccountProvider`, `PatientRoster`, `WardFeed`, `ReminderProvider`, `UnitProvider`, `AlertInbox`, `AppearanceProvider` (theme + extra text size on top of the phone's)

@@ -125,31 +125,7 @@ class _PatientRemindersSectionState extends State<PatientRemindersSection> {
     );
   }
 
-  Future<void> _add(BuildContext context) async {
-    final provider = context.read<ReminderProvider>();
-    final p = widget.patient;
-    final draft = await showAppSheet<_Draft>(
-      context: context,
-      isScrollControlled: true,
-      builder: (_) => _AddReminderSheet(patient: p),
-    );
-    if (draft == null) return;
-    final ok = await provider.add(
-      patientId: p.id,
-      wardId: p.wardId,
-      patientName: p.name,
-      title: draft.title,
-      dueAt: draft.dueAt,
-    );
-    await ReminderNotifications.instance.requestPermission();
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      backgroundColor: ok ? null : AppColors.danger,
-      content: Text(ok
-          ? 'Reminder set for ${formatDueTime(draft.dueAt)}'
-          : friendlyError(provider.lastException ?? 'unknown error')),
-    ));
-  }
+  Future<void> _add(BuildContext context) => showAddReminder(context, widget.patient);
 }
 
 class _ReminderTile extends StatelessWidget {
@@ -284,4 +260,30 @@ class _AddReminderSheetState extends State<_AddReminderSheet> {
       ),
     );
   }
+}
+
+/// "Remind the ward…" for [p]: due time + title, then confirms.
+Future<void> showAddReminder(BuildContext context, Patient p) async {
+  final provider = context.read<ReminderProvider>();
+  final draft = await showAppSheet<_Draft>(
+    context: context,
+    isScrollControlled: true,
+    builder: (_) => _AddReminderSheet(patient: p),
+  );
+  if (draft == null) return;
+  final ok = await provider.add(
+    patientId: p.id,
+    wardId: p.wardId,
+    patientName: p.name,
+    title: draft.title,
+    dueAt: draft.dueAt,
+  );
+  await ReminderNotifications.instance.requestPermission();
+  if (!context.mounted) return;
+  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+    backgroundColor: ok ? null : AppColors.danger,
+    content: Text(ok
+        ? 'Reminder set for ${formatDueTime(draft.dueAt)}'
+        : friendlyError(provider.lastException ?? 'unknown error')),
+  ));
 }

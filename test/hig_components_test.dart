@@ -6,8 +6,8 @@ import 'package:foliomed/providers/appearance_provider.dart';
 import 'package:foliomed/services/accessibility_settings.dart';
 import 'package:foliomed/widgets/large_title_app_bar.dart';
 import 'package:foliomed/widgets/note_tile.dart';
-import 'package:foliomed/providers/reminder_provider.dart';
-import 'package:foliomed/screens/shared/patients_screen.dart';
+import 'package:foliomed/screens/patients/patient_board.dart';
+import 'package:foliomed/widgets/patient_row.dart';
 import 'package:provider/provider.dart';
 
 Note _note({bool acknowledged = false, String content = 'BP 120/80'}) => Note(
@@ -153,7 +153,7 @@ void main() {
     });
   });
 
-  testWidgets('PatientRow shows bed, age and ID and fits 2x text', (tester) async {
+  testWidgets('PatientRow shows bed, age, diagnosis and status, and fits 2x text', (tester) async {
     final patient = Patient(
       id: 'p1',
       patientCode: 'FM000042',
@@ -165,13 +165,21 @@ void main() {
       diagnosis: 'Pneumonia',
       admittedAt: DateTime(2026, 10, 1),
     );
-    await tester.pumpWidget(ChangeNotifierProvider<ReminderProvider>(
-      create: (_) => ReminderProvider(),
-      child: _app(Material(child: PatientRow(patient: patient)), textScale: 2),
+    await tester.pumpWidget(_app(
+      Material(
+        child: PatientRow(
+          patient: patient,
+          signals: const PatientSignals(overdueReminders: 1, openJobs: 2, phototherapy: true),
+        ),
+      ),
+      textScale: 2,
     ));
     expect(find.text('12'), findsOneWidget);
     expect(find.textContaining('34 y'), findsOneWidget);
-    expect(find.textContaining('FM000042'), findsOneWidget);
+    expect(find.text('Pneumonia'), findsOneWidget);
+    expect(find.byIcon(Icons.alarm), findsOneWidget);
+    expect(find.byIcon(Icons.light_mode), findsOneWidget);
+    expect(find.text('2'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

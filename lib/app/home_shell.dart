@@ -13,7 +13,7 @@ import '../providers/appearance_provider.dart';
 import '../providers/unit_provider.dart';
 import '../screens/admin/admin_overview_screen.dart';
 import '../screens/admin/admin_people_screen.dart';
-import '../screens/shared/patients_screen.dart';
+import '../screens/patients/patients_screen.dart';
 import '../screens/account/account_screen.dart';
 import '../screens/today/today_screen.dart';
 import '../screens/tools/tools_screen.dart';
