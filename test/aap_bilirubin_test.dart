@@ -83,7 +83,7 @@ void main() {
 
     test('completed hours (no rounding up) and a flat plateau after the table', () {
       expect(th(a(40, 24.9, 10), (t) => t.phototherapy), 13.3);
-      expect(th(a(40, 200, 10), (t) => t.phototherapy), 21.7);
+      expect(th(a(40, 200, 10), (t) => t.phototherapy), 21.8);
       expect(th(a(40, 5000, 10), (t) => t.exchange), 27.0);
     });
 

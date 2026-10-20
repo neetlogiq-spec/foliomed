@@ -122,9 +122,11 @@ class NiceCg98 implements BilirubinGuideline {
       'the thresholds for review in 2023). Check the current NICE table and '
       'your laboratory\'s assay before acting.';
 
-  /// hours → [repeat, consider phototherapy, phototherapy, exchange] (µmol/L)
-  static const Map<int, List<double>> table = {
-    0: [100, 100, 100, 100],
+  /// hours → [repeat, consider phototherapy, phototherapy, exchange]
+  /// (µmol/L), as published; null = the cell is blank in the NICE table
+  /// (no "repeat"/"consider" band at birth, no "repeat" band after 72 h).
+  static const Map<int, List<double?>> table = {
+    0: [null, null, 100, 100],
     6: [100, 112, 125, 150],
     12: [100, 125, 150, 200],
     18: [100, 137, 175, 250],
@@ -137,10 +139,10 @@ class NiceCg98 implements BilirubinGuideline {
     60: [175, 225, 275, 450],
     66: [187, 237, 287, 450],
     72: [200, 250, 300, 450],
-    78: [212, 262, 312, 450],
-    84: [225, 275, 325, 450],
-    90: [237, 287, 337, 450],
-    96: [250, 300, 350, 450],
+    78: [null, 262, 312, 450],
+    84: [null, 275, 325, 450],
+    90: [null, 287, 337, 450],
+    96: [null, 300, 350, 450],
   };
 
   static BiliThresholds thresholdsAt(double hours) {
@@ -150,12 +152,18 @@ class NiceCg98 implements BilirubinGuideline {
     final a = table[lower]!;
     final b = table[upper]!;
     final t = upper == lower ? 0.0 : (h - lower) / (upper - lower);
-    double lerp(int i) => a[i] + (b[i] - a[i]) * t;
+    // A blank cell at either end means no band between those rows.
+    double? lerp(int i) {
+      final x = a[i], y = b[i];
+      if (t == 0) return x;
+      if (x == null || y == null) return null;
+      return x + (y - x) * t;
+    }
     return BiliThresholds(
       repeat: lerp(0),
       considerPhototherapy: lerp(1),
-      phototherapy: lerp(2),
-      exchange: lerp(3),
+      phototherapy: lerp(2)!,
+      exchange: lerp(3)!,
     );
   }
 
@@ -182,9 +190,9 @@ class NiceCg98 implements BilirubinGuideline {
         ? BiliAction.exchange
         : tsbUmol > th.phototherapy
             ? BiliAction.phototherapy
-            : tsbUmol > th.considerPhototherapy!
+            : th.considerPhototherapy != null && tsbUmol > th.considerPhototherapy!
                 ? BiliAction.considerPhototherapy
-                : tsbUmol > th.repeat!
+                : th.repeat != null && tsbUmol > th.repeat!
                     ? BiliAction.repeat
                     : BiliAction.none;
     return BiliAssessment(
