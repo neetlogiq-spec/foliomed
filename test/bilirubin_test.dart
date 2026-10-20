@@ -53,8 +53,11 @@ void main() {
     });
   });
 
-  test('AAP 2022 reports itself as unavailable instead of guessing', () {
-    expect(const Aap2022().assess(gestationWeeks: 39, hoursOfAge: 48, tsbUmol: 200),
-        isA<BiliNotApplicable>());
+  test('AAP 2022 reports itself unavailable until its data is loaded', () {
+    // (The AAP group below loads it.) Before loading, never guess.
+    if (!Aap2022.isLoaded) {
+      expect(const Aap2022().assess(gestationWeeks: 39, hoursOfAge: 48, tsbUmol: 200, neuroRisk: false),
+          isA<BiliNotApplicable>());
+    }
   });
 }

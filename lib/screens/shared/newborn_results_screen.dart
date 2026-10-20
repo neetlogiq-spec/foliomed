@@ -165,6 +165,7 @@ class _NewbornResultsScreenState extends State<NewbornResultsScreen> {
           gestationWeeks: widget.patient.gestationWeeks,
           hoursOfAge: hours,
           tsbUmol: umol,
+          neuroRisk: widget.patient.neuroRisk,
         ),
     ];
   }
@@ -373,8 +374,10 @@ class _BilirubinCard extends StatelessWidget {
   static Color _color(BiliAction a) => switch (a) {
         BiliAction.none => AppColors.accent,
         BiliAction.repeat => AppColors.primary,
+        BiliAction.approaching => AppColors.primary,
         BiliAction.considerPhototherapy => AppColors.warning,
         BiliAction.phototherapy => AppColors.danger,
+        BiliAction.escalation => AppColors.danger,
         BiliAction.exchange => AppColors.danger,
       };
 
@@ -435,7 +438,7 @@ class _BilirubinCard extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           'At ${a.hoursOfAge.round()} h: TSB ${both(a.tsbUmol)}.\n'
-          'Phototherapy > ${both(t.phototherapy)} · exchange > ${both(t.exchange)}.\n'
+          '${a.guideline == 'NICE CG98' ? 'Phototherapy > ${both(t.phototherapy)} · exchange > ${both(t.exchange)}' : 'Phototherapy ≥ ${both(t.phototherapy)} · escalation ≥ ${both(t.escalation!)} · exchange ≥ ${both(t.exchange)}'}.\n'
           '${a.action.detail}',
           style: AppTypography.footnote(color: AppColors.textSecondary),
         ),

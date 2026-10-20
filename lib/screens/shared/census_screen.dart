@@ -301,7 +301,7 @@ class _HandoverCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final p = item.patient;
     final flags = item.flags(now);
-    final a = item.niceAssessment;
+    final a = item.assessment;
     final wc = item.weightChange;
     final pending = item.openReminders.where((r) => !r.isOverdueAt(now)).toList();
     Widget line(IconData icon, String text, {Color? color}) => Padding(
@@ -355,7 +355,7 @@ class _HandoverCard extends StatelessWidget {
                 line(Icons.show_chart,
                     'Last ${item.bilirubin!.transcutaneous ? 'TcB' : 'TSB'} '
                     '${item.bilirubin!.value} ${item.bilirubin!.isUmol ? 'µmol/L' : 'mg/dL'}'
-                    '${a == null ? '' : ' · NICE: ${a.action.label}'}'),
+                    '${a == null ? '' : ' · ${a.guideline}: ${a.action.label}'}'),
               if (wc != null && wc.flag == WeightFlag.ok)
                 line(Icons.monitor_weight_outlined, 'Weight ${wc.label} from birth'),
               for (final r in pending.take(2)) line(Icons.schedule, r.title),

@@ -77,7 +77,7 @@ void main() {
       expect(text, startsWith('Bed 4 · Baby of p1 · '));
       expect(text.split('\n').first, endsWith(' · Unit A'));
       expect(text, contains('Pending: Repeat TSB'));
-      expect(text, contains('(NICE: Start phototherapy)'));
+      expect(text, contains('(NICE CG98: Start phototherapy)'));
     });
 
     test('sorts by unit order, then bed numerically, then name', () {

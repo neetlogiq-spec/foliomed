@@ -76,6 +76,14 @@ class Patient {
   final int? motherAge;
   final String? gravidaPara;
 
+  /// AAP neurotoxicity risk factors (names of `NeuroRiskFactor`). Null =
+  /// not yet assessed; empty = assessed, none. Saved separately
+  /// (PatientService.setNeuroRiskFactors), so [toRow] never writes it.
+  final List<String>? neuroRiskFactors;
+
+  /// true/false once assessed, null before.
+  bool? get neuroRisk => neuroRiskFactors == null ? null : neuroRiskFactors!.isNotEmpty;
+
   const Patient({
     required this.id,
     this.patientCode = '',
@@ -108,6 +116,7 @@ class Patient {
     this.motherName,
     this.motherAge,
     this.gravidaPara,
+    this.neuroRiskFactors,
   });
 
   /// "39+2 wk", or null when not recorded.
@@ -167,6 +176,7 @@ class Patient {
       motherName: row['mother_name'] as String?,
       motherAge: (row['mother_age'] as num?)?.toInt(),
       gravidaPara: row['gravida_para'] as String?,
+      neuroRiskFactors: (row['neuro_risk_factors'] as List?)?.cast<String>(),
     );
   }
 
@@ -245,6 +255,7 @@ class Patient {
       motherName: motherName,
       motherAge: motherAge,
       gravidaPara: gravidaPara,
+      neuroRiskFactors: neuroRiskFactors,
     );
   }
 

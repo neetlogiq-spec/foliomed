@@ -2,6 +2,7 @@ import '../models/newborn_tracking.dart';
 import '../models/patient.dart';
 import '../models/patient_reminder.dart';
 import 'bilirubin.dart';
+import 'bilirubin_assess.dart';
 import 'birth_summary.dart';
 
 /// Everything the handover shows for one patient.
@@ -22,16 +23,12 @@ class HandoverItem {
   final PhototherapySession? phototherapy;
   final WeightEntry? weight;
 
-  /// NICE action for the latest bilirubin, when it can be assessed.
-  BiliAssessment? get niceAssessment {
-    final b = bilirubin, born = patient.bornAt;
-    if (b == null || born == null) return null;
-    final a = const NiceCg98().assess(
-      gestationWeeks: patient.gestationWeeks,
-      hoursOfAge: b.measuredAt.difference(born).inMinutes / 60,
-      tsbUmol: b.umol,
-    );
-    return a is BiliAssessment ? a : null;
+  /// Guideline action for the latest bilirubin (preferred guideline, else
+  /// the other), when it can be assessed.
+  BiliAssessment? get assessment {
+    final b = bilirubin;
+    if (b == null) return null;
+    return assessForPatient(patient, b.measuredAt, b.umol);
   }
 
   WeightChange? get weightChange {
@@ -46,7 +43,7 @@ class HandoverItem {
     if (overdue.isNotEmpty) {
       out.add('OVERDUE: ${overdue.map((r) => r.title).join('; ')}');
     }
-    final a = niceAssessment;
+    final a = assessment;
     if (a != null && a.action.index >= BiliAction.considerPhototherapy.index) {
       out.add('Bilirubin: ${a.action.label}');
     }
@@ -73,7 +70,7 @@ class HandoverItem {
         'Last ${bilirubin!.transcutaneous ? 'TcB' : 'TSB'} ${_n(bilirubin!.value)} '
             '${bilirubin!.isUmol ? 'µmol/L' : 'mg/dL'} at '
             '${p.bornAt == null ? '' : '${bilirubin!.measuredAt.difference(p.bornAt!).inHours} h'}'
-            '${niceAssessment == null ? '' : ' (NICE: ${niceAssessment!.action.label})'}',
+            '${assessment == null ? '' : ' (${assessment!.guideline}: ${assessment!.action.label})'}',
       if (weightChange != null) 'Weight ${(weight!.grams / 1000).toStringAsFixed(2)} kg (${weightChange!.label})',
       for (final r in openReminders.where((r) => !r.isOverdueAt(now)).take(2))
         'Pending: ${r.title}',

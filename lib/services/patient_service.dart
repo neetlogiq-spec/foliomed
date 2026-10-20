@@ -119,6 +119,19 @@ class PatientService {
   Future<void> moveToUnit(String patientId, String? unitId) => _client.rpc(
       'move_patient_unit', params: {'p_patient': patientId, 'p_unit': unitId});
 
+  /// Records the AAP neurotoxicity risk factors (empty list = none).
+  Future<void> setNeuroRiskFactors(String patientId, List<String> factors) async {
+    final rows = await _patients
+        .update({'neuro_risk_factors': factors})
+        .eq('id', patientId)
+        .select('id');
+    if (rows.isEmpty) {
+      throw const PostgrestException(
+          message: "You can't edit this patient — you may no longer be in their ward.",
+          code: '42501');
+    }
+  }
+
   /// Notes and their comments cascade-delete in Postgres.
   Future<void> deletePatient(String patientId) async {
     await _patients.delete().eq('id', patientId);

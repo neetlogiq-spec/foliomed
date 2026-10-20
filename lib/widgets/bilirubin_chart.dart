@@ -2,13 +2,13 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../clinical/bilirubin.dart';
+import '../clinical/bilirubin_assess.dart';
 import '../models/newborn_tracking.dart';
 import '../utils/app_theme.dart';
 import '../utils/app_typography.dart';
 
-/// Bilirubin against hours of life: NICE phototherapy and exchange lines
-/// (≥38 weeks), each reading (serum filled, transcutaneous hollow), and
+/// Bilirubin against hours of life: the guideline's phototherapy,
+/// escalation (AAP) and exchange lines, each reading (serum filled, transcutaneous hollow), and
 /// phototherapy periods shaded. Values are plotted in µmol/L; the axis
 /// also labels mg/dL.
 class BilirubinChart extends StatelessWidget {
@@ -17,13 +17,14 @@ class BilirubinChart extends StatelessWidget {
     required this.bornAt,
     required this.readings,
     required this.sessions,
-    required this.showNiceLines,
+    required this.lines,
   });
 
   final DateTime bornAt;
   final List<BilirubinReading> readings;
   final List<PhototherapySession> sessions;
-  final bool showNiceLines;
+  /// Null when no guideline applies to this baby (lines not drawn).
+  final ThresholdLines? lines;
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +38,7 @@ class BilirubinChart extends StatelessWidget {
       [now, ...points.map((p) => p.hours)].reduce(math.max) + 12,
     ).clamp(24.0, 336.0);
     final maxUmol = math.max(
-      showNiceLines ? 500.0 : 300.0,
+      lines != null ? 500.0 : 300.0,
       points.isEmpty ? 0.0 : points.map((p) => p.umol).reduce(math.max) * 1.15,
     );
     final semantics = points.isEmpty
@@ -61,7 +62,7 @@ class BilirubinChart extends StatelessWidget {
             ],
             maxHours: maxHours.toDouble(),
             maxUmol: maxUmol,
-            showNice: showNiceLines,
+            lines: lines,
             nowHours: now,
             colors: _ChartColors(
               grid: AppColors.divider,
@@ -99,7 +100,7 @@ class _ChartPainter extends CustomPainter {
     required this.bands,
     required this.maxHours,
     required this.maxUmol,
-    required this.showNice,
+    required this.lines,
     required this.nowHours,
     required this.colors,
     required this.labelStyle,
@@ -109,7 +110,7 @@ class _ChartPainter extends CustomPainter {
   final List<({double from, double to})> bands;
   final double maxHours;
   final double maxUmol;
-  final bool showNice;
+  final ThresholdLines? lines;
   final double nowHours;
   final _ChartColors colors;
   final TextStyle labelStyle;
@@ -157,29 +158,35 @@ class _ChartPainter extends CustomPainter {
             ..strokeWidth = 1);
     }
 
-    // NICE lines.
-    if (showNice) {
-      Path line(double Function(BiliThresholds) pick) {
+    // Guideline lines.
+    final l = lines;
+    if (l != null) {
+      Path? line(double? Function(double) at_) {
         final p = Path();
-        for (var h = 0.0; h <= maxHours; h += 2) {
-          final o = at(h, pick(NiceCg98.thresholdsAt(h)));
-          h == 0 ? p.moveTo(o.dx, o.dy) : p.lineTo(o.dx, o.dy);
+        var started = false;
+        for (var h = 1.0; h <= maxHours; h += 1) {
+          final v = at_(h);
+          if (v == null) continue;
+          final o = at(h, v);
+          started ? p.lineTo(o.dx, o.dy) : p.moveTo(o.dx, o.dy);
+          started = true;
         }
-        return p;
+        return started ? p : null;
       }
 
-      canvas.drawPath(
-          line((t) => t.phototherapy),
-          Paint()
-            ..color = colors.photo
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 2);
-      canvas.drawPath(
-          line((t) => t.exchange),
-          Paint()
-            ..color = colors.exchange
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 2);
+      void stroke(Path? p, Color c, double w) {
+        if (p == null) return;
+        canvas.drawPath(p, Paint()
+          ..color = c
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = w);
+      }
+
+      stroke(line(l.phototherapy), colors.photo, 2);
+      if (l.escalation != null) {
+        stroke(line(l.escalation!), colors.exchange.withValues(alpha: 0.45), 1.5);
+      }
+      stroke(line(l.exchange), colors.exchange, 2);
     }
 
     // Readings, joined in time order.
@@ -221,5 +228,5 @@ class _ChartPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _ChartPainter old) =>
       old.points != points || old.bands != bands || old.maxHours != maxHours ||
-      old.showNice != showNice || old.colors.point != colors.point;
+      old.lines?.guideline != lines?.guideline || old.colors.point != colors.point;
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../clinical/bilirubin.dart';
+import '../clinical/bilirubin_assess.dart';
 import '../clinical/birth_summary.dart';
 import '../models/newborn_screen.dart';
 import '../models/patient.dart';
@@ -134,17 +135,13 @@ class _ResultsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final r = screen.results;
-    BiliAssessment? nice;
+    BiliAssessment? assessment;
     if (r.tsbTotal != null && patient.bornAt != null) {
       final at = r.sampledAt ?? screen.sentAt ?? screen.dueAt;
-      final a = const NiceCg98().assess(
-        gestationWeeks: patient.gestationWeeks,
-        hoursOfAge: at.difference(patient.bornAt!).inMinutes / 60,
-        tsbUmol: r.biliUnit == BiliUnit.mgdl ? mgdlToUmol(r.tsbTotal!) : r.tsbTotal!,
-      );
-      if (a is BiliAssessment) nice = a;
+      assessment = assessForPatient(patient, at,
+          r.biliUnit == BiliUnit.mgdl ? mgdlToUmol(r.tsbTotal!) : r.tsbTotal!);
     }
-    final alert = nice != null && nice.action.index >= BiliAction.considerPhototherapy.index;
+    final alert = assessment != null && assessment.action.index >= BiliAction.considerPhototherapy.index;
     return Material(
       type: MaterialType.transparency,
       child: InkWell(
@@ -170,8 +167,8 @@ class _ResultsRow extends StatelessWidget {
                   children: [
                     Text('${screen.plannedHours}-hour results',
                         style: AppTypography.body(color: AppColors.textPrimary)),
-                    if (nice != null)
-                      Text('NICE: ${nice.action.label}',
+                    if (assessment != null)
+                      Text('${assessment.guideline}: ${assessment.action.label}',
                           style: AppTypography.subheadline(
                               color: alert ? AppColors.danger : AppColors.accent,
                               weight: FontWeight.w600)),

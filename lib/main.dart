@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'config/supabase_config.dart';
 import 'services/accessibility_settings.dart';
 import 'services/reminder_notifications.dart';
 import 'services/push_registration.dart';
+import 'clinical/bilirubin.dart';
+import 'clinical/bilirubin_assess.dart';
 import 'utils/app_theme.dart';
 import 'utils/app_routes.dart';
 import 'providers/providers.dart';
@@ -18,6 +21,12 @@ void main() async {
   await AccessibilitySettings.init();
   await ReminderNotifications.instance.init();
   await PushRegistration.instance.initFirebase();
+  try {
+    Aap2022.loadJson(await rootBundle.loadString('assets/clinical/aap2022_bilirubin.json'));
+    await GuidelinePreference.load();
+  } catch (e) {
+    debugPrint('AAP thresholds not loaded: $e'); // AAP then reports "could not be loaded"
+  }
   if (!SupabaseConfig.isConfigured) {
     runApp(const _MissingConfigApp());
     return;
