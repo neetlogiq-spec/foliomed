@@ -18,7 +18,7 @@ import '../../utils/app_typography.dart';
 import '../../utils/formatting.dart';
 import '../../utils/haptics.dart';
 import '../../utils/layout.dart';
-import '../../widgets/empty_state.dart';
+import '../../widgets/empty_placeholder.dart';
 import '../../widgets/large_title_app_bar.dart';
 import '../notes/note_actions.dart';
 import '../../widgets/alert_inbox_sheet.dart';
@@ -85,7 +85,7 @@ class _TodayScreenState extends State<TodayScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final wardIds =
-        context.watch<AccountProvider>().currentUser?.wardIds ?? const <String>[];
+        context.watch<AccountProvider>().currentUser?.wards ?? const <String>[];
     if (!_sameList(wardIds, _subscribedWardIds)) {
       _subscribedWardIds = List.of(wardIds);
       WidgetsBinding.instance.addPostFrameCallback((_) => _subscribe());
@@ -103,7 +103,7 @@ class _TodayScreenState extends State<TodayScreen> {
       [for (var i = 0; i < a.length; i++) a[i] == b[i]].every((x) => x);
 
   void _addPatient() {
-    final wardIds = context.read<AccountProvider>().currentUser?.wardIds ?? [];
+    final wardIds = context.read<AccountProvider>().currentUser?.wards ?? [];
     Navigator.of(context).push(MaterialPageRoute(
       builder: (_) => PatientFormScreen(
         initialWardId: wardIds.isNotEmpty ? wardIds.first : null,
@@ -200,13 +200,13 @@ class _TodayScreenState extends State<TodayScreen> {
         context.watch<PatientRoster>().patients.where(f.patient).length;
     final notes = context.watch<WardFeed>();
     final urgentOpen = notes.urgent
-        .where((n) => !n.isAcknowledged && f.note(n))
+        .where((n) => !n.isConfirmed && f.note(n))
         .length;
     // The provider's pending count covers every note; a scoped count has
     // to come from the (recent) notes list.
     final pending = f.scope.isAll
         ? notes.pendingCount
-        : notes.feed.where((n) => !n.isAcknowledged && f.note(n)).length;
+        : notes.feed.where((n) => !n.isConfirmed && f.note(n)).length;
     return Row(
       children: [
         _Tile(
@@ -262,7 +262,7 @@ class _TodayScreenState extends State<TodayScreen> {
     final np = context.watch<WardFeed>();
     final f = _filter();
     final List<Note> all = switch (_feed) {
-      _Feed.pending => np.feed.where((n) => !n.isAcknowledged).toList(),
+      _Feed.pending => np.feed.where((n) => !n.isConfirmed).toList(),
       _Feed.urgent => np.urgent,
       _Feed.all => np.feed,
     }.where(f.note).toList();
@@ -336,7 +336,7 @@ class _TodayScreenState extends State<TodayScreen> {
         color: AppColors.card,
         borderRadius: BorderRadius.circular(AppRadii.card),
       ),
-      child: EmptyState(icon: icon, title: title, subtitle: subtitle),
+      child: EmptyPlaceholder(icon: icon, title: title, subtitle: subtitle),
     );
   }
 }

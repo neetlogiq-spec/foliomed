@@ -18,13 +18,13 @@ import '../../utils/app_theme.dart';
 import '../../utils/app_typography.dart';
 import '../../utils/haptics.dart';
 import '../../utils/stream_cache.dart';
-import '../../widgets/empty_state.dart';
+import '../../widgets/empty_placeholder.dart';
 import '../../widgets/inset_group.dart';
 import '../../widgets/large_title_app_bar.dart';
 import '../../widgets/scope_button.dart';
 import '../patients/patient_screen.dart';
 
-enum _Mode { census, handover }
+enum _CensusView { census, handover }
 
 /// Daily census per ward/unit, and a shareable handover list — both for
 /// the Ward ▸ Unit filter in use.
@@ -38,7 +38,7 @@ class CensusScreen extends StatefulWidget {
 class _CensusScreenState extends State<CensusScreen> {
   static final _discharged = StreamCache<List<Patient>>();
 
-  _Mode _mode = _Mode.census;
+  _CensusView _mode = _CensusView.census;
   DateTime _day = DateTime.now();
   Future<TrackingSnapshot>? _snapshot;
   String _snapshotKey = '';
@@ -61,10 +61,10 @@ class _CensusScreenState extends State<CensusScreen> {
           return CustomScrollView(
             slivers: [
               LargeTitleAppBar(
-                title: _mode == _Mode.census ? 'Census' : 'Handover',
+                title: _mode == _CensusView.census ? 'Census' : 'Handover',
                 showBackButton: true,
                 actions: [
-                  if (_mode == _Mode.handover)
+                  if (_mode == _CensusView.handover)
                     ChromeIconButton(
                       icon: Icons.ios_share,
                       tooltip: 'Share handover',
@@ -76,7 +76,7 @@ class _CensusScreenState extends State<CensusScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 4, 16, 40),
                 sliver: SliverList.list(
                   children: [
-                    CupertinoSlidingSegmentedControl<_Mode>(
+                    CupertinoSlidingSegmentedControl<_CensusView>(
                       groupValue: _mode,
                       onValueChanged: (m) {
                         if (m == null) return;
@@ -84,14 +84,14 @@ class _CensusScreenState extends State<CensusScreen> {
                         setState(() => _mode = m);
                       },
                       children: {
-                        _Mode.census: _seg('Census'),
-                        _Mode.handover: _seg('Handover'),
+                        _CensusView.census: _seg('Census'),
+                        _CensusView.handover: _seg('Handover'),
                       },
                     ),
                     const SizedBox(height: 6),
                     const Align(alignment: Alignment.centerLeft, child: ScopeButton()),
                     const SizedBox(height: 10),
-                    if (_mode == _Mode.census)
+                    if (_mode == _CensusView.census)
                       _census(active, wards)
                     else
                       _handover(active, units),
@@ -232,7 +232,7 @@ class _CensusScreenState extends State<CensusScreen> {
 
   Widget _handover(List<Patient> active, UnitProvider units) {
     if (active.isEmpty) {
-      return const EmptyState(
+      return const EmptyPlaceholder(
         icon: Icons.assignment_outlined,
         title: 'Nobody to hand over',
         subtitle: 'No admitted patients in this ward or unit.',
@@ -242,7 +242,7 @@ class _CensusScreenState extends State<CensusScreen> {
       future: _snapshotFor(active),
       builder: (context, snap) {
         if (snap.hasError) {
-          return EmptyState(
+          return EmptyPlaceholder(
             icon: Icons.cloud_off_outlined,
             title: "Couldn't load the handover",
             subtitle: 'Check your connection.',

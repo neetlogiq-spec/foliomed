@@ -58,7 +58,7 @@ class AccountProvider extends ChangeNotifier {
       await _service.updateProfile(
           name: name, avatarUrl: avatarUrl, avatarEmoji: avatarEmoji, specialty: specialty);
       _user = _user?.copyWith(
-          name: name, avatarUrl: avatarUrl, avatarEmoji: avatarEmoji, specialty: specialty);
+          name: name, photoUrl: avatarUrl, emoji: avatarEmoji, speciality: specialty);
       notifyListeners();
       return true;
     } catch (e) {

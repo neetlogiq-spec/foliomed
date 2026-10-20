@@ -16,7 +16,7 @@ import '../../utils/formatting.dart';
 import '../../utils/haptics.dart';
 import '../../utils/layout.dart';
 import '../../utils/stream_cache.dart';
-import '../../widgets/empty_state.dart';
+import '../../widgets/empty_placeholder.dart';
 import '../../widgets/scope_button.dart';
 import '../../widgets/tip_card.dart';
 import '../../providers/unit_provider.dart';
@@ -71,7 +71,7 @@ class _PatientsScreenState extends State<PatientsScreen> {
   Widget build(BuildContext context) {
     context.watch<AppearanceProvider>();
     final ids =
-        context.watch<AccountProvider>().currentUser?.wardIds ?? const <String>[];
+        context.watch<AccountProvider>().currentUser?.wards ?? const <String>[];
     return Scaffold(
       backgroundColor: AppColors.surface,
       body: StreamBuilder<List<Ward>>(
@@ -105,7 +105,7 @@ class _PatientsScreenState extends State<PatientsScreen> {
               if (wardSnap.hasError)
                 const SliverFillRemaining(
                   hasScrollBody: false,
-                  child: EmptyState(
+                  child: EmptyPlaceholder(
                     icon: Icons.cloud_off_outlined,
                     title: "Couldn't load your wards",
                     subtitle: 'Check your connection and try again.',
@@ -114,7 +114,7 @@ class _PatientsScreenState extends State<PatientsScreen> {
               else if (ids.isEmpty || (wardSnap.hasData && wards.isEmpty))
                 const SliverFillRemaining(
                   hasScrollBody: false,
-                  child: EmptyState(
+                  child: EmptyPlaceholder(
                     icon: Icons.corporate_fare_outlined,
                     title: 'No wards yet',
                     subtitle:
@@ -196,7 +196,7 @@ class _PatientsScreenState extends State<PatientsScreen> {
         if (snap.hasError) {
           return const SliverFillRemaining(
             hasScrollBody: false,
-            child: EmptyState(
+            child: EmptyPlaceholder(
               icon: Icons.cloud_off_outlined,
               title: "Couldn't load patients",
               subtitle: 'Pull to refresh or try again shortly.',
@@ -281,19 +281,19 @@ class _PatientsScreenState extends State<PatientsScreen> {
 
   Widget _empty() {
     if (_query.isNotEmpty) {
-      return EmptyState(
+      return EmptyPlaceholder(
         icon: Icons.person_search_outlined,
         title: 'No matches',
         subtitle: 'Nothing matches “${_search.text.trim()}”.',
       );
     }
     return _discharged
-        ? const EmptyState(
+        ? const EmptyPlaceholder(
             icon: Icons.logout,
             title: 'No discharged patients',
             subtitle: 'Patients you discharge appear here, newest first.',
           )
-        : const EmptyState(
+        : const EmptyPlaceholder(
             icon: Icons.bed_outlined,
             title: 'No patients admitted',
             subtitle: 'Tap + to admit your first patient.',

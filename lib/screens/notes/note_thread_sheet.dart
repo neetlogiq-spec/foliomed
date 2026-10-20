@@ -109,7 +109,7 @@ class _NoteThreadSheetState extends State<_NoteThreadSheet> {
                       children: [
                         Text(n.patientName.isEmpty ? 'Note' : n.patientName,
                             style: AppTypography.headline(color: AppColors.textPrimary)),
-                        Text('${n.category} · ${timeago.format(n.createdAt)}',
+                        Text('${n.kind} · ${timeago.format(n.createdAt)}',
                             style: AppTypography.footnote(color: AppColors.textSecondary)),
                       ],
                     ),
@@ -234,7 +234,7 @@ class _Original extends StatelessWidget {
           Text('${note.authorName}${note.authorRole.isEmpty ? '' : ' · ${note.authorRole}'}',
               style: AppTypography.footnote(color: AppColors.textSecondary, weight: FontWeight.w600)),
           const SizedBox(height: 6),
-          SelectableText(note.content,
+          SelectableText(note.text,
               style: AppTypography.body(color: AppColors.textPrimary).copyWith(height: 1.4)),
         ],
       ),

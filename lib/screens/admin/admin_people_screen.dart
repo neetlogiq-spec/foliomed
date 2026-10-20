@@ -129,7 +129,7 @@ class _AdminPeopleScreenState extends State<AdminPeopleScreen> {
                                 for (final p in shown.where((p) => p.role == role))
                                   SettingsRow(
                                     title: p.name.isEmpty ? '(no name)' : p.name,
-                                    subtitle: [p.email, if (!p.roleConfirmed) 'hasn’t picked a role yet'].join(' · '),
+                                    subtitle: [p.email, if (!p.hasChosenRole) 'hasn’t picked a role yet'].join(' · '),
                                     onTap: () => _changeRole(p),
                                   ),
                               ],

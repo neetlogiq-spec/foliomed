@@ -15,7 +15,7 @@ import '../screens/admin/admin_people_screen.dart';
 import '../screens/shared/patients_screen.dart';
 import '../screens/account/account_screen.dart';
 import '../screens/shared/today_screen.dart';
-import '../screens/shared/wards_screen.dart';
+import '../screens/shared/wards_tab.dart';
 import '../services/accessibility_settings.dart';
 import '../services/reminder_notifications.dart';
 import '../utils/app_theme.dart';
@@ -52,8 +52,8 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
 
   late final List<_Tab> _tabs = widget.role == UserRole.admin
       ? const [
-          _Tab('Overview', Icons.space_dashboard_outlined, Icons.space_dashboard, AdminHomeScreen()),
-          _Tab('Wards', Icons.corporate_fare_outlined, Icons.corporate_fare, WardsScreen()),
+          _Tab('Overview', Icons.space_dashboard_outlined, Icons.space_dashboard, AdminOverviewScreen()),
+          _Tab('Wards', Icons.corporate_fare_outlined, Icons.corporate_fare, WardsTab()),
           _Tab('People', Icons.badge_outlined, Icons.badge, AdminPeopleScreen()),
           _Tab('Profile', Icons.account_circle_outlined, Icons.account_circle, AccountScreen()),
         ]
@@ -62,7 +62,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
               TodayScreen(onOpenPatients: () => _select(1)),
               badge: (c) => c.watch<WardFeed>().pendingCount),
           const _Tab('Patients', Icons.people_outline, Icons.people, PatientsScreen()),
-          const _Tab('Wards', Icons.corporate_fare_outlined, Icons.corporate_fare, WardsScreen()),
+          const _Tab('Wards', Icons.corporate_fare_outlined, Icons.corporate_fare, WardsTab()),
           const _Tab('Profile', Icons.account_circle_outlined, Icons.account_circle, AccountScreen()),
         ];
 
@@ -116,7 +116,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
         context.read<PatientRoster>().pause();
       case AppLifecycleState.resumed:
         AccessibilitySettings.refresh();
-        final ids = context.read<AccountProvider>().currentUser?.wardIds ?? const <String>[];
+        final ids = context.read<AccountProvider>().currentUser?.wards ?? const <String>[];
         context.read<WardFeed>().watchWards(ids);
         context.read<PatientRoster>().watchWards(ids);
         context.read<ReminderProvider>().checkDue();
@@ -129,7 +129,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     context.watch<AppearanceProvider>();
     _syncWards(context.select<AccountProvider, List<String>>(
-        (a) => a.currentUser?.wardIds ?? const <String>[]));
+        (a) => a.currentUser?.wards ?? const <String>[]));
     return Scaffold(
       // Pages scroll beneath the translucent bar (see withBottomBarInset).
       extendBody: true,

@@ -32,14 +32,14 @@ class _Figures {
 
 /// The admin's home: today's activity, totals across FolioMed, latest
 /// notes, and every ward.
-class AdminHomeScreen extends StatefulWidget {
-  const AdminHomeScreen({super.key});
+class AdminOverviewScreen extends StatefulWidget {
+  const AdminOverviewScreen({super.key});
 
   @override
-  State<AdminHomeScreen> createState() => _AdminHomeScreenState();
+  State<AdminOverviewScreen> createState() => _AdminOverviewScreenState();
 }
 
-class _AdminHomeScreenState extends State<AdminHomeScreen> {
+class _AdminOverviewScreenState extends State<AdminOverviewScreen> {
   late Future<(_Figures, List<Map<String, dynamic>>)> _load = _fetch();
   final Stream<List<Ward>> _wards = WardService().getAllWards();
 
@@ -220,7 +220,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
               SettingsRow(
                 icon: Icons.corporate_fare,
                 title: w.name,
-                subtitle: [if (w.floor.isNotEmpty) w.floor, 'Code ${w.id}'].join(' · '),
+                subtitle: [if (w.location.isNotEmpty) w.location, 'Code ${w.id}'].join(' · '),
                 onTap: () => Navigator.of(context).push(MaterialPageRoute(
                   builder: (_) => AdminWardScreen(wardId: w.id),
                 )),

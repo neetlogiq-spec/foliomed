@@ -3,7 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/note.dart';
 import '../models/note_reply.dart';
 import '../models/row_parsing.dart';
-import 'metrics_service.dart';
+import 'usage_counters.dart';
 import 'supabase_service.dart';
 
 /// Reads and writes ward notes and their reply threads. Row-level security
@@ -57,7 +57,7 @@ class NotesRepository {
 
   Future<void> post(Note note) async {
     await _notes.insert(note.toRow());
-    MetricsService.bump('note', summary: 'A note was posted');
+    UsageCounters.bump('note', summary: 'A note was posted');
   }
 
   Map<String, dynamic> _confirmation(String byName) => {
@@ -68,13 +68,13 @@ class NotesRepository {
 
   Future<void> confirm(String noteId, String byName) async {
     await _notes.update(_confirmation(byName)).eq('id', noteId);
-    MetricsService.bump('ack', summary: 'A note was confirmed');
+    UsageCounters.bump('ack', summary: 'A note was confirmed');
   }
 
   Future<void> confirmMany(List<String> noteIds, String byName) async {
     if (noteIds.isEmpty) return;
     await _notes.update(_confirmation(byName)).inFilter('id', noteIds);
-    MetricsService.bump('ack', summary: '${noteIds.length} notes were confirmed');
+    UsageCounters.bump('ack', summary: '${noteIds.length} notes were confirmed');
   }
 
   Future<void> undoConfirm(String noteId) => _notes.update({
@@ -95,7 +95,7 @@ class NotesRepository {
 
   Future<void> reply(String noteId, NoteReply r) async {
     await _replies.insert(r.toRow(noteId));
-    MetricsService.bump('comment', summary: 'A reply was posted');
+    UsageCounters.bump('comment', summary: 'A reply was posted');
   }
 
   Future<void> removeReply(String noteId, String replyId) =>

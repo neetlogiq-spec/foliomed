@@ -92,7 +92,7 @@ class _IdentityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final emoji = me.avatarEmoji;
+    final emoji = me.emoji;
     return Material(
       color: AppColors.card,
       borderRadius: BorderRadius.circular(AppRadii.card),
@@ -121,7 +121,7 @@ class _IdentityCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: AppTypography.title3(color: AppColors.textPrimary)),
                     Text(
-                      [me.roleLabel, if ((me.specialty ?? '').isNotEmpty) me.specialty!].join(' · '),
+                      [me.roleLabel, if ((me.speciality ?? '').isNotEmpty) me.speciality!].join(' · '),
                       style: AppTypography.subheadline(color: me.roleColor),
                     ),
                     Text(me.email,

@@ -1,7 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/patient.dart';
-import 'metrics_service.dart';
+import 'usage_counters.dart';
 import 'supabase_service.dart';
 
 class PatientService {
@@ -72,7 +72,7 @@ class PatientService {
         .insert({...patient.toRow(), 'unit_id': patient.unitId})
         .select('id')
         .single();
-    MetricsService.bump('patient', summary: 'Admitted ${patient.name}');
+    UsageCounters.bump('patient', summary: 'Admitted ${patient.name}');
     return row['id'] as String;
   }
 

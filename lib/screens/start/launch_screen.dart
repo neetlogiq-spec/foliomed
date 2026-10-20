@@ -7,7 +7,7 @@ import 'package:provider/provider.dart';
 import '../../app/routes.dart';
 import '../../providers/account_provider.dart';
 import '../../services/push_registration.dart';
-import '../../services/push_service.dart';
+import '../../services/live_note_alerts.dart';
 import '../../services/review_request.dart';
 import '../../services/supabase_service.dart';
 import '../../utils/app_theme.dart';
@@ -50,7 +50,7 @@ class _LaunchScreenState extends State<LaunchScreen> {
     final signedIn = supabase.auth.currentUser != null;
     if (signedIn) {
       await auth.loadCurrentUser();
-      PushService.register();
+      LiveNoteAlerts.register();
       PushRegistration.instance.register();
       ReviewRequest.recordSession();
     }
@@ -59,7 +59,7 @@ class _LaunchScreenState extends State<LaunchScreen> {
       signedIn: signedIn,
       hasProfile: user != null,
       welcomeSeen: await WelcomeScreen.seen(),
-      roleConfirmed: user?.roleConfirmed ?? false,
+      roleConfirmed: user?.hasChosenRole ?? false,
       alertSetupNeeded: await AlertSetupScreen.needed(),
     );
     if (!mounted) return;

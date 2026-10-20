@@ -95,7 +95,7 @@ class PatientActionsButton extends StatelessWidget {
                 ),
               ListTile(
                 leading: const Icon(Icons.delete_outline, color: AppColors.danger),
-                title: Text('Delete permanently',
+                title: Text('Erase Patient',
                     style: AppTypography.body(color: AppColors.danger)),
                 subtitle: const Text('Erases the patient and all their notes'),
                 onTap: () => Navigator.pop(sheetContext, _Action.delete),
@@ -248,7 +248,7 @@ class PatientActionsButton extends StatelessWidget {
   }
 
   Future<void> _transfer(BuildContext context) async {
-    final myWards = context.read<AccountProvider>().currentUser?.wardIds ?? const [];
+    final myWards = context.read<AccountProvider>().currentUser?.wards ?? const [];
     final targets = myWards.where((id) => id != patient.wardId).toList();
     final result = await showAppSheet<_TransferRequest>(
       context: context,
@@ -372,7 +372,7 @@ class _TransferSheetState extends State<_TransferSheet> {
                           for (final w in wards)
                             ListTile(
                               title: Text(w.name),
-                              subtitle: Text(w.floor.isEmpty ? w.id : '${w.floor} · ${w.id}'),
+                              subtitle: Text(w.location.isEmpty ? w.id : '${w.location} · ${w.id}'),
                               trailing: _selected?.id == w.id
                                   ? Icon(Icons.check,
                                       color: AppColors.isDark

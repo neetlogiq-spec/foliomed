@@ -12,7 +12,7 @@ import '../../utils/app_theme.dart';
 import '../../utils/app_typography.dart';
 import '../../utils/friendly_error.dart';
 import '../../widgets/app_alert_dialog.dart';
-import '../../widgets/empty_state.dart';
+import '../../widgets/empty_placeholder.dart';
 import '../../widgets/inset_group.dart';
 import '../../widgets/large_title_app_bar.dart';
 import '../../widgets/note_tile.dart';
@@ -41,7 +41,7 @@ class _AdminWardScreenState extends State<AdminWardScreen> {
 
   Future<void> _rename(Ward w) async {
     final name = TextEditingController(text: w.name);
-    final floor = TextEditingController(text: w.floor);
+    final floor = TextEditingController(text: w.location);
     final save = await showAdaptiveDialog<bool>(
       context: context,
       builder: (ctx) => AppAlertDialog(
@@ -63,11 +63,11 @@ class _AdminWardScreenState extends State<AdminWardScreen> {
       await WardService().updateWard(Ward(
         id: w.id,
         name: name.text.trim(),
-        floor: floor.text.trim(),
-        capacity: w.capacity,
-        headDoctorName: w.headDoctorName,
-        creatorId: w.creatorId,
-        creatorEmail: w.creatorEmail,
+        location: floor.text.trim(),
+        beds: w.beds,
+        ownerName: w.ownerName,
+        ownerId: w.ownerId,
+        ownerEmail: w.ownerEmail,
         createdAt: w.createdAt,
       ));
       setState(() => _ward = WardService().getWard(widget.wardId));
@@ -104,7 +104,7 @@ class _AdminWardScreenState extends State<AdminWardScreen> {
                       Padding(
                         padding: const EdgeInsets.only(left: 4, bottom: 12),
                         child: Text(
-                          [if (w.floor.isNotEmpty) w.floor, 'Join code ${w.id}'].join(' · '),
+                          [if (w.location.isNotEmpty) w.location, 'Join code ${w.id}'].join(' · '),
                           style: AppTypography.subheadline(color: AppColors.textSecondary),
                         ),
                       ),
@@ -142,7 +142,7 @@ class _AdminWardScreenState extends State<AdminWardScreen> {
           if (!snap.hasData) return const Center(child: CircularProgressIndicator.adaptive());
           final people = snap.data!;
           if (people.isEmpty) {
-            return const EmptyState(icon: Icons.group_outlined, title: 'Nobody yet', subtitle: 'Share the join code to invite the team.');
+            return const EmptyPlaceholder(icon: Icons.group_outlined, title: 'Nobody yet', subtitle: 'Share the join code to invite the team.');
           }
           return InsetGroup(
             header: '${people.length} member${people.length == 1 ? '' : 's'}',
@@ -153,7 +153,7 @@ class _AdminWardScreenState extends State<AdminWardScreen> {
                   iconColor: p.roleColor,
                   title: p.name.isEmpty ? p.email : p.name,
                   subtitle: p.email,
-                  value: p.uid == w?.creatorId ? '${p.roleLabel} · Owner' : p.roleLabel,
+                  value: p.uid == w?.ownerId ? '${p.roleLabel} · Owner' : p.roleLabel,
                 ),
             ],
           );
@@ -170,7 +170,7 @@ class _AdminWardScreenState extends State<AdminWardScreen> {
           if (!snap.hasData) return const Center(child: CircularProgressIndicator.adaptive());
           final admitted = snap.data!.where((p) => p.isActive).toList();
           if (admitted.isEmpty) {
-            return const EmptyState(icon: Icons.bed_outlined, title: 'No admitted patients', subtitle: 'Nobody is admitted here right now.');
+            return const EmptyPlaceholder(icon: Icons.bed_outlined, title: 'No admitted patients', subtitle: 'Nobody is admitted here right now.');
           }
           return InsetGroup(
             header: '${admitted.length} admitted',
@@ -192,7 +192,7 @@ class _AdminWardScreenState extends State<AdminWardScreen> {
           if (!snap.hasData) return const Center(child: CircularProgressIndicator.adaptive());
           final notes = snap.data!;
           if (notes.isEmpty) {
-            return const EmptyState(icon: Icons.notes, title: 'No notes yet', subtitle: 'Notes posted in this ward appear here.');
+            return const EmptyPlaceholder(icon: Icons.notes, title: 'No notes yet', subtitle: 'Notes posted in this ward appear here.');
           }
           return Column(children: [
             for (final n in notes)

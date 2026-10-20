@@ -9,7 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../app/routes.dart';
 import '../../providers/account_provider.dart';
 import '../../services/push_registration.dart';
-import '../../services/push_service.dart';
+import '../../services/live_note_alerts.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/app_typography.dart';
 import '../../utils/friendly_error.dart';
@@ -59,7 +59,7 @@ class _SignInScreenState extends State<SignInScreen> {
       return;
     }
     await WelcomeScreen.markSeen();
-    PushService.register();
+    LiveNoteAlerts.register();
     PushRegistration.instance.register();
     final me = account.currentUser!;
     final placeholderName = me.name.trim().isEmpty || me.name.trim() == me.email.split('@').first;
@@ -95,7 +95,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 children: [
                   const Center(child: FolioMedMark(size: 64)),
                   const SizedBox(height: 22),
-                  Text('Sign in to FolioMed',
+                  Text('Sign in',
                       textAlign: TextAlign.center,
                       style: AppTypography.title1(color: AppColors.textPrimary)),
                   const SizedBox(height: 8),
@@ -116,7 +116,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     const SizedBox(height: 12),
                   ],
                   _ProviderButton(
-                    label: 'Continue with Google',
+                    label: 'Sign in with Google',
                     icon: Icons.g_mobiledata_rounded,
                     background: AppColors.card,
                     foreground: AppColors.textPrimary,

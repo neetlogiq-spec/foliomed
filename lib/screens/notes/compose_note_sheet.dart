@@ -104,9 +104,9 @@ class _ComposeNoteSheetState extends State<_ComposeNoteSheet> {
       authorId: me.uid,
       authorName: me.name,
       authorRole: me.roleLabel,
-      content: _text.text.trim(),
-      category: _kind,
-      priority: _urgency.label,
+      text: _text.text.trim(),
+      kind: _kind,
+      urgency: _urgency,
       createdAt: now,
       updatedAt: now,
     ));

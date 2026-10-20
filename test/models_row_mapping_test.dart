@@ -43,8 +43,8 @@ void main() {
       });
       expect(user.uid, 'u1');
       expect(user.role, UserRole.nurse);
-      expect(user.wardIds, ['12345', '67890']);
-      expect(user.avatarEmoji, '🩺');
+      expect(user.wards, ['12345', '67890']);
+      expect(user.emoji, '🩺');
     });
 
     test('unknown role falls back to nurse', () {
@@ -83,9 +83,9 @@ void main() {
       final ward = Ward(
         id: '12345',
         name: 'ICU',
-        floor: '',
-        capacity: 0,
-        headDoctorName: '',
+        location: '',
+        beds: 0,
+        ownerName: '',
         createdAt: DateTime.now(),
       );
       expect(ward.toRow()['creator_id'], isNull);
@@ -129,9 +129,9 @@ void main() {
         'created_at': '2026-10-19T00:00:00Z',
         'updated_at': '2026-10-19T00:30:00Z',
       });
-      expect(note.isAcknowledged, isTrue);
-      expect(note.acknowledgedAt, isNotNull);
-      expect(note.category, 'General');
+      expect(note.isConfirmed, isTrue);
+      expect(note.confirmedAt, isNotNull);
+      expect(note.kind, 'General');
     });
 
     test('toRow leaves server-managed columns out', () {

@@ -60,8 +60,8 @@ class _NoteTileState extends State<NoteTile> {
     final hasMenu = widget.onDelete != null || (n.isConfirmed && widget.onUndoConfirm != null);
     return Semantics(
       container: true,
-      label: '${n.isUrgent ? 'Urgent. ' : ''}${n.patientName}. ${n.content}. '
-          '${n.isConfirmed ? 'Confirmed by ${n.acknowledgedBy ?? 'a team member'}' : 'Waiting for confirmation'}',
+      label: '${n.isUrgent ? 'Urgent. ' : ''}${n.patientName}. ${n.text}. '
+          '${n.isConfirmed ? 'Confirmed by ${n.confirmedBy ?? 'a team member'}' : 'Waiting for confirmation'}',
       child: Pressable(
         onTap: widget.onOpen,
         onLongPress: hasMenu ? _menu : null,
@@ -95,11 +95,11 @@ class _NoteTileState extends State<NoteTile> {
               const SizedBox(height: 3),
               Row(
                 children: [
-                  Icon(n.categoryIcon, size: 14, color: AppColors.textSecondary),
+                  Icon(n.kindIcon, size: 14, color: AppColors.textSecondary),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
-                      [n.category, if (n.authorName.isNotEmpty) '${n.authorName}${n.authorRole.isEmpty ? '' : ' (${n.authorRole})'}']
+                      [n.kind, if (n.authorName.isNotEmpty) '${n.authorName}${n.authorRole.isEmpty ? '' : ' (${n.authorRole})'}']
                           .join(' · '),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -112,7 +112,7 @@ class _NoteTileState extends State<NoteTile> {
               const SizedBox(height: 8),
               LayoutBuilder(builder: (context, box) {
                 final tp = TextPainter(
-                  text: TextSpan(text: n.content, style: body),
+                  text: TextSpan(text: n.text, style: body),
                   maxLines: _collapsedLines,
                   textDirection: Directionality.of(context),
                   textScaler: MediaQuery.textScalerOf(context),
@@ -125,7 +125,7 @@ class _NoteTileState extends State<NoteTile> {
                       duration: AppMotion.reduced(context) ? Duration.zero : const Duration(milliseconds: 200),
                       alignment: Alignment.topLeft,
                       child: Text(
-                        n.content,
+                        n.text,
                         maxLines: _showAll ? null : _collapsedLines,
                         overflow: _showAll ? TextOverflow.visible : TextOverflow.ellipsis,
                         style: body,
@@ -200,12 +200,12 @@ class _Status extends StatelessWidget {
   Widget build(BuildContext context) {
     final n = note;
     if (n.isConfirmed) {
-      final when = n.acknowledgedAt == null ? '' : ' · ${formatClock(n.acknowledgedAt!.toLocal())}';
+      final when = n.confirmedAt == null ? '' : ' · ${formatClock(n.confirmedAt!.toLocal())}';
       return Row(children: [
         Icon(Icons.check_circle, size: 16, color: AppColors.accent),
         const SizedBox(width: 5),
         Flexible(
-          child: Text('Confirmed by ${n.acknowledgedBy ?? 'team'}$when',
+          child: Text('Confirmed by ${n.confirmedBy ?? 'team'}$when',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: AppTypography.footnote(color: AppColors.textSecondary)),

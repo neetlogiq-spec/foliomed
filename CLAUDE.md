@@ -20,7 +20,7 @@ Codemagic or `tools/release_ios.sh`) and Web — see `docs/RELEASING.md`. **Free
 - **Flutter** (Dart) — Android, iOS, Web
 - **Supabase Auth** — Google (Supabase-hosted OAuth + `com.foliomed.app://login-callback` deep link) and Apple (iOS, nonce flow) only; no passwords. Admin role is granted only via `set_user_role` (or SQL); new users pick doctor/nurse once (`confirm_my_role`).
 - **Supabase Postgres** — data, row-level security, triggers, RPCs
-- **Supabase Realtime** — live lists (`.stream()`) + in-app note alerts (`PushService`)
+- **Supabase Realtime** — live lists (`.stream()`) + in-app note alerts (`LiveNoteAlerts`)
 - **GitHub Pages** — landing + status + Flutter web app (see `.github/workflows/deploy.yml`)
 - **Provider** — state management
 - **Codemagic** — iOS → TestFlight on `ios-v*` tags (`codemagic.yaml`)
@@ -71,7 +71,7 @@ Firestore → Postgres mapping: `users`→`profiles`, `wards`, `patients`,
 Test the schema locally without Docker: `supabase/tests/README.md` (suites 10–95).
 
 ## User Roles & tabs
-- **Doctor / Nurse** — Today (`today_screen.dart`: tiles, reminders, collapsible Pending/All/Urgent note feed), Patients (`patients_screen.dart`, grouped by ward), Wards (`wards_screen.dart` → `ward_page.dart`), Profile. Doctors get the compose button in the nav bar; nurses confirm through the confirm sheet (`FeedNote`). UI says "confirm"; the DB column is still `is_acknowledged`.
+- **Doctor / Nurse** — Today (`today_screen.dart`: tiles, reminders, collapsible Pending/All/Urgent note feed), Patients (`patients_screen.dart`, grouped by ward), Wards (`wards_tab.dart` → `ward_page.dart`), Profile. Doctors get the compose button in the nav bar; nurses confirm through the confirm sheet (`FeedNote`). UI says "confirm"; the DB column is still `is_acknowledged`.
 - **Admin** — dashboard analytics, wards, staff list, profile
 - Patient edits reuse `PatientFormScreen(existing:)`; the ward is changed only via Transfer.
 - List UI uses `InsetGroup` / `SettingsRow` (`lib/widgets/inset_group.dart`) — iOS inset-grouped rows.
@@ -86,11 +86,11 @@ Test the schema locally without Docker: `supabase/tests/README.md` (suites 10–
 - `lib/screens/notes/` — compose sheet, reply thread, confirm sheet, note actions (`FeedNote`, `NoteLine`)
 - `lib/screens/account/` — `AccountScreen` (Profile tab), edit sheet; `lib/screens/help/` — help centre + topics; `lib/screens/admin/` — Overview, People, admin ward page
 - Providers: `AccountProvider`, `PatientRoster`, `WardFeed`, `ReminderProvider`, `UnitProvider`, `AlertInbox`, `AppearanceProvider` (theme + extra text size on top of the phone's)
-- Services: `AccountService` (Google/Apple via Supabase), `NotesRepository`, `PatientService`, `WardService`, `ReminderService`, `TrackingService`, `NewbornScreenService`, `UnitService`, `PushService` (in-app realtime alerts), `PushRegistration` (FCM)
+- Services: `AccountService` (Google/Apple via Supabase), `NotesRepository`, `PatientService`, `WardService`, `ReminderService`, `TrackingService`, `NewbornScreenService`, `UnitService`, `LiveNoteAlerts` (in-app realtime alerts), `PushRegistration` (FCM)
 - `lib/config/supabase_config.dart` / `firebase_config.dart` — dart-define config
 - `lib/utils/formatting.dart`, `friendly_error.dart` (all UI errors go through it), `stream_cache.dart`, `app_theme.dart` (palette-based Apple semantic colours)
 - `landing/`, `status/` — static pages; `landing/supabase-public.js` shared reader
-- `docs/provenance/` — Wardly provenance audit, per-file CSV and `compare.py` (re-run after big rewrites)
+- `docs/provenance/` — Wardly provenance audit, per-file CSV, `compare.py` (lines) and `deep_compare.py` (structure + wording) (re-run after big rewrites)
 
 ## Design system (Apple HIG)
 - Text: `appText(...)` / `appMonoText(...)` (`lib/utils/app_typography.dart`) — system font + size-specific tracking. Don't add Google Fonts.

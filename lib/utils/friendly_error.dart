@@ -48,14 +48,14 @@ String _database(PostgrestException e) {
       final m = e.message.trim();
       return m.isEmpty ? 'That isn’t allowed.' : '${m[0].toUpperCase()}${m.substring(1)}.';
   }
-  if (e.code != null && e.code!.startsWith('PGRST3')) return 'Please sign in again.';
+  if (e.code != null && e.code!.startsWith('PGRST3')) return 'You’ve been signed out. Sign in to carry on.';
   return 'That couldn’t be saved. Please try again.';
 }
 
 String _signIn(AuthException e) {
   final msg = e.message.toLowerCase();
   if (msg.contains('rate') || e.statusCode == '429') return 'Too many attempts — wait a minute and try again.';
-  if (msg.contains('expired') || msg.contains('jwt')) return 'Your session has ended. Please sign in again.';
+  if (msg.contains('expired') || msg.contains('jwt')) return 'You’ve been signed out. Sign in to carry on.';
   if (msg.contains('provider') && msg.contains('not enabled')) return 'That sign-in option isn’t switched on yet.';
   if (msg.contains('cancel')) return 'Sign-in was cancelled.';
   return 'Signing in didn’t work. Please try again.';

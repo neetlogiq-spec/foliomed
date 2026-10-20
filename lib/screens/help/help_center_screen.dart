@@ -58,7 +58,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                     )
                   else
                     InsetGroup(
-                      header: '${results.length} result${results.length == 1 ? '' : 's'}',
+                      header: results.length == 1 ? 'One topic' : '${results.length} topics',
                       dividerIndent: 16,
                       children: [
                         for (final (s, t) in results)

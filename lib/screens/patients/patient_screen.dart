@@ -13,7 +13,7 @@ import '../../utils/app_theme.dart';
 import '../../utils/app_typography.dart';
 import '../../utils/formatting.dart';
 import '../../utils/layout.dart';
-import '../../widgets/empty_state.dart';
+import '../../widgets/empty_placeholder.dart';
 import '../../widgets/large_title_app_bar.dart';
 import '../../widgets/newborn_section.dart';
 import '../../widgets/newborn_tracking_section.dart';
@@ -75,7 +75,7 @@ class _PatientScreenState extends State<PatientScreen> {
             title: 'Patient',
             body: const SliverFillRemaining(
               hasScrollBody: false,
-              child: EmptyState(
+              child: EmptyPlaceholder(
                 icon: Icons.visibility_off_outlined,
                 title: 'Not available',
                 subtitle: 'This patient was moved to a ward you’re not in, or was removed.',
@@ -134,7 +134,7 @@ class _PatientScreenState extends State<PatientScreen> {
 
   Widget _timeline(Patient p) {
     final all = context.watch<WardFeed>().timeline;
-    bool isEvent(Note n) => _eventKinds.contains(n.category.toLowerCase());
+    bool isEvent(Note n) => _eventKinds.contains(n.kind.toLowerCase());
     final shown = switch (_show) {
       _Show.all => all,
       _Show.notes => all.where((n) => !isEvent(n)).toList(),
@@ -164,7 +164,7 @@ class _PatientScreenState extends State<PatientScreen> {
         ),
         const SizedBox(height: 14),
         if (shown.isEmpty)
-          EmptyState(
+          EmptyPlaceholder(
             icon: Icons.timeline,
             title: _show == _Show.events ? 'No events yet' : 'Nothing on the timeline yet',
             subtitle: p.isActive ? 'Notes and events about ${p.name} appear here.' : 'This patient has been discharged.',

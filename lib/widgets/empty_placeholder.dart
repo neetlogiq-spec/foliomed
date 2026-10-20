@@ -5,8 +5,8 @@ import '../utils/app_typography.dart';
 
 /// "Nothing here yet" — a symbol, a one-line title, a hint about what to
 /// do, and optionally the button that does it.
-class EmptyState extends StatelessWidget {
-  const EmptyState({
+class EmptyPlaceholder extends StatelessWidget {
+  const EmptyPlaceholder({
     super.key,
     required this.icon,
     required this.title,

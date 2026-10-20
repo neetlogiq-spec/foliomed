@@ -7,209 +7,218 @@ import '../providers/account_provider.dart';
 import '../services/ward_service.dart';
 import '../utils/app_theme.dart';
 import '../utils/friendly_error.dart';
+import '../utils/haptics.dart';
 import 'app_alert_dialog.dart';
 
-/// Ward operations shared by the Wards list and the ward page.
+/// Joining, setting up, sharing, leaving and deleting wards — used by the
+/// Wards tab and the ward page. Every action refreshes the signed-in
+/// account afterwards so ward lists update everywhere.
 class WardActions {
   WardActions._();
 
-  static void _snack(BuildContext context, String text, {bool error = false}) {
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      backgroundColor: error ? AppColors.danger : null,
-      content: Text(text),
-    ));
-  }
-
-  static Future<void> share(BuildContext context, Ward w) async {
-    final me = context.read<AccountProvider>().currentUser;
-    final byLine = me == null ? '' : '\nShared by ${me.name}';
-    final text = 'Join my ward on FolioMed!$byLine\n\n${w.name}\n'
-        'Ward code: ${w.id}\n\n'
-        'Open FolioMed → Wards → + → Join with code, and enter the code.';
-    await Share.share(text, subject: 'Join ward ${w.name}');
+  static Future<void> share(BuildContext context, Ward ward) async {
+    final from = context.read<AccountProvider>().currentUser?.name;
+    await Share.share(
+      [
+        if (from != null && from.isNotEmpty) '$from invited you to ${ward.name} on FolioMed.'
+        else 'You’re invited to ${ward.name} on FolioMed.',
+        '',
+        'Code: ${ward.id}',
+        'In the app: Wards → + → Join a Ward.',
+      ].join('\n'),
+      subject: 'FolioMed: ${ward.name}',
+    );
   }
 
   static Future<void> join(BuildContext context) async {
-    final code = await showAdaptiveDialog<String>(
-      context: context,
-      builder: (ctx) {
-        final controller = TextEditingController();
-        return AppAlertDialog(
-          title: const Text('Join a ward'),
-          content: TextField(
-            controller: controller,
-            keyboardType: TextInputType.number,
-            maxLength: 8, // 5-digit codes; older wards may have 8-char codes
-            autofocus: true,
-            decoration: const InputDecoration(
-              labelText: 'Ward code',
-              hintText: 'e.g. 47291',
-              counterText: '',
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-              child: const Text('Join'),
-            ),
-          ],
-        );
-      },
+    final code = await _ask(
+      context,
+      title: 'Join a Ward',
+      message: 'Ask a teammate for the ward’s 5-digit code.',
+      fields: const [_Field('Code', hint: '5 digits', digits: true)],
+      action: 'Join',
     );
-    if (code == null || code.isEmpty || !context.mounted) return;
-    final auth = context.read<AccountProvider>();
-    try {
-      final joined = await WardService().joinWard(code);
-      if (!joined) {
-        if (context.mounted) _snack(context, 'No ward with code $code', error: true);
-        return;
-      }
-      await auth.loadCurrentUser();
-      if (context.mounted) _snack(context, 'Joined ward $code');
-    } catch (e) {
-      if (context.mounted) _snack(context, friendlyError(e), error: true);
-    }
+    if (code == null || code.first.isEmpty || !context.mounted) return;
+    await _run(context, () async {
+      final found = await WardService().joinWard(code.first);
+      return found ? 'You’re in. Patients and notes are loading.' : null;
+    }, notFound: 'There’s no ward with code ${code.first}. Check the digits.');
   }
 
   static Future<void> create(BuildContext context) async {
-    final result = await showAdaptiveDialog<(String, String)>(
+    final values = await _ask(
+      context,
+      title: 'Set Up a Ward',
+      message: 'You’ll get a code to invite your team.',
+      fields: const [
+        _Field('Name', hint: 'PNC, NICU, Ward 4…', words: true),
+        _Field('Where (optional)', hint: 'Floor or block'),
+      ],
+      action: 'Set Up',
+    );
+    if (values == null || values.first.isEmpty || !context.mounted) return;
+    final owner = context.read<AccountProvider>().currentUser?.name ?? '';
+    await _run(context, () async {
+      final code = await WardService().createWard(name: values[0], location: values[1], ownerName: owner);
+      return '${values[0]} is ready. Its code is $code.';
+    });
+  }
+
+  /// True when the person left.
+  static Future<bool> leave(BuildContext context, Ward ward) async {
+    final sure = await _confirm(
+      context,
+      title: 'Leave ${ward.name}?',
+      message: 'Its patients and notes disappear from your lists. The ward code brings you back.',
+      action: 'Leave',
+    );
+    if (!sure || !context.mounted) return false;
+    return _run(context, () async {
+      await WardService().leaveWard(ward.id);
+      return 'You’ve left ${ward.name}.';
+    });
+  }
+
+  /// Owner only. True when the ward was removed.
+  static Future<bool> delete(BuildContext context, Ward ward) async {
+    final sure = await _confirm(
+      context,
+      title: 'Delete ${ward.name} for everyone?',
+      message: 'All of its patients, notes, replies and reminders go too, and '
+          'members lose access straight away. This can’t be undone.',
+      action: 'Delete Ward',
+    );
+    if (!sure || !context.mounted) return false;
+    // The database removes everything inside the ward and the code from
+    // each member's profile.
+    return _run(context, () async {
+      await WardService().deleteWard(ward.id);
+      return '${ward.name} was deleted.';
+    });
+  }
+
+  // ── helpers ──────────────────────────────────────────────────────────
+
+  /// Runs [task], refreshes the account, and reports the outcome. [task]
+  /// returns the success message, or null for "not found".
+  static Future<bool> _run(BuildContext context, Future<String?> Function() task, {String? notFound}) async {
+    final account = context.read<AccountProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+    void say(String text, {bool bad = false}) => messenger.showSnackBar(
+        SnackBar(content: Text(text), backgroundColor: bad ? AppColors.danger : null));
+    try {
+      final done = await task();
+      if (done == null) {
+        Haptics.error();
+        say(notFound ?? 'Not found.', bad: true);
+        return false;
+      }
+      await account.loadCurrentUser();
+      Haptics.success();
+      say(done);
+      return true;
+    } catch (e) {
+      Haptics.error();
+      say(friendlyError(e), bad: true);
+      return false;
+    }
+  }
+
+  static Future<bool> _confirm(BuildContext context,
+      {required String title, required String message, required String action}) async {
+    final ok = await showAdaptiveDialog<bool>(
       context: context,
-      builder: (ctx) {
-        final name = TextEditingController();
-        final floor = TextEditingController();
-        return AppAlertDialog(
-          title: const Text('New ward'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: name,
-                autofocus: true,
-                textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(
-                  labelText: 'Ward name',
-                  hintText: 'e.g. PNC Ward, NICU',
+      builder: (ctx) => AppAlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(action),
+          ),
+        ],
+      ),
+    );
+    return ok == true;
+  }
+
+  /// A small form in an alert. Returns the trimmed values, or null.
+  static Future<List<String>?> _ask(BuildContext context,
+      {required String title, required String message, required List<_Field> fields, required String action}) {
+    return showAdaptiveDialog<List<String>>(
+      context: context,
+      builder: (ctx) => _AskDialog(title: title, message: message, fields: fields, action: action),
+    );
+  }
+}
+
+class _Field {
+  const _Field(this.label, {this.hint, this.digits = false, this.words = false});
+  final String label;
+  final String? hint;
+  final bool digits;
+  final bool words;
+}
+
+class _AskDialog extends StatefulWidget {
+  const _AskDialog({required this.title, required this.message, required this.fields, required this.action});
+  final String title, message, action;
+  final List<_Field> fields;
+
+  @override
+  State<_AskDialog> createState() => _AskDialogState();
+}
+
+class _AskDialogState extends State<_AskDialog> {
+  late final _inputs = [for (final _ in widget.fields) TextEditingController()];
+
+  @override
+  void dispose() {
+    for (final c in _inputs) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  void _submit() => Navigator.pop(context, [for (final c in _inputs) c.text.trim()]);
+
+  @override
+  Widget build(BuildContext context) {
+    return AppAlertDialog(
+      title: Text(widget.title),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(widget.message),
+          for (var i = 0; i < widget.fields.length; i++)
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: TextField(
+                controller: _inputs[i],
+                autofocus: i == 0,
+                // Codes are 5 digits; some early wards have 8-character ones.
+                maxLength: widget.fields[i].digits ? 8 : null,
+                keyboardType: widget.fields[i].digits ? TextInputType.number : TextInputType.text,
+                textCapitalization:
+                    widget.fields[i].words ? TextCapitalization.words : TextCapitalization.sentences,
+                textInputAction: i == widget.fields.length - 1 ? TextInputAction.done : TextInputAction.next,
+                onSubmitted: i == widget.fields.length - 1 ? (_) => _submit() : null,
+                decoration: InputDecoration(
+                  labelText: widget.fields[i].label,
+                  hintText: widget.fields[i].hint,
+                  counterText: '',
                 ),
               ),
-              const SizedBox(height: 10),
-              TextField(
-                controller: floor,
-                decoration:
-                    const InputDecoration(labelText: 'Floor / unit (optional)'),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
             ),
-            ElevatedButton(
-              onPressed: () =>
-                  Navigator.pop(ctx, (name.text.trim(), floor.text.trim())),
-              child: const Text('Create'),
-            ),
-          ],
-        );
-      },
-    );
-    if (result == null || result.$1.isEmpty || !context.mounted) return;
-    final auth = context.read<AccountProvider>();
-    try {
-      // Claims a random free 5-digit code and joins the creator.
-      final id = await WardService().createWard(
-        name: result.$1,
-        floor: result.$2,
-        capacity: 0,
-        headDoctorName: auth.currentUser?.name ?? '',
-      );
-      await auth.loadCurrentUser();
-      if (context.mounted) {
-        _snack(context, 'Ward “${result.$1}” created · code $id — share it with your team');
-      }
-    } catch (e) {
-      if (context.mounted) _snack(context, friendlyError(e), error: true);
-    }
-  }
-
-  /// Returns true when the user left.
-  static Future<bool> leave(BuildContext context, Ward w) async {
-    final confirm = await showAdaptiveDialog<bool>(
-      context: context,
-      builder: (ctx) => AppAlertDialog(
-        title: Text('Leave ${w.name}?'),
-        content: const Text(
-            "You'll stop seeing its patients and notes. You can rejoin with the ward code."),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Leave'),
-          ),
         ],
       ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+        ElevatedButton(onPressed: _submit, child: Text(widget.action)),
+      ],
     );
-    if (confirm != true || !context.mounted) return false;
-    final auth = context.read<AccountProvider>();
-    try {
-      await WardService().leaveWard(w.id);
-      await auth.loadCurrentUser();
-      if (context.mounted) _snack(context, 'You left ${w.name}');
-      return true;
-    } catch (e) {
-      if (context.mounted) _snack(context, friendlyError(e), error: true);
-      return false;
-    }
-  }
-
-  /// Owner only. Returns true when deleted.
-  static Future<bool> delete(BuildContext context, Ward w) async {
-    final confirm = await showAdaptiveDialog<bool>(
-      context: context,
-      builder: (ctx) => AppAlertDialog(
-        title: Text('Delete ${w.name}?'),
-        content: const Text(
-          'This permanently deletes the ward and every patient, note, reply '
-          'and reminder in it. Members lose access immediately. It cannot be '
-          'recovered.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete everything'),
-          ),
-        ],
-      ),
-    );
-    if (confirm != true || !context.mounted) return false;
-    final auth = context.read<AccountProvider>();
-    try {
-      // Patients, notes and comments cascade in Postgres; a trigger strips
-      // the code from every member's profile.
-      await WardService().deleteWard(w.id);
-      await auth.loadCurrentUser();
-      if (context.mounted) _snack(context, 'Ward “${w.name}” deleted');
-      return true;
-    } catch (e) {
-      if (context.mounted) {
-        _snack(context, 'Could not delete the ward — ${friendlyError(e)}',
-            error: true);
-      }
-      return false;
-    }
   }
 }

@@ -112,12 +112,12 @@ class _NoteLineState extends State<NoteLine> {
                         child: Text.rich(
                           TextSpan(children: [
                             TextSpan(
-                              text: '${n.patientName.isEmpty ? n.category : n.patientName}  ',
+                              text: '${n.patientName.isEmpty ? n.kind : n.patientName}  ',
                               style: AppTypography.subheadline(
                                   color: AppColors.textPrimary, weight: FontWeight.w600),
                             ),
                             TextSpan(
-                              text: n.content.replaceAll('\n', ' '),
+                              text: n.text.replaceAll('\n', ' '),
                               style: AppTypography.subheadline(color: AppColors.textSecondary),
                             ),
                           ]),

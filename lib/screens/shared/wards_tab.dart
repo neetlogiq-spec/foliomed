@@ -12,21 +12,21 @@ import '../../utils/app_typography.dart';
 import '../../utils/layout.dart';
 import '../../utils/stream_cache.dart';
 import '../../widgets/app_sheet.dart';
-import '../../widgets/empty_state.dart';
+import '../../widgets/empty_placeholder.dart';
 import '../../widgets/inset_group.dart';
 import '../../widgets/large_title_app_bar.dart';
 import '../../widgets/ward_actions.dart';
 import 'ward_page.dart';
 
 /// The user's wards as a grouped list; + creates or joins one.
-class WardsScreen extends StatefulWidget {
-  const WardsScreen({super.key});
+class WardsTab extends StatefulWidget {
+  const WardsTab({super.key});
 
   @override
-  State<WardsScreen> createState() => _WardsScreenState();
+  State<WardsTab> createState() => _WardsTabState();
 }
 
-class _WardsScreenState extends State<WardsScreen> {
+class _WardsTabState extends State<WardsTab> {
   final _wardStreams = StreamCache<List<Ward>>();
 
   Future<void> _showAddMenu() async {
@@ -41,7 +41,7 @@ class _WardsScreenState extends State<WardsScreen> {
               SettingsRow(
                 icon: Icons.add_business_outlined,
                 title: 'Create a ward',
-                subtitle: 'Get a 5-digit code to share with your team',
+                subtitle: 'You’ll get a code to invite colleagues',
                 onTap: () => Navigator.pop(ctx, 'create'),
               ),
               SettingsRow(
@@ -68,7 +68,7 @@ class _WardsScreenState extends State<WardsScreen> {
   Widget build(BuildContext context) {
     context.watch<AppearanceProvider>();
     final ids =
-        context.watch<AccountProvider>().currentUser?.wardIds ?? const <String>[];
+        context.watch<AccountProvider>().currentUser?.wards ?? const <String>[];
     return Scaffold(
       backgroundColor: AppColors.surface,
       body: CustomScrollView(
@@ -93,7 +93,7 @@ class _WardsScreenState extends State<WardsScreen> {
                 if (snap.hasError) {
                   return const SliverFillRemaining(
                     hasScrollBody: false,
-                    child: EmptyState(
+                    child: EmptyPlaceholder(
                       icon: Icons.cloud_off_outlined,
                       title: "Couldn't load wards",
                       subtitle: 'Check your connection and try again.',
@@ -126,20 +126,20 @@ class _WardsScreenState extends State<WardsScreen> {
   Widget _wardList(List<Ward> wards) {
     final myId = supabase.auth.currentUser?.id ?? '';
     final patients = context.watch<PatientRoster>().patients;
-    final owned = wards.where((w) => w.creatorId == myId).toList();
-    final joined = wards.where((w) => w.creatorId != myId).toList();
+    final owned = wards.where((w) => w.ownerId == myId).toList();
+    final joined = wards.where((w) => w.ownerId != myId).toList();
 
     Widget row(Ward w) {
       final count = patients.where((p) => p.wardId == w.id).length;
       return SettingsRow(
         icon: Icons.corporate_fare,
-        iconColor: w.creatorId == myId ? AppColors.primary : AppColors.accent,
+        iconColor: w.ownerId == myId ? AppColors.primary : AppColors.accent,
         title: w.name,
         subtitle: [
-          if (w.floor.isNotEmpty) w.floor,
+          if (w.location.isNotEmpty) w.location,
           '$count patient${count == 1 ? '' : 's'}',
-          if (w.creatorId != myId && w.headDoctorName.isNotEmpty)
-            'by ${w.headDoctorName}',
+          if (w.ownerId != myId && w.ownerName.isNotEmpty)
+            'by ${w.ownerName}',
         ].join(' · '),
         trailing: Text(
           w.id,
@@ -185,7 +185,7 @@ class _WardsScreenState extends State<WardsScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const EmptyState(
+          const EmptyPlaceholder(
             icon: Icons.corporate_fare_outlined,
             title: 'No wards yet',
             subtitle:

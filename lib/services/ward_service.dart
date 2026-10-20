@@ -4,7 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/app_user.dart';
 import '../models/ward.dart';
-import 'metrics_service.dart';
+import 'usage_counters.dart';
 import 'supabase_service.dart';
 
 class WardService {
@@ -42,40 +42,34 @@ class WardService {
     return row == null ? null : Ward.fromRow(row);
   }
 
-  /// Creates a ward under a fresh random 5-digit code, retrying on the
-  /// (rare) collision, then adds the creator as a member.
-  Future<String> createWard({
-    required String name,
-    required String floor,
-    required int capacity,
-    required String headDoctorName,
-  }) async {
+  /// Sets up a ward and returns its code. Codes are random 5-digit numbers;
+  /// if one is already taken the insert fails and another is drawn.
+  Future<String> createWard({required String name, String location = '', String ownerName = ''}) async {
     final user = _client.auth.currentUser;
     if (user == null) throw const AuthException('Not signed in');
     final random = Random.secure();
     for (var attempt = 0; attempt < _maxCodeAttempts; attempt++) {
-      final code = (10000 + random.nextInt(90000)).toString();
-      final ward = Ward(
+      final code = '${10000 + random.nextInt(90000)}';
+      final row = Ward(
         id: code,
         name: name,
-        floor: floor,
-        capacity: capacity,
-        headDoctorName: headDoctorName,
-        creatorId: user.id,
-        creatorEmail: user.email ?? '',
+        location: location,
+        ownerName: ownerName,
+        ownerId: user.id,
+        ownerEmail: user.email ?? '',
         createdAt: DateTime.now(),
-      );
+      ).toRow();
       try {
-        await _wards.insert(ward.toRow());
+        await _wards.insert(row);
       } on PostgrestException catch (e) {
         if (e.code == _uniqueViolation) continue;
         rethrow;
       }
       await joinWard(code);
-      MetricsService.bump('ward', summary: 'New ward: $name');
+      UsageCounters.bump('ward', summary: 'New ward: $name');
       return code;
     }
-    throw StateError('Could not allocate a free ward code — try again.');
+    throw StateError('Every code tried was taken. Please try once more.');
   }
 
   Future<void> updateWard(Ward ward) async {

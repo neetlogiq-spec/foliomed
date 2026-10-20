@@ -17,7 +17,7 @@ final _wardStreams = StreamCache<List<Ward>>();
 
 /// The user's wards, streamed once per ward set (shared across screens).
 Stream<List<Ward>> myWardsStream(BuildContext context) {
-  final ids = context.read<AccountProvider>().currentUser?.wardIds ?? const <String>[];
+  final ids = context.read<AccountProvider>().currentUser?.wards ?? const <String>[];
   if (ids.isEmpty) return Stream.value(const []);
   return _wardStreams.get(ids.join(','), () => WardService().wardsForUser(ids));
 }

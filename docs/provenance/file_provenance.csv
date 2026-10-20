@@ -61,6 +61,7 @@ docs/PUSH_SETUP.md,,text,57,0,new
 docs/RELEASING.md,,text,20,0,new
 docs/provenance/PROVENANCE_AUDIT.md,,text,85,0,new
 docs/provenance/compare.py,,binary,,0,new/changed binary
+docs/provenance/deep_compare.py,,binary,,0,new/changed binary
 docs/provenance/file_provenance.csv,,binary,,0,new/changed binary
 env.example.json,,text,9,0,new
 ios/.gitignore,ios/.gitignore,binary,,100,identical binary
@@ -134,16 +135,16 @@ lib/clinical/lab_report_parser.dart,,text,78,0,new
 lib/config/firebase_config.dart,,text,24,0,new
 lib/config/supabase_config.dart,,text,10,0,new
 lib/main.dart,lib/main.dart,text,4,25,mostly rewritten
-lib/models/app_user.dart,lib/models/app_user.dart,text,56,30,mostly rewritten
+lib/models/app_user.dart,lib/models/app_user.dart,text,56,16,mostly rewritten
 lib/models/models.dart,lib/models/models.dart,text,0,,trivial/empty
 lib/models/newborn_screen.dart,,text,173,1,new
 lib/models/newborn_tracking.dart,,text,91,2,new
-lib/models/note.dart,lib/models/note.dart,text,88,26,mostly rewritten
+lib/models/note.dart,lib/models/note.dart,text,87,10,mostly rewritten
 lib/models/note_reply.dart,,text,31,19,mostly rewritten
 lib/models/patient.dart,lib/models/patient.dart,text,213,13,mostly rewritten
 lib/models/patient_reminder.dart,,text,58,2,new
 lib/models/row_parsing.dart,,text,13,0,new
-lib/models/ward.dart,lib/models/ward.dart,text,34,41,modified original
+lib/models/ward.dart,lib/models/ward.dart,text,37,8,new
 lib/models/ward_unit.dart,,text,65,3,new
 lib/providers/account_provider.dart,,text,42,19,mostly rewritten
 lib/providers/alert_inbox.dart,,text,50,10,mostly rewritten
@@ -155,7 +156,7 @@ lib/providers/unit_provider.dart,,text,76,0,new
 lib/providers/ward_feed.dart,,text,65,2,new
 lib/screens/account/account_screen.dart,,text,304,7,new
 lib/screens/account/edit_account_sheet.dart,,text,84,11,mostly rewritten
-lib/screens/admin/admin_overview_screen.dart,,text,131,10,mostly rewritten
+lib/screens/admin/admin_overview_screen.dart,,text,131,7,new
 lib/screens/admin/admin_people_screen.dart,,text,87,5,new
 lib/screens/admin/admin_ward_screen.dart,,text,115,5,new
 lib/screens/help/help_center_screen.dart,,text,65,6,new
@@ -165,16 +166,16 @@ lib/screens/notes/confirm_note_sheet.dart,,text,88,9,new
 lib/screens/notes/note_actions.dart,,text,68,3,new
 lib/screens/notes/note_thread_sheet.dart,,text,174,7,new
 lib/screens/patients/patient_form_screen.dart,,text,512,7,new
-lib/screens/patients/patient_screen.dart,,text,203,5,new
+lib/screens/patients/patient_screen.dart,,text,204,5,new
 lib/screens/shared/census_screen.dart,,text,221,6,new
 lib/screens/shared/newborn_results_screen.dart,,text,308,5,new
 lib/screens/shared/patients_screen.dart,,text,270,7,new
 lib/screens/shared/today_screen.dart,,text,297,9,new
 lib/screens/shared/ward_page.dart,,text,268,6,new
-lib/screens/shared/wards_screen.dart,lib/screens/shared/wards_screen.dart,text,120,7,new
+lib/screens/shared/wards_tab.dart,,text,120,6,new
 lib/screens/start/alert_setup_screen.dart,,text,130,10,mostly rewritten
 lib/screens/start/launch_decision.dart,,text,12,0,new
-lib/screens/start/launch_screen.dart,,text,49,6,new
+lib/screens/start/launch_screen.dart,,text,49,4,new
 lib/screens/start/role_screen.dart,,text,100,7,new
 lib/screens/start/sign_in_screen.dart,,text,155,3,new
 lib/screens/start/welcome_screen.dart,,text,118,2,new
@@ -183,12 +184,11 @@ lib/services/a11y/reduce_transparency_web.dart,,text,8,0,new
 lib/services/accessibility_settings.dart,,text,26,4,new
 lib/services/account_service.dart,,text,86,7,new
 lib/services/device_power_settings.dart,,text,59,5,new
-lib/services/metrics_service.dart,lib/services/metrics_service.dart,text,8,25,mostly rewritten
+lib/services/live_note_alerts.dart,,text,48,15,mostly rewritten
 lib/services/newborn_screen_service.dart,,text,30,0,new
 lib/services/notes_repository.dart,,text,57,4,new
-lib/services/patient_service.dart,lib/services/patient_service.dart,text,83,14,mostly rewritten
+lib/services/patient_service.dart,lib/services/patient_service.dart,text,83,13,mostly rewritten
 lib/services/push_registration.dart,,text,46,7,new
-lib/services/push_service.dart,lib/services/push_service.dart,text,48,17,mostly rewritten
 lib/services/reminder_notifications.dart,,text,94,1,new
 lib/services/reminder_service.dart,,text,43,7,new
 lib/services/review_request.dart,,text,37,8,new
@@ -197,7 +197,8 @@ lib/services/supabase_service.dart,,text,13,0,new
 lib/services/text_scan_service.dart,,text,43,2,new
 lib/services/tracking_service.dart,,text,77,0,new
 lib/services/unit_service.dart,,text,31,3,new
-lib/services/ward_service.dart,lib/services/ward_service.dart,text,69,19,mostly rewritten
+lib/services/usage_counters.dart,,text,8,12,mostly rewritten
+lib/services/ward_service.dart,lib/services/ward_service.dart,text,64,17,mostly rewritten
 lib/utils/app_theme.dart,lib/utils/app_theme.dart,text,244,11,mostly rewritten
 lib/utils/app_typography.dart,,text,140,1,new
 lib/utils/formatting.dart,,text,23,17,mostly rewritten
@@ -212,7 +213,7 @@ lib/widgets/app_alert_dialog.dart,,text,66,6,new
 lib/widgets/app_sheet.dart,,text,208,2,new
 lib/widgets/bilirubin_chart.dart,,text,154,6,new
 lib/widgets/birth_time_field.dart,,text,117,3,new
-lib/widgets/empty_state.dart,lib/widgets/empty_state.dart,text,28,32,mostly rewritten
+lib/widgets/empty_placeholder.dart,,text,28,25,mostly rewritten
 lib/widgets/foliomed_brand.dart,lib/widgets/wardly_brand.dart,text,26,19,mostly rewritten
 lib/widgets/inset_group.dart,,text,199,11,mostly rewritten
 lib/widgets/large_title_app_bar.dart,,text,198,6,new
@@ -225,7 +226,7 @@ lib/widgets/pressable.dart,,text,51,8,new
 lib/widgets/reminder_widgets.dart,,text,173,6,new
 lib/widgets/scope_button.dart,,text,77,3,new
 lib/widgets/tip_card.dart,,text,59,7,new
-lib/widgets/ward_actions.dart,,text,129,13,mostly rewritten
+lib/widgets/ward_actions.dart,,text,131,3,new
 lib/widgets/widgets.dart,lib/widgets/widgets.dart,text,0,,trivial/empty
 pubspec.lock,,binary,,0,new/changed binary
 pubspec.yaml,pubspec.yaml,text,47,70,original (largely retained)

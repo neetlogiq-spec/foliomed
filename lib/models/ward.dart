@@ -1,51 +1,53 @@
 import 'row_parsing.dart';
 
-/// A ward (team space). Its [id] is the 5-digit join code people share.
+/// A team space people join with its 5-digit [id] (the code they share).
+/// Dart names are FolioMed's; [Ward.fromRow] maps the `wards` columns.
 class Ward {
   const Ward({
     required this.id,
     required this.name,
-    required this.floor,
-    required this.capacity,
-    required this.headDoctorName,
-    this.creatorId = '',
-    this.creatorEmail = '',
+    this.location = '',
+    this.beds = 0,
+    this.ownerName = '',
+    this.ownerId = '',
+    this.ownerEmail = '',
     required this.createdAt,
   });
 
   final String id;
   final String name;
-
-  /// Free text: floor, block or unit name.
-  final String floor;
-  final int capacity;
-
-  /// Owner's display name, captured when the ward was created.
-  final String headDoctorName;
-  final String creatorId;
-  final String creatorEmail;
+  final String location; // floor, block or building — free text
+  final int beds;
+  final String ownerName; // captured when the ward was set up
+  final String ownerId;
+  final String ownerEmail;
   final DateTime createdAt;
 
-  factory Ward.fromRow(DbRow r) => Ward(
-        id: r['id'] as String? ?? '',
-        name: r['name'] as String? ?? '',
-        floor: r['floor'] as String? ?? '',
-        capacity: (r['capacity'] as num?)?.toInt() ?? 0,
-        headDoctorName: r['head_doctor_name'] as String? ?? '',
-        creatorId: r['creator_id'] as String? ?? '',
-        creatorEmail: r['creator_email'] as String? ?? '',
-        createdAt: parseTimestamp(r['created_at']),
-      );
+  bool ownedBy(String uid) => uid.isNotEmpty && uid == ownerId;
 
-  /// Includes [id]: a new ward claims its code on insert (the primary key
-  /// rejects a code already taken).
+  static Ward fromRow(DbRow row) {
+    String text(String column) => row[column] as String? ?? '';
+    return Ward(
+      id: text('id'),
+      name: text('name'),
+      location: text('floor'),
+      beds: (row['capacity'] as num?)?.toInt() ?? 0,
+      ownerName: text('head_doctor_name'),
+      ownerId: text('creator_id'),
+      ownerEmail: text('creator_email'),
+      createdAt: parseTimestamp(row['created_at']),
+    );
+  }
+
+  /// The row to insert. It carries [id] because a new ward claims its code
+  /// on insert; a code that is already taken fails the primary key.
   DbRow toRow() => {
         'id': id,
         'name': name,
-        'floor': floor,
-        'capacity': capacity,
-        'head_doctor_name': headDoctorName,
-        'creator_id': creatorId.isEmpty ? null : creatorId,
-        'creator_email': creatorEmail,
+        'floor': location,
+        'capacity': beds,
+        'head_doctor_name': ownerName,
+        'creator_id': ownerId.isEmpty ? null : ownerId,
+        'creator_email': ownerEmail,
       };
 }

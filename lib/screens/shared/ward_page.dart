@@ -38,14 +38,14 @@ class _WardPageState extends State<WardPage> {
       WardService().getWardMembers(widget.ward.id);
 
   bool get _isOwner =>
-      widget.ward.creatorId.isNotEmpty &&
-      widget.ward.creatorId == supabase.auth.currentUser?.id;
+      widget.ward.ownerId.isNotEmpty &&
+      widget.ward.ownerId == supabase.auth.currentUser?.id;
 
   Future<void> _copyCode() async {
     await Clipboard.setData(ClipboardData(text: widget.ward.id));
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Ward code ${widget.ward.id} copied')),
+      SnackBar(content: Text('Copied ${widget.ward.id}')),
     );
   }
 
@@ -72,12 +72,12 @@ class _WardPageState extends State<WardPage> {
                 InsetGroup(
                   header: 'Details',
                   children: [
-                    if (w.floor.isNotEmpty)
+                    if (w.location.isNotEmpty)
                       SettingsRow(
                         icon: Icons.layers_outlined,
                         iconColor: AppColors.secondary,
                         title: 'Floor / unit',
-                        value: w.floor,
+                        value: w.location,
                       ),
                     SettingsRow(
                       icon: Icons.bed_outlined,
@@ -89,10 +89,10 @@ class _WardPageState extends State<WardPage> {
                       icon: Icons.verified_user_outlined,
                       iconColor: AppColors.accent,
                       title: 'Owner',
-                      subtitle: w.creatorEmail.isEmpty ? null : w.creatorEmail,
+                      subtitle: w.ownerEmail.isEmpty ? null : w.ownerEmail,
                       value: _isOwner
                           ? 'You'
-                          : (w.headDoctorName.isEmpty ? '—' : w.headDoctorName),
+                          : (w.ownerName.isEmpty ? '—' : w.ownerName),
                     ),
                     SettingsRow(
                       icon: Icons.event_outlined,
@@ -372,8 +372,8 @@ class _WardPageState extends State<WardPage> {
           ]);
         }
         final members = [...snap.data!]..sort((a, b) {
-            if (a.uid == widget.ward.creatorId) return -1;
-            if (b.uid == widget.ward.creatorId) return 1;
+            if (a.uid == widget.ward.ownerId) return -1;
+            if (b.uid == widget.ward.ownerId) return 1;
             return a.name.toLowerCase().compareTo(b.name.toLowerCase());
           });
         return InsetGroup(
@@ -381,7 +381,7 @@ class _WardPageState extends State<WardPage> {
           dividerIndent: 68,
           children: [
             for (final m in members)
-              _MemberRow(member: m, isOwner: m.uid == widget.ward.creatorId),
+              _MemberRow(member: m, isOwner: m.uid == widget.ward.ownerId),
           ],
         );
       },
@@ -406,8 +406,8 @@ class _MemberRow extends StatelessWidget {
           CircleAvatar(
             radius: 18,
             backgroundColor: m.roleColor.withValues(alpha: 0.15),
-            child: m.avatarEmoji != null && m.avatarEmoji!.isNotEmpty
-                ? Text(m.avatarEmoji!, style: const TextStyle(fontSize: 18))
+            child: m.emoji != null && m.emoji!.isNotEmpty
+                ? Text(m.emoji!, style: const TextStyle(fontSize: 18))
                 : Text(initialsOf(name),
                     style: AppTypography.footnote(
                         color: m.roleColor, weight: FontWeight.w700)),

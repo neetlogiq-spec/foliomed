@@ -111,7 +111,7 @@ class _ConfirmNoteSheetState extends State<_ConfirmNoteSheet> {
                   children: [
                     Text(n.patientName, style: AppTypography.subheadline(color: AppColors.textPrimary, weight: FontWeight.w600)),
                     const SizedBox(height: 4),
-                    Text(n.content,
+                    Text(n.text,
                         maxLines: 5,
                         overflow: TextOverflow.ellipsis,
                         style: AppTypography.subheadline(color: AppColors.textSecondary)),

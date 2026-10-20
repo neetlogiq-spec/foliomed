@@ -17,8 +17,8 @@ import 'supabase_service.dart';
 ///
 /// Closed-app alerts come from server push (PushRegistration + the
 /// push-dispatch Edge Function).
-class PushService {
-  PushService._();
+class LiveNoteAlerts {
+  LiveNoteAlerts._();
 
   static RealtimeChannel? _channel;
 
@@ -36,20 +36,20 @@ class PushService {
           callback: (payload) => _onNoteInserted(payload.newRecord, uid),
         )
         .subscribe((status, [error]) {
-      if (error != null) debugPrint('PushService realtime: $status $error');
+      if (error != null) debugPrint('LiveNoteAlerts realtime: $status $error');
     });
   }
 
   static void _onNoteInserted(Map<String, dynamic> row, String myUid) {
     final note = Note.fromRow(row);
     if (note.authorId == myUid) return; // don't alert the author
-    final isUrgent = note.priority.toLowerCase() == 'urgent';
+    final isUrgent = note.isUrgent;
     final title = isUrgent
         ? '🚨 Urgent · ${note.patientName.isEmpty ? 'patient' : note.patientName}'
         : 'Note · ${note.patientName.isEmpty ? 'patient' : note.patientName}';
-    final preview = note.content.length > 140
-        ? '${note.content.substring(0, 140)}…'
-        : note.content;
+    final preview = note.text.length > 140
+        ? '${note.text.substring(0, 140)}…'
+        : note.text;
     final body =
         '${note.authorName.isEmpty ? 'Someone' : note.authorName}: $preview';
     _showInApp(title, body);

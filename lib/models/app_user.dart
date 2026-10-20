@@ -17,20 +17,20 @@ enum UserRole {
   static UserRole parse(String? v) => values.firstWhere((r) => r.name == v, orElse: () => nurse);
 }
 
-/// A FolioMed account (`profiles` row).
+/// The signed-in person (or anyone in People): one `profiles` row.
 class AppUser {
   const AppUser({
     required this.uid,
     required this.name,
     required this.email,
     required this.role,
-    required this.wardId,
-    this.wardIds = const [],
-    this.avatarUrl,
-    this.avatarEmoji,
-    this.specialty,
+    this.hasChosenRole = true,
+    this.wards = const [],
+    this.primaryWard = '',
+    this.speciality,
+    this.emoji,
+    this.photoUrl,
     required this.createdAt,
-    this.roleConfirmed = true,
   });
 
   final String uid;
@@ -38,45 +38,48 @@ class AppUser {
   final String email;
   final UserRole role;
 
-  /// Legacy "home" ward; [wardIds] is the full membership list.
-  final String wardId;
-  final List<String> wardIds;
-  final String? avatarUrl;
-  final String? avatarEmoji;
-  final String? specialty;
-  final DateTime createdAt;
+  /// False until a new person picks doctor or nurse.
+  final bool hasChosenRole;
 
-  /// Whether the person has chosen doctor or nurse after first sign-in.
-  final bool roleConfirmed;
+  /// Codes of every ward the person belongs to.
+  final List<String> wards;
+
+  /// The first ward joined; kept for older rows, prefer [wards].
+  final String primaryWard;
+  final String? speciality;
+  final String? emoji; // shown instead of initials when set
+  final String? photoUrl;
+  final DateTime createdAt;
 
   String get roleLabel => role.label;
   Color get roleColor => role.color;
+  bool belongsTo(String wardCode) => wards.contains(wardCode);
 
-  AppUser copyWith({String? name, String? avatarUrl, String? avatarEmoji, String? specialty}) => AppUser(
+  AppUser copyWith({String? name, String? speciality, String? emoji, String? photoUrl}) => AppUser(
         uid: uid,
         name: name ?? this.name,
         email: email,
         role: role,
-        wardId: wardId,
-        wardIds: wardIds,
-        avatarUrl: avatarUrl ?? this.avatarUrl,
-        avatarEmoji: avatarEmoji ?? this.avatarEmoji,
-        specialty: specialty ?? this.specialty,
+        hasChosenRole: hasChosenRole,
+        wards: wards,
+        primaryWard: primaryWard,
+        speciality: speciality ?? this.speciality,
+        emoji: emoji ?? this.emoji,
+        photoUrl: photoUrl ?? this.photoUrl,
         createdAt: createdAt,
-        roleConfirmed: roleConfirmed,
       );
 
-  factory AppUser.fromRow(DbRow r) => AppUser(
-        uid: r['id'] as String? ?? '',
-        name: r['name'] as String? ?? '',
-        email: r['email'] as String? ?? '',
-        role: UserRole.parse(r['role'] as String?),
-        wardId: r['ward_id'] as String? ?? '',
-        wardIds: parseStringList(r['ward_ids']),
-        avatarUrl: r['avatar_url'] as String?,
-        avatarEmoji: r['avatar_emoji'] as String?,
-        specialty: r['specialty'] as String?,
-        createdAt: parseTimestamp(r['created_at']),
-        roleConfirmed: r['role_confirmed'] as bool? ?? true,
+  static AppUser fromRow(DbRow row) => AppUser(
+        uid: row['id'] as String? ?? '',
+        name: row['name'] as String? ?? '',
+        email: row['email'] as String? ?? '',
+        role: UserRole.parse(row['role'] as String?),
+        hasChosenRole: row['role_confirmed'] as bool? ?? true,
+        wards: parseStringList(row['ward_ids']),
+        primaryWard: row['ward_id'] as String? ?? '',
+        speciality: row['specialty'] as String?,
+        emoji: row['avatar_emoji'] as String?,
+        photoUrl: row['avatar_url'] as String?,
+        createdAt: parseTimestamp(row['created_at']),
       );
 }

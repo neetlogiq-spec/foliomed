@@ -5,8 +5,8 @@ import 'supabase_service.dart';
 /// Best-effort counters + activity feed for the admin dashboard and the
 /// landing page's live stats. Failures are logged and swallowed —
 /// telemetry must never block the user-facing operation.
-class MetricsService {
-  MetricsService._();
+class UsageCounters {
+  UsageCounters._();
 
   /// type: one of 'note', 'patient', 'ward', 'user', 'ack', 'comment'
   /// (validated by the `bump_metric` SQL function).
@@ -17,7 +17,7 @@ class MetricsService {
         'p_summary': summary,
       });
     } catch (e) {
-      debugPrint('MetricsService.bump($type) failed: $e');
+      debugPrint('UsageCounters.bump($type) failed: $e');
     }
   }
 }

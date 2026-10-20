@@ -28,8 +28,8 @@ class _EditAccountSheet extends StatefulWidget {
 class _EditAccountSheetState extends State<_EditAccountSheet> {
   late final _me = context.read<AccountProvider>().currentUser!;
   late final _name = TextEditingController(text: _me.name);
-  late final _specialty = TextEditingController(text: _me.specialty ?? '');
-  late String _avatar = _me.avatarEmoji ?? '';
+  late final _specialty = TextEditingController(text: _me.speciality ?? '');
+  late String _avatar = _me.emoji ?? '';
   bool _saving = false;
 
   @override

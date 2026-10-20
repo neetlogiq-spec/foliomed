@@ -326,7 +326,7 @@ class _PatientFormScreenState extends State<PatientFormScreen> {
 
   Widget _wardGroup() {
     final ids =
-        context.watch<AccountProvider>().currentUser?.wardIds ?? const <String>[];
+        context.watch<AccountProvider>().currentUser?.wards ?? const <String>[];
     return StreamBuilder<List<Ward>>(
       stream: ids.isEmpty
           ? Stream.value(const <Ward>[])

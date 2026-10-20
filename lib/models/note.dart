@@ -25,55 +25,47 @@ enum NoteUrgency {
       };
 }
 
-/// A ward note about one patient: written by one team member, confirmed
-/// (seen and acted on) by another. Field names follow the `notes` table.
+/// One message on a patient's timeline. A team member posts it; someone
+/// else confirms it once it has been seen and dealt with. System lines
+/// (transfer, discharge, results…) arrive already confirmed.
 class Note {
   const Note({
     required this.id,
+    required this.wardId,
     required this.patientId,
     required this.patientName,
-    required this.wardId,
+    required this.text,
+    this.kind = 'General',
+    this.urgency = NoteUrgency.normal,
     required this.authorId,
     required this.authorName,
-    required this.authorRole,
-    required this.content,
-    required this.category,
-    required this.priority,
-    this.isAcknowledged = false,
-    this.acknowledgedBy,
-    this.acknowledgedAt,
+    this.authorRole = '',
+    this.isConfirmed = false,
+    this.confirmedBy,
+    this.confirmedAt,
     required this.createdAt,
     required this.updatedAt,
   });
 
   final String id;
+  final String wardId;
   final String patientId;
   final String patientName;
-  final String wardId;
+  final String text;
+  final String kind; // one of [kNoteKinds], or a system kind
+  final NoteUrgency urgency;
   final String authorId;
   final String authorName;
   final String authorRole;
-  final String content;
-  final String category;
-
-  /// `Low` / `Normal` / `Urgent` — see [urgency].
-  final String priority;
-
-  /// Confirmed by a team member (the `is_acknowledged` column).
-  final bool isAcknowledged;
-  final String? acknowledgedBy;
-  final DateTime? acknowledgedAt;
+  final bool isConfirmed;
+  final String? confirmedBy; // display name
+  final DateTime? confirmedAt;
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  NoteUrgency get urgency => NoteUrgency.parse(priority);
   bool get isUrgent => urgency == NoteUrgency.urgent;
-  bool get isConfirmed => isAcknowledged;
-  Color get priorityColor => urgency.color;
 
-  /// System lines (transfer, discharge, results…) are posted already
-  /// confirmed and authored by whoever triggered them.
-  static const _icons = <String, IconData>{
+  static const _kindIcons = <String, IconData>{
     'medication': Icons.medication_outlined,
     'procedure': Icons.healing_outlined,
     'observation': Icons.monitor_heart_outlined,
@@ -85,39 +77,45 @@ class Note {
     'phototherapy': Icons.light_mode_outlined,
   };
 
-  IconData get categoryIcon => _icons[category.toLowerCase()] ?? Icons.sticky_note_2_outlined;
+  IconData get kindIcon => _kindIcons[kind.toLowerCase()] ?? Icons.sticky_note_2_outlined;
 
-  factory Note.fromRow(DbRow r) => Note(
-        id: r['id'] as String? ?? '',
-        patientId: r['patient_id'] as String? ?? '',
-        patientName: r['patient_name'] as String? ?? '',
-        wardId: r['ward_id'] as String? ?? '',
-        authorId: r['author_id'] as String? ?? '',
-        authorName: r['author_name'] as String? ?? '',
-        authorRole: r['author_role'] as String? ?? '',
-        content: r['content'] as String? ?? '',
-        category: r['category'] as String? ?? 'General',
-        priority: r['priority'] as String? ?? NoteUrgency.normal.label,
-        isAcknowledged: r['is_acknowledged'] as bool? ?? false,
-        acknowledgedBy: r['acknowledged_by'] as String?,
-        acknowledgedAt: parseTimestampOrNull(r['acknowledged_at']),
-        createdAt: parseTimestamp(r['created_at']),
-        updatedAt: parseTimestamp(r['updated_at']),
-      );
+  /// Maps a `notes` row. Column names predate the app's vocabulary:
+  /// content → [text], category → [kind], priority → [urgency],
+  /// is_acknowledged → [isConfirmed].
+  static Note fromRow(DbRow row) {
+    String str(String column) => row[column] as String? ?? '';
+    return Note(
+      id: str('id'),
+      wardId: str('ward_id'),
+      patientId: str('patient_id'),
+      patientName: str('patient_name'),
+      text: str('content'),
+      kind: row['category'] as String? ?? 'General',
+      urgency: NoteUrgency.parse(row['priority'] as String?),
+      authorId: str('author_id'),
+      authorName: str('author_name'),
+      authorRole: str('author_role'),
+      isConfirmed: row['is_acknowledged'] as bool? ?? false,
+      confirmedBy: row['acknowledged_by'] as String?,
+      confirmedAt: parseTimestampOrNull(row['acknowledged_at']),
+      createdAt: parseTimestamp(row['created_at']),
+      updatedAt: parseTimestamp(row['updated_at']),
+    );
+  }
 
-  /// Columns the app writes; `id` and timestamps belong to Postgres.
+  /// What the app inserts; `id` and the timestamps come from Postgres.
   DbRow toRow() => {
+        'ward_id': wardId,
         'patient_id': patientId,
         'patient_name': patientName,
-        'ward_id': wardId,
+        'content': text,
+        'category': kind,
+        'priority': urgency.label,
         'author_id': authorId.isEmpty ? null : authorId,
         'author_name': authorName,
         'author_role': authorRole,
-        'content': content,
-        'category': category,
-        'priority': priority,
-        'is_acknowledged': isAcknowledged,
-        'acknowledged_by': acknowledgedBy,
-        'acknowledged_at': toTimestampOrNull(acknowledgedAt),
+        'is_acknowledged': isConfirmed,
+        'acknowledged_by': confirmedBy,
+        'acknowledged_at': toTimestampOrNull(confirmedAt),
       };
 }

@@ -7,7 +7,7 @@ import '../providers/alert_inbox.dart';
 import '../utils/app_theme.dart';
 import '../utils/app_typography.dart';
 import 'app_sheet.dart';
-import 'empty_state.dart';
+import 'empty_placeholder.dart';
 import 'inset_group.dart';
 
 /// Recent alerts, newest first. Opening the sheet marks them read.
@@ -51,7 +51,7 @@ class _AlertInboxSheet extends StatelessWidget {
             if (items.isEmpty)
               const Padding(
                 padding: EdgeInsets.only(bottom: 24),
-                child: EmptyState(
+                child: EmptyPlaceholder(
                   icon: Icons.notifications_none,
                   title: 'You’re up to date',
                   subtitle: 'New notes from your wards appear here while FolioMed is open.',

@@ -124,7 +124,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                           SizedBox(
                             width: double.infinity,
                             child: Text(
-                              'Welcome to\nFolioMed',
+                              'Your ward,\nin your pocket',
                               textAlign: TextAlign.center,
                               style: AppTypography.largeTitle(color: AppColors.textPrimary)
                                   .copyWith(height: 1.1),

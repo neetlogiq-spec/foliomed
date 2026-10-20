@@ -115,3 +115,34 @@ at most two original files; framework idiom is excluded):
 5. **Clinical data:** AAP/NICE thresholds are taken from the published
    guidelines and verified against them (see
    `test/guideline_reference_test.dart`), not from Wardly.
+
+## Re-check after the rewrite (2026-10-20)
+
+Compared against a fresh clone of Wardly (`d374515`, its latest commit)
+with three methods; `deep_compare.py` reproduces the first two. Flutter's
+own example apps (1,029 files) are the baseline for code that any
+Flutter app shares.
+
+| Method | FolioMed vs Wardly | FolioMed vs unrelated Flutter code |
+|---|---|---|
+| Structure, names ignored (MOSS-style fingerprints — catches renamed/reformatted copies) | 3.7% | 2.9% |
+| Structure with real names | 1.9% | 0.6% |
+| No file shares notably more with Wardly than with the baseline | ✓ | |
+| On-screen wording: identical / near-identical strings (of 447) | 0 / 0 | |
+| `lib/` lines also present in Wardly (distinctive lines only) | 6.0% | |
+
+The shared lines are framework idiom (`mainAxisAlignment: MainAxisAlignment.center,`,
+`onPressed: () => Navigator.pop(ctx),`, `providers: [`, …). Shared class
+names are generic domain words (`Ward`, `Note`, `Patient`, `AppUser`,
+`UserRole`, `WardService`, `PatientService`, `AppColors`, `AppTheme`,
+`friendlyError`, `main`). The 9 byte-identical files are Flutter
+`flutter create` template output (verified against a fresh template);
+`Podfile.lock` was removed (CocoaPods regenerates it). Native project
+files (`project.pbxproj`, storyboards) are Flutter's template too.
+
+Changes made during this re-check: Ward, Note and AppUser models
+re-modelled in FolioMed vocabulary (location/beds/owner, text/kind/urgency/
+confirmed, wards/primaryWard/speciality/emoji/photoUrl); ward actions
+rewritten around shared helpers; Wardly-specific class names renamed
+(AdminOverviewScreen, WardsTab, EmptyPlaceholder, UsageCounters,
+LiveNoteAlerts); the last 11 matching phrases reworded.
