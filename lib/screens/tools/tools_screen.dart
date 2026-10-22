@@ -72,8 +72,8 @@ class _ToolsScreenState extends State<ToolsScreen> {
           AppColors.secondary, 'pma cga gestation corrected preterm weeks', AgeTool.new),
     ]),
     _Group('Monitoring', [
-      _Tool('Blood Pressure', 'Centiles by postmenstrual age', Icons.monitor_heart_outlined, AppColors.danger,
-          'bp blood pressure hypertension hypotension map centile dionne', BpTool.new),
+      _Tool('Blood Pressure', 'Newborn to 17 years', Icons.monitor_heart_outlined, AppColors.danger,
+          'bp blood pressure hypertension hypotension map centile dionne zubrow aap child height', BpTool.new),
     ]),
     _Group('Prevention', [
       _Tool('Vaccines', 'National schedule: due, past window, upcoming', Icons.vaccines_outlined, AppColors.stable,

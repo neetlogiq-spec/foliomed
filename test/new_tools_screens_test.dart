@@ -63,6 +63,27 @@ void main() {
     expect(find.textContaining('at or above the 99th centile'), findsOneWidget);
   });
 
+  testWidgets('BP day 1: 30 weeks, mean 20 is below the Zubrow lower limit', (tester) async {
+    await tester.pumpWidget(_app(const BpTool()));
+    await tester.tap(find.text('Day 1'));
+    await tester.pumpAndSettle();
+    await _type(tester, 'Gestation at birth', '30');
+    expect(find.text('30 weeks at birth · day 1 (mmHg)'), findsOneWidget);
+    await _type(tester, 'Mean', '20');
+    expect(find.textContaining('below the lower limit'), findsOneWidget);
+  });
+
+  testWidgets('BP 1–17 years: boy 6 y, 118.9 cm, systolic 111 is stage 1', (tester) async {
+    await tester.pumpWidget(_app(const BpTool()));
+    await tester.tap(find.text('1–17 Years'));
+    await tester.pumpAndSettle();
+    await _type(tester, 'Age', '6');
+    await _type(tester, 'Height', '118.9');
+    expect(find.textContaining('50th height centile column'), findsOneWidget);
+    await _type(tester, 'Systolic', '111');
+    expect(find.text('Stage 1 hypertension'), findsOneWidget);
+  });
+
   testWidgets('Ballard: score counts as signs are chosen', (tester) async {
     await tester.pumpWidget(_app(const BallardTool()));
     expect(find.text('0 of 12 signs scored'), findsOneWidget);

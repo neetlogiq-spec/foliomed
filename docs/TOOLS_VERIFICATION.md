@@ -34,7 +34,9 @@ flag to be flipped.
 | ☐ | Potassium / magnesium / phosphate | Volume = dose/kg × kg ÷ stock; no default doses; KCl 15% = 2 mmol/mL, MgSO₄ 50% = 500 mg/mL | standard |
 | ☐ | Calcium gluconate 10% | Default 2 mL/kg; 100 mg/mL salt, 9.3 mg/mL elemental | standard |
 | ☐ | Anion gap / osmolality | Na − (Cl + HCO₃) [+ K]; 2Na + glucose/18 + BUN/2.8, BUN = urea/2.14 | standard |
-| ☐ | Neonatal BP centiles | Table 2 of Dionne 2012 (26–44 wk, after 2 weeks of age); nearest row, lower on ties; ≥95th high, ≥99th very high | Dionne, Abitbol, Flynn, Pediatr Nephrol 2012 |
+| ☐ | Neonatal BP centiles | Table 2 of Dionne 2012 (26–44 wk, after 2 weeks of age); nearest row, lower on ties; ≥95th high, ≥99th very high. All 90 values re-checked against the published table on 23 Oct 2026 | Dionne, Abitbol, Flynn, Pediatr Nephrol 2012 |
+| ☐ | Neonatal BP normal range (day 1 and by PCA) | Zubrow 1995 via EPIQ (2022) Tables 1–2: day 1 by GA at birth 22–42 wk; by post-conceptional age 24–46 wk; completed weeks; below lower limit = low, above upper = high. Transcription checked: mean = (S + 2D)/3 within 1 mmHg, values never fall with age | Zubrow et al., J Perinatol 1995;15:470–9 |
+| ☐ | Childhood BP (1–17 y) | AAP 2017 Tables 4–5 by sex, completed years and nearest height column (ends clamp, ties → shorter column); Table 3 staging (<13 y centiles or 120/80, 130/80, 140/90 if lower; ≥13 y adult cut-offs; higher of SBP/DBP). Transcription checked: 95th + 12 row reproduced for every cell, cm = in × 2.54 (three published cells differ by 0.2 cm from rounding). Table 3 was not in the supplied PDF — check it against the guideline | Flynn et al., Pediatrics 2017;140(3):e20171904 |
 | ☐ | Vaccines (NIS) | Birth/6/10/14 wk, 9–12 mo, 16–24 mo, 5–6 y; windows: BCG ≤1 y, Hep B ≤24 h, OPV-0 ≤15 d, OPV ≤5 y, Penta & RVV ≤1 y, measles ≤5 y | MoHFW / NHM National Immunization Schedule (check your state: PCV, JE, fIPV-3) |
 | ☐ | New Ballard | 12 items; physical wording from the official sheet; arm recoil 180/140–180/110–140/90–110/<90°; popliteal 180…<90°; weeks = (2 × score + 120) ÷ 5 | Ballard 1991; ballardscore.com |
 
