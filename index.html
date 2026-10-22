@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>FolioMed — Every handover, in one place</title>
+  <meta name="description" content="FolioMed keeps a hospital ward's notes, orders and acknowledgements in one live, ward-private place. Free for every ward. Sign in with Google or Apple." />
+  <meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)" />
+  <meta property="og:title" content="FolioMed — Every handover, in one place" />
+  <meta property="og:description" content="Live, ward-private notes and acknowledgements for hospital teams. Free." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://www.foliomed.app/" />
+  <link rel="canonical" href="https://www.foliomed.app/" />
+  <link rel="icon" href="/app/favicon.png" />
+  <link rel="stylesheet" href="site.css" />
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="nav">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="FolioMed home"><span class="brand-mark" aria-hidden="true">F</span>FolioMed</a>
+      <nav class="nav-links" aria-label="Sections">
+        <a href="#how">How it works</a>
+        <a href="#features">Features</a>
+        <a href="#privacy">Privacy</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <a class="btn btn-sm" href="/app/">Open FolioMed</a>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- ── Hero ───────────────────────────────────────────────────────── -->
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="wrap">
+        <p class="eyebrow">For hospital ward teams</p>
+        <h1 id="hero-title" class="display">Every handover,<br />in one place.</h1>
+        <p class="lede">Notes, orders and acknowledgements your whole ward can see the moment they happen — so nothing said at 3 a.m. is lost by the morning round.</p>
+        <div class="hero-cta">
+          <a class="btn" href="/app/">Open FolioMed — it’s free</a>
+          <span class="pill"><span class="dot" style="background:var(--orange-dot)" aria-hidden="true"></span>iPhone &amp; Android apps coming soon</span>
+        </div>
+      </div>
+
+      <div class="hero-art" role="img" aria-label="Illustration of the FolioMed app: a ward home screen with today's notes, and a note thread with an Acknowledge button.">
+        <!-- Home screen -->
+        <div class="phone" aria-hidden="true">
+          <div class="screen">
+            <div class="island"></div>
+            <div class="sb"><span>9:41</span><span>●●● ▮</span></div>
+            <div class="nb"><i class="badge"></i><i></i><i></i></div>
+            <div class="lt"><small>Good morning</small><b>Dr Meera Iyer</b></div>
+            <div class="stats">
+              <div>Patients<b>18</b></div>
+              <div>Notes today<b>27</b></div>
+              <div class="urgent">Urgent<b>2</b></div>
+            </div>
+            <div class="sh">Recent Notes</div>
+            <div class="ncard" style="--edge:#ff3b30">
+              <div class="row"><span class="pr">Urgent</span>· Bed 12 · Mr Rao<span class="t">2m</span></div>
+              <p>BP 86/50 — started fluids, cardiology paged. Please review.</p>
+              <div class="by"><span class="av" style="--av:#007aff">MI</span>Dr Meera Iyer · doctor</div>
+            </div>
+            <div class="ncard">
+              <div class="row"><span class="pr">Normal</span>· Bed 3 · Baby Anaya<span class="t">18m</span></div>
+              <p>Feeds up to 20 ml/kg. Tolerating well, no residuals.</p>
+              <div class="by"><span class="av ack" style="--av:#30b0c7">LN</span>Acknowledged by Nurse Leena</div>
+            </div>
+            <div class="ncard" style="--edge:#8e8e93">
+              <div class="row"><span class="pr">Low</span>· Bed 7 · Ms Fernandes<span class="t">1h</span></div>
+              <p>Physio review tomorrow morning; mobilise as tolerated.</p>
+              <div class="by"><span class="av ack" style="--av:#007aff">AR</span>Acknowledged by Dr Arjun</div>
+            </div>
+            <div class="tabbar"><span class="on">Home</span><span>Wards</span><span>Patients</span><span>Notes</span><span>Profile</span></div>
+          </div>
+        </div>
+        <!-- Thread screen -->
+        <div class="phone" aria-hidden="true">
+          <div class="screen">
+            <div class="island"></div>
+            <div class="sb"><span>9:43</span><span>●●● ▮</span></div>
+            <div class="thread-head" style="margin-top:14px"><b>Mr Rao · Bed 12</b><small>Urgent · Observation</small></div>
+            <div class="bubble"><small>Dr Meera Iyer</small>BP 86/50 — started fluids, cardiology paged. Please review.</div>
+            <div class="bubble me"><small>You · Nurse</small>Fluids running. Repeat BP in 15 min.</div>
+            <div class="bubble"><small>Dr Meera Iyer</small>Thanks — call me if MAP stays under 65.</div>
+            <div class="ackbar"><i>Reply</i><i class="go">Acknowledge</i></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <ul class="facts" aria-label="At a glance">
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 12a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>Free for every ward</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Sign in with Google or Apple</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3 5 6v6c0 4 3 7 7 9 4-2 7-5 7-9V6l-7-3Z"/></svg>Ward-private by design</li>
+      <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>Live — no refreshing</li>
+    </ul>
+
+    <!-- ── How it works ───────────────────────────────────────────────── -->
+    <section id="how" aria-labelledby="how-title">
+      <div class="wrap">
+        <div class="section-head center reveal">
+          <p class="eyebrow">How it works</p>
+          <h2 id="how-title" class="headline">Your ward is running in two minutes.</h2>
+        </div>
+        <ol class="steps">
+          <li class="step reveal">
+            <h3>Sign in</h3>
+            <p>Use your Google account, or Sign in with Apple. No passwords to make up, forget or share.</p>
+          </li>
+          <li class="step reveal">
+            <h3>Create or join a ward</h3>
+            <p>A new ward gets a five-digit code like <span class="code-chip">47291</span>. Colleagues join with it — nobody else can see inside.</p>
+          </li>
+          <li class="step reveal">
+            <h3>Post, reply, acknowledge</h3>
+            <p>Write a note on a patient. Your team sees it instantly, replies in the thread, and taps Acknowledge when it’s done.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ── Features ───────────────────────────────────────────────────── -->
+    <section id="features" aria-labelledby="features-title">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <p class="eyebrow">Features</p>
+          <h2 id="features-title" class="headline">Built for the way wards actually talk.</h2>
+        </div>
+
+        <div class="feature reveal">
+          <div class="feature-copy">
+            <h3 class="title">Know who has seen what.</h3>
+            <p>Every note shows whether it has been acknowledged, by whom, and when. No more “did anyone see my message?”.</p>
+            <ul>
+              <li>One tap to acknowledge — undo if you tapped by mistake</li>
+              <li>Unacknowledged notes are counted on everyone’s home screen</li>
+              <li>Replies stay attached to the note they’re about</li>
+            </ul>
+          </div>
+          <div class="feature-art" aria-hidden="true">
+            <div class="mini">
+              <div class="ncard" style="--edge:#ff3b30">
+                <div class="row"><span class="pr">Urgent</span>· Bed 12<span class="t">2m</span></div>
+                <p>Repeat lactate at 14:00, escalate if above 4.</p>
+                <div class="by"><span class="av" style="--av:#007aff">MI</span>Waiting for acknowledgement</div>
+              </div>
+              <div class="ncard">
+                <div class="row"><span class="pr">Normal</span>· Bed 3<span class="t">18m</span></div>
+                <p>Feeds up to 20 ml/kg.</p>
+                <div class="by"><span class="av ack" style="--av:#30b0c7">LN</span>Acknowledged by Nurse Leena · 09:12</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="feature flip reveal">
+          <div class="feature-copy">
+            <h3 class="title">Urgent looks urgent.</h3>
+            <p>A coloured edge on every note sorts the board at a glance — urgent, normal or low — before anyone reads a word.</p>
+            <ul>
+              <li>Urgent notes are counted separately on the home screen</li>
+              <li>Categories for medication, procedures, observations and alerts</li>
+            </ul>
+          </div>
+          <div class="feature-art" aria-hidden="true">
+            <div class="mini">
+              <div class="ncard" style="--edge:#ff3b30"><div class="row"><span class="pr">Urgent</span>· Alert</div><p>SpO₂ 88% on 2 L — increase to 4 L, recheck in 10 min.</p></div>
+              <div class="ncard"><div class="row"><span class="pr">Normal</span>· Medication</div><p>Paracetamol 15 mg/kg every 6 h, maximum four doses.</p></div>
+              <div class="ncard" style="--edge:#8e8e93"><div class="row"><span class="pr">Low</span>· Procedure</div><p>Dressing change due on Thursday.</p></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="feature reveal">
+          <div class="feature-copy">
+            <h3 class="title">A private room for every ward.</h3>
+            <p>Patients and notes belong to a ward. Only people who joined with its code can read them — enforced by the database itself, not just the app.</p>
+            <ul>
+              <li>Belong to several wards and switch in a tap</li>
+              <li>The ward owner can delete everything inside it, for good</li>
+            </ul>
+          </div>
+          <div class="feature-art" aria-hidden="true">
+            <div class="mini codebox">
+              <div class="small muted">Join a ward</div>
+              <div class="digits"><span>4</span><span>7</span><span>2</span><span>9</span><span>1</span></div>
+              <div class="small muted">Paediatric ICU · 14 members</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="feature flip reveal">
+          <div class="feature-copy">
+            <h3 class="title">Admission to discharge, on one record.</h3>
+            <p>Every patient gets a permanent FolioMed ID. Transfer them to another ward and their whole history goes with them; discharge them with a summary and readmit later under the same ID.</p>
+            <ul>
+              <li>Age in days, months or years — or from the exact time of birth for newborns</li>
+              <li>48 h and 72 h investigation reminders that ask the ward “has this been sent?”</li>
+              <li>Add your hospital’s MRN alongside the FolioMed ID</li>
+              <li>Every transfer and discharge is logged on the patient’s timeline</li>
+            </ul>
+          </div>
+          <div class="feature-art" aria-hidden="true">
+            <div class="mini">
+              <div class="ncard"><div class="row"><span class="pr">Transfer</span>· 09:40</div><p>Transferred from Paediatric ICU to HDU. Reason: stepped down.</p></div>
+              <div class="ncard" style="--edge:#8e8e93"><div class="row"><span class="pr">Discharge</span>· 16:05</div><p>Discharged: feeding well, follow-up in one week.</p></div>
+              <div class="small muted" style="padding:6px 4px 0;font-family:var(--mono)">FM000123 · Baby Anaya · 12 d</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="feature reveal">
+          <div class="feature-copy">
+            <h3 class="title">Paper to text in a tap.</h3>
+            <p>Photograph a lab report, a drug chart or a referral letter and FolioMed turns it into text inside your note — read on your phone, never uploaded.</p>
+            <ul>
+              <li>Review and edit the text before you post</li>
+              <li>Works with the camera or a photo you already have</li>
+            </ul>
+          </div>
+          <div class="feature-art" aria-hidden="true">
+            <div class="mini">
+              <div class="small muted" style="margin-bottom:8px">Scan text</div>
+              <div class="ncard"><p>Hb 9.8 g/dL · WBC 14.2 ×10⁹/L · CRP 48 mg/L<br/>Blood culture: pending</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Privacy ────────────────────────────────────────────────────── -->
+    <section id="privacy" aria-labelledby="privacy-title">
+      <div class="wrap">
+        <div class="section-head center reveal">
+          <p class="eyebrow">Privacy</p>
+          <h2 id="privacy-title" class="headline">Clinical notes deserve better than a group chat.</h2>
+          <p class="lede">FolioMed has no ads, no tracking and nothing to sell. It exists to move information between the people caring for a patient — and no further.</p>
+        </div>
+        <div class="grid-3">
+          <div class="card reveal">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3 5 6v6c0 4 3 7 7 9 4-2 7-5 7-9V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></svg>
+            <h3>Ward-private</h3>
+            <p>Row-level security in the database means a ward’s notes can’t be read from outside it — even by a bug in the app.</p>
+          </div>
+          <div class="card reveal">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+            <h3>No passwords</h3>
+            <p>Sign-in goes through Google or Apple, so there’s no FolioMed password to leak, reuse or reset.</p>
+          </div>
+          <div class="card reveal">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>
+            <h3>Yours to delete</h3>
+            <p>Delete your account from Profile at any time. Delete a ward and everything in it is erased permanently.</p>
+          </div>
+        </div>
+        <p class="small muted" style="text-align:center;margin-top:28px">Read the full <a href="privacy.html">privacy policy</a>.</p>
+      </div>
+    </section>
+
+    <!-- ── Live numbers ───────────────────────────────────────────────── -->
+    <section aria-labelledby="numbers-title">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <p class="eyebrow">In use</p>
+          <h2 id="numbers-title" class="headline">Counting, live.</h2>
+        </div>
+        <div class="numbers reveal" aria-live="polite">
+          <div><strong data-stat="wards">—</strong><span>Wards</span></div>
+          <div><strong data-stat="users">—</strong><span>Clinicians</span></div>
+          <div><strong data-stat="notes">—</strong><span>Notes posted</span></div>
+          <div><strong data-stat="acks">—</strong><span>Acknowledgements</span></div>
+        </div>
+        <p class="small muted" style="margin-top:14px">Totals since launch. Counts only — no names or clinical content ever leave a ward. <a href="/status/">System status</a></p>
+      </div>
+    </section>
+
+    <!-- ── FAQ ────────────────────────────────────────────────────────── -->
+    <section id="faq" aria-labelledby="faq-title">
+      <div class="wrap">
+        <div class="section-head reveal"><h2 id="faq-title" class="headline">Questions</h2></div>
+        <div class="faq">
+          <details><summary>Is it really free?</summary><p>Yes. Every feature, for every ward, with no trial period and no card required.</p></details>
+          <details><summary>Where are the iPhone and Android apps?</summary><p>They’re on their way to the App Store and Google Play. Until then, FolioMed runs in any modern browser at foliomed.app/app — on a phone it works like an app.</p></details>
+          <details><summary>Who can see our patients and notes?</summary><p>Only members of your ward — people who joined with its five-digit code. Access is enforced by the database, not just hidden in the app.</p></details>
+          <details><summary>Why only Google and Apple sign-in?</summary><p>So there are no passwords to manage. Your Google or Apple account already has strong protection such as two-factor authentication.</p></details>
+          <details><summary>Does FolioMed replace our hospital records system?</summary><p>No. FolioMed is for the conversation around a patient — handovers, orders, follow-ups. Your hospital’s record system stays the source of truth.</p></details>
+          <details><summary>How do I get help?</summary><p>Email <a href="mailto:kashyap2k007@gmail.com">kashyap2k007@gmail.com</a>, or use Feedback in the app’s Profile tab.</p></details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Closing CTA ────────────────────────────────────────────────── -->
+    <section class="cta" aria-labelledby="cta-title">
+      <div class="wrap reveal">
+        <h2 id="cta-title" class="headline">Start your ward today.</h2>
+        <p class="lede">Sign in, create a ward, share the code. That’s the whole setup.</p>
+        <div class="hero-cta"><a class="btn" href="/app/">Open FolioMed</a></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>© 2026 FolioMed · Made by Kashyap Anand</span>
+      <nav aria-label="Footer">
+        <a href="privacy.html">Privacy</a>
+        <a href="/status/">Status</a>
+        <a href="mailto:kashyap2k007@gmail.com">Contact</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script type="module" src="site.js"></script>
+</body>
+</html>
