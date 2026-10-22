@@ -1,63 +1,51 @@
-import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import '../models/patient.dart';
 import 'bilirubin.dart';
 
-enum GuidelineChoice {
-  aap('AAP 2022'),
-  nice('NICE');
+/// Gestation (completed weeks) from which FolioMed uses AAP 2022; below it,
+/// NICE CG98.
+const int kAapFromWeeks = 35;
 
-  const GuidelineChoice(this.label);
-  final String label;
+/// The guideline for a baby of [gestationWeeks]: NICE CG98 under 35 weeks,
+/// AAP 2022 from 35 weeks. Null when the gestation isn't recorded.
+BilirubinGuideline? guidelineForGestation(int? gestationWeeks) {
+  if (gestationWeeks == null) return null;
+  return gestationWeeks < kAapFromWeeks ? const NiceCg98() : const Aap2022();
 }
 
-/// Which guideline the ward prefers on this device (chart lines, alerts,
-/// handover). Defaults to AAP 2022, which covers 35 weeks and up.
-class GuidelinePreference {
-  GuidelinePreference._();
-  static const _key = 'bilirubin_guideline_v1';
-  static final ValueNotifier<GuidelineChoice> choice = ValueNotifier(GuidelineChoice.aap);
-
-  static Future<void> load() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      choice.value = prefs.getString(_key) == 'nice' ? GuidelineChoice.nice : GuidelineChoice.aap;
-    } catch (_) {}
+/// A [BiliAssessment] with the guideline for the gestation, or a
+/// [BiliNotApplicable] saying what is missing.
+Object assessByGestation({
+  required int? gestationWeeks,
+  required double hoursOfAge,
+  required double tsbUmol,
+  bool? neuroRisk,
+}) {
+  final g = guidelineForGestation(gestationWeeks);
+  if (g == null) {
+    return const BiliNotApplicable(
+        'Bilirubin', 'Add the gestational age to compare with guideline thresholds.');
   }
-
-  static Future<void> set(GuidelineChoice c) async {
-    choice.value = c;
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_key, c.name);
-    } catch (_) {}
-  }
+  return g.assess(
+    gestationWeeks: gestationWeeks,
+    hoursOfAge: hoursOfAge,
+    tsbUmol: tsbUmol,
+    neuroRisk: neuroRisk,
+  );
 }
 
-BilirubinGuideline guidelineFor(GuidelineChoice c) =>
-    c == GuidelineChoice.aap ? const Aap2022() : const NiceCg98();
-
-/// Assesses a reading for [p] with the preferred guideline, falling back to
-/// the other when the preferred one can't be applied (e.g. AAP before risk
-/// factors are recorded, NICE below 38 weeks). Null if neither applies.
-/// The result names the guideline actually used.
-BiliAssessment? assessForPatient(Patient p, DateTime measuredAt, double tsbUmol,
-    {GuidelineChoice? prefer}) {
+/// Assesses a reading for [p] with the guideline for its gestation. Null
+/// when it can't be applied (no birth time or gestation, or AAP before the
+/// risk factors are recorded). The result names the guideline used.
+BiliAssessment? assessForPatient(Patient p, DateTime measuredAt, double tsbUmol) {
   final born = p.bornAt;
   if (born == null) return null;
-  final hours = measuredAt.difference(born).inMinutes / 60;
-  final first = prefer ?? GuidelinePreference.choice.value;
-  for (final c in [first, ...GuidelineChoice.values.where((x) => x != first)]) {
-    final a = guidelineFor(c).assess(
-      gestationWeeks: p.gestationWeeks,
-      hoursOfAge: hours,
-      tsbUmol: tsbUmol,
-      neuroRisk: p.neuroRisk,
-    );
-    if (a is BiliAssessment) return a;
-  }
-  return null;
+  final a = assessByGestation(
+    gestationWeeks: p.gestationWeeks,
+    hoursOfAge: measuredAt.difference(born).inMinutes / 60,
+    tsbUmol: tsbUmol,
+    neuroRisk: p.neuroRisk,
+  );
+  return a is BiliAssessment ? a : null;
 }
 
 /// Threshold lines (µmol/L by hours of age) for the chart, or null when
@@ -70,16 +58,16 @@ class ThresholdLines {
   final double? Function(double hours) exchange;
 }
 
-ThresholdLines? linesForPatient(Patient p, GuidelineChoice c) {
+ThresholdLines? linesForPatient(Patient p) {
   final ga = p.gestationWeeks;
   if (ga == null) return null;
-  if (c == GuidelineChoice.nice) {
-    if (ga < 38) return null;
-    return ThresholdLines('NICE CG98',
-        (h) => NiceCg98.thresholdsAt(h).phototherapy, (h) => NiceCg98.thresholdsAt(h).exchange);
+  if (ga < kAapFromWeeks) {
+    if (ga < NiceCg98.pretermFromWeeks) return null;
+    return ThresholdLines('NICE CG98', (h) => NiceCg98.thresholdsFor(ga, h).phototherapy,
+        (h) => NiceCg98.thresholdsFor(ga, h).exchange);
   }
   final risk = p.neuroRisk;
-  if (ga < 35 || risk == null || !Aap2022.isLoaded) return null;
+  if (risk == null || !Aap2022.isLoaded) return null;
   double? photo(double h) {
     final v = Aap2022.thresholdMgdl(ga, AapCurve.phototherapy, risk, h);
     return v == null ? null : mgdlToUmol(v);

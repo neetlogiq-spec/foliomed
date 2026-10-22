@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../clinical/bilirubin.dart';
+import '../../clinical/bilirubin_assess.dart';
 import '../../clinical/lab_report_parser.dart';
 import '../../services/text_scan_service.dart';
 import '../../models/newborn_screen.dart';
@@ -153,31 +154,30 @@ class _NewbornResultsScreenState extends State<NewbornResultsScreen> {
     return _sampledAt.difference(born).inMinutes / 60;
   }
 
-  /// One guideline assessment per configured guideline.
+  /// The assessment with the guideline for the baby's gestation (NICE
+  /// under 35 weeks, AAP from 35 weeks).
   List<Object> _assessments(NewbornResults r) {
     final total = r.tsbTotal;
     final hours = _hoursAtSample;
     if (total == null || hours == null) return const [];
-    final umol = r.biliUnit == BiliUnit.mgdl ? mgdlToUmol(total) : total;
     return [
-      for (final g in kBilirubinGuidelines)
-        g.assess(
-          gestationWeeks: widget.patient.gestationWeeks,
-          hoursOfAge: hours,
-          tsbUmol: umol,
-          neuroRisk: widget.patient.neuroRisk,
-        ),
+      assessByGestation(
+        gestationWeeks: widget.patient.gestationWeeks,
+        hoursOfAge: hours,
+        tsbUmol: r.biliUnit == BiliUnit.mgdl ? mgdlToUmol(total) : total,
+        neuroRisk: widget.patient.neuroRisk,
+      ),
     ];
   }
 
   Future<void> _save() async {
     setState(() => _saving = true);
     final r = _results;
-    final nice = _assessments(r).whereType<BiliAssessment>().firstOrNull;
+    final bili = _assessments(r).whereType<BiliAssessment>().firstOrNull;
     final summary = r.summary(
-      biliAssessment: nice == null
+      biliAssessment: bili == null
           ? null
-          : '${nice.guideline} at ${nice.hoursOfAge.round()} h: ${nice.action.label}',
+          : '${bili.guideline} at ${bili.hoursOfAge.round()} h: ${bili.action.label}',
     );
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
@@ -386,7 +386,7 @@ class _BilirubinCard extends StatelessWidget {
     final String? prompt = patient.bornAt == null
         ? 'Add the birth time to compare bilirubin with guideline thresholds.'
         : !hasTsb
-            ? 'Enter the total bilirubin to compare with NICE thresholds.'
+            ? 'Enter the total bilirubin to compare with guideline thresholds.'
             : null;
     return Container(
       padding: const EdgeInsets.all(16),

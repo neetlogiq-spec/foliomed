@@ -105,7 +105,7 @@ void main() {
     });
   });
 
-  group('preferred guideline with fallback', () {
+  group('guideline by gestation: NICE under 35 weeks, AAP from 35', () {
     Patient baby({int ga = 39, List<String>? risk}) => Patient.fromRow({
           'name': 'B',
           'born_at': DateTime.utc(2026, 10, 18).toIso8601String(),
@@ -114,24 +114,36 @@ void main() {
         });
     final at = DateTime.utc(2026, 10, 20); // 48 h
 
-    test('AAP when risk factors are recorded; NICE when they are not', () {
-      expect(assessForPatient(baby(risk: []), at, 200, prefer: GuidelineChoice.aap)!.guideline, 'AAP 2022');
-      expect(assessForPatient(baby(), at, 200, prefer: GuidelineChoice.aap)!.guideline, 'NICE CG98');
-      expect(assessForPatient(baby(risk: ['sepsis']), at, 200, prefer: GuidelineChoice.nice)!.guideline,
-          'NICE CG98');
+    test('35 weeks and over use AAP', () {
+      expect(guidelineForGestation(35)!.name, 'AAP 2022');
+      expect(assessForPatient(baby(risk: []), at, 200)!.guideline, 'AAP 2022');
+      expect(assessForPatient(baby(ga: 35, risk: ['sepsis']), at, 200)!.guideline, 'AAP 2022');
     });
 
-    test('35–37 weeks fall back to AAP even when NICE is preferred', () {
-      expect(assessForPatient(baby(ga: 36, risk: []), at, 200, prefer: GuidelineChoice.nice)!.guideline,
-          'AAP 2022');
-      expect(assessForPatient(baby(ga: 36), at, 200, prefer: GuidelineChoice.nice), isNull);
+    test('AAP without recorded risk factors does not fall back to NICE', () {
+      expect(assessForPatient(baby(), at, 200), isNull);
+      expect(linesForPatient(baby()), isNull);
+    });
+
+    test('under 35 weeks use NICE, risk factors not needed', () {
+      expect(guidelineForGestation(34)!.name, 'NICE CG98');
+      final a = assessForPatient(baby(ga: 34), at, 200)!;
+      expect(a.guideline, 'NICE CG98');
+      // 34 weeks at 48 h: 40 + (240 − 40) × 48/72 ≈ 173 → above phototherapy.
+      expect(a.action, BiliAction.phototherapy);
+      expect(linesForPatient(baby(ga: 30))!.phototherapy(96), 200);
+    });
+
+    test('no gestation, no guideline', () {
+      expect(guidelineForGestation(null), isNull);
+      expect(assessByGestation(gestationWeeks: null, hoursOfAge: 48, tsbUmol: 200),
+          isA<BiliNotApplicable>());
     });
 
     test('chart lines: AAP adds an escalation line 2 mg/dL under exchange', () {
-      final l = linesForPatient(baby(risk: []), GuidelineChoice.aap)!;
+      final l = linesForPatient(baby(risk: []))!;
       expect(umolToMgdl(l.exchange(48)! - l.escalation!(48)!), closeTo(2, 1e-9));
-      expect(linesForPatient(baby(), GuidelineChoice.aap), isNull);
-      expect(linesForPatient(baby(ga: 36, risk: []), GuidelineChoice.nice), isNull);
+      expect(linesForPatient(baby(ga: 30))!.escalation, isNull);
     });
   });
 

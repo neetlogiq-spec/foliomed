@@ -75,41 +75,34 @@ class _NewbornTrackingSectionState extends State<NewbornTrackingSection> {
 
   // ───────────────────────────── Bilirubin ─────────────────────────────
 
-  Widget _bilirubinGroup(
-      List<BilirubinReading> readings, List<PhototherapySession> sessions, bool error) {
-    return ValueListenableBuilder<GuidelineChoice>(
-      valueListenable: GuidelinePreference.choice,
-      builder: (context, choice, _) =>
-          _bilirubinGroupFor(choice, readings, sessions, error),
-    );
-  }
-
-  String _guidelineFooter(GuidelineChoice choice, ThresholdLines? lines) {
+  /// NICE CG98 under 35 weeks, AAP 2022 from 35 weeks (see
+  /// `guidelineForGestation`).
+  String _guidelineFooter(ThresholdLines? lines) {
     final ga = p.gestationWeeks;
     if (lines == null) {
       if (ga == null) return 'Add the gestational age (Edit details) to draw guideline lines.';
-      if (choice == GuidelineChoice.nice) {
-        return 'NICE lines are drawn for 38 weeks or more — switch to AAP 2022 (35 weeks or more).';
+      if (ga < NiceCg98.pretermFromWeeks) return 'NICE graphs start at 22 weeks — use your unit\'s chart.';
+      if (ga >= kAapFromWeeks && p.neuroRisk == null) {
+        return 'Record the neurotoxicity risk factors above to draw AAP lines.';
       }
-      if (ga < 35) return 'AAP 2022 covers 35 weeks or more — use a preterm chart.';
-      if (p.neuroRisk == null) return 'Record the neurotoxicity risk factors above to draw AAP lines.';
-      return 'AAP thresholds unavailable.';
+      return 'Guideline thresholds unavailable.';
     }
     final aap = lines.guideline == 'AAP 2022';
     return '${aap ? 'Orange: phototherapy · pale red: escalation of care · red: exchange (AAP 2022, '
-            '${p.neuroRisk! ? 'with' : 'no'} neurotoxicity risk factors).' : 'Orange: phototherapy · red: exchange (NICE CG98, ≥38 weeks).'}'
+            '${p.neuroRisk! ? 'with' : 'no'} neurotoxicity risk factors).' : 'Orange: phototherapy · red: exchange (NICE CG98, $ga weeks).'}'
+        ' NICE is used under 35 weeks, AAP 2022 from 35 weeks.'
         ' Hollow dots are transcutaneous — confirm with a serum level before treating.'
         '${aap && !Aap2022.dataVerified ? ' AAP data not yet verified against the published tables.' : ''}'
         ' Decision support only.';
   }
 
-  Widget _bilirubinGroupFor(GuidelineChoice choice, List<BilirubinReading> readings,
-      List<PhototherapySession> sessions, bool error) {
-    final lines = linesForPatient(p, choice);
+  Widget _bilirubinGroup(
+      List<BilirubinReading> readings, List<PhototherapySession> sessions, bool error) {
+    final ga = p.gestationWeeks;
+    final lines = linesForPatient(p);
     final running = sessions.where((s) => s.isRunning).firstOrNull;
     final latest = readings.isEmpty ? null : readings.last;
-    final assessment =
-        latest == null ? null : assessForPatient(p, latest.measuredAt, latest.umol, prefer: choice);
+    final assessment = latest == null ? null : assessForPatient(p, latest.measuredAt, latest.umol);
     final serum = [
       for (final r in readings)
         if (!r.transcutaneous) (at: r.measuredAt, umol: r.umol),
@@ -119,29 +112,9 @@ class _NewbornTrackingSectionState extends State<NewbornTrackingSection> {
     final now = DateTime.now();
     final factors = p.neuroRiskFactors;
     return InsetGroup(
-      header: 'Bilirubin',
-      footer: _guidelineFooter(choice, lines),
+      header: ga == null ? 'Bilirubin' : 'Bilirubin · ${guidelineForGestation(ga)!.name}',
+      footer: _guidelineFooter(lines),
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
-          child: CupertinoSlidingSegmentedControl<GuidelineChoice>(
-            groupValue: choice,
-            onValueChanged: (c) {
-              if (c == null) return;
-              Haptics.selection();
-              GuidelinePreference.set(c);
-            },
-            children: {
-              for (final c in GuidelineChoice.values)
-                c: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  child: Text(c.label,
-                      style: AppTypography.subheadline(
-                          color: AppColors.textPrimary, weight: FontWeight.w600)),
-                ),
-            },
-          ),
-        ),
         Padding(
           padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
           child: error

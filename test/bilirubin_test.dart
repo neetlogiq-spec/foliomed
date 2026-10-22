@@ -43,13 +43,49 @@ void main() {
       expect(umolToMgdl(342), closeTo(20, 0.01));
     });
 
-    test('refuses preterm, unknown gestation and negative age', () {
-      expect(nice.assess(gestationWeeks: 36, hoursOfAge: 48, tsbUmol: 200),
+    test('refuses under 22 weeks, unknown gestation and negative age', () {
+      expect(nice.assess(gestationWeeks: 21, hoursOfAge: 48, tsbUmol: 100),
           isA<BiliNotApplicable>());
       expect(nice.assess(gestationWeeks: null, hoursOfAge: 48, tsbUmol: 200),
           isA<BiliNotApplicable>());
       expect(nice.assess(gestationWeeks: 39, hoursOfAge: -1, tsbUmol: 200),
           isA<BiliNotApplicable>());
+    });
+  });
+
+  group('NICE CG98 graphs (22–37 weeks)', () {
+    // Values from the data sheet formulas of NICE's "Treatment threshold
+    // graphs" spreadsheet: 40 → weeks×10−100 and 80 → weeks×10 over 72 h.
+    test('lines start at 40 / 80 µmol/L at birth', () {
+      final t = NiceCg98.pretermAt(30, 0);
+      expect(t.phototherapy, 40);
+      expect(t.exchange, 80);
+    });
+
+    test('plateau from 72 h at weeks×10−100 and weeks×10', () {
+      for (final h in [72.0, 100.0, 336.0]) {
+        expect(NiceCg98.pretermAt(30, h).phototherapy, 200);
+        expect(NiceCg98.pretermAt(30, h).exchange, 300);
+      }
+      expect(NiceCg98.pretermAt(22, 96).phototherapy, 120);
+      expect(NiceCg98.pretermAt(37, 96).exchange, 370);
+    });
+
+    test('rises in a straight line (spreadsheet 6-hour steps)', () {
+      // 32 weeks: phototherapy step (220−40)/12 = 15 per 6 h; exchange (320−80)/12 = 20.
+      expect(NiceCg98.pretermAt(32, 6).phototherapy, closeTo(55, 1e-9));
+      expect(NiceCg98.pretermAt(32, 36).phototherapy, closeTo(130, 1e-9));
+      expect(NiceCg98.pretermAt(32, 36).exchange, closeTo(200, 1e-9));
+    });
+
+    test('assess uses the preterm graph and has no repeat/consider band', () {
+      final a = nice.assess(gestationWeeks: 30, hoursOfAge: 72, tsbUmol: 210) as BiliAssessment;
+      expect(a.action, BiliAction.phototherapy);
+      expect(a.thresholds.repeat, isNull);
+      final b = nice.assess(gestationWeeks: 30, hoursOfAge: 72, tsbUmol: 190) as BiliAssessment;
+      expect(b.action, BiliAction.none);
+      final c = nice.assess(gestationWeeks: 30, hoursOfAge: 72, tsbUmol: 301) as BiliAssessment;
+      expect(c.action, BiliAction.exchange);
     });
   });
 
