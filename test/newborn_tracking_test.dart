@@ -56,7 +56,7 @@ void main() {
   group('handover', () {
     test('flags overdue reminders, bilirubin above NICE line and weight loss', () {
       final item = HandoverItem(
-        patient: _baby(),
+        patient: _baby(ga: 34),
         unitName: 'Unit A',
         openReminders: [
           PatientReminder.fromRow({'id': 'r1', 'patient_id': 'p1', 'title': 'Send 48-hour newborn investigations',
@@ -64,14 +64,14 @@ void main() {
           PatientReminder.fromRow({'id': 'r2', 'patient_id': 'p1', 'title': 'Repeat TSB',
               'due_at': _now.add(const Duration(hours: 4)).toIso8601String()}),
         ],
-        bilirubin: BilirubinReading.fromRow({'id': 'b', 'patient_id': 'p1', 'value': 16,
+        bilirubin: BilirubinReading.fromRow({'id': 'b', 'patient_id': 'p1', 'value': 12,
             'unit': 'mgdl', 'measured_at': _now.subtract(const Duration(hours: 1)).toIso8601String()}),
         weight: WeightEntry.fromRow({'id': 'w', 'patient_id': 'p1', 'grams': 2780,
             'measured_at': _now.toIso8601String()}),
       );
       final flags = item.flags(_now);
       expect(flags[0], startsWith('OVERDUE: Send 48-hour'));
-      expect(flags[1], 'Bilirubin: Start phototherapy'); // 16 mg/dL ≈ 274 > 252 at 49 h
+      expect(flags[1], 'Bilirubin: Start phototherapy'); // 12 mg/dL ≈ 205 > 176 (NICE, 34 wk) at 49 h
       expect(flags[2], 'Weight −10.3% from birth');
       final text = item.toText(_now);
       expect(text, startsWith('Bed 4 · Baby of p1 · '));

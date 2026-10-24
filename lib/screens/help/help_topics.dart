@@ -35,7 +35,7 @@ const List<HelpSection> kHelpSections = [
     HelpTopic('How do the 48- and 72-hour investigations work?',
         'When you add a birth time, FolioMed asks whether you’ll send the investigations at 48 or 72 hours and how early to remind you (8 or 12 hours). At the hour it asks the ward whether they were sent, then asks for the results.'),
     HelpTopic('What do the bilirubin lines mean?',
-        'The chart plots each reading against the phototherapy and exchange lines for the baby’s gestation (and, for AAP, neurotoxicity risk factors). Switch between AAP 2022 and NICE above the chart. This is decision support only — always confirm against the guideline and your clinical judgement.'),
+        'The chart plots each reading against the phototherapy and exchange lines for the baby’s gestation (and, for AAP, neurotoxicity risk factors). The guideline follows the gestational age: NICE below 35 weeks, AAP 2022 from 35 weeks (record the neurotoxicity risk factors — on the baby’s page or while entering results — for AAP lines). This is decision support only — always confirm against the guideline and your clinical judgement.'),
     HelpTopic('What is the discharge checklist?',
         'On a newborn’s page, Discharge Checklist shows what’s done and what isn’t. FolioMed fills in the investigations, TSH, blood grouping, OAE, a bilirubin and a weight from the last 24 hours, and whether phototherapy has stopped. Staff tick Vitamin K, BCG, OPV-0, Hepatitis B, feeding, urine and meconium, counselling and follow-up. If anything is open when you discharge, FolioMed lists it first; you can still discharge.'),
     HelpTopic('Why does AAP ask about risk factors?',

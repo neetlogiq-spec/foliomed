@@ -106,21 +106,37 @@ abstract class BilirubinGuideline {
   });
 }
 
-/// NICE CG98 (Jaundice in newborn babies under 28 days), Table 1:
-/// consensus-based thresholds for babies of 38 weeks or more, in 6-hour
-/// steps; values between steps are linearly interpolated (as the NICE
-/// treatment threshold graph is drawn), and 96 hours onwards is flat.
+/// NICE CG98 (Jaundice in newborn babies under 28 days).
+///
+/// 38 weeks or more — Table 1: consensus-based thresholds in 6-hour steps;
+/// values between steps are linearly interpolated (as the NICE treatment
+/// threshold graph is drawn), and 96 hours onwards is flat.
+///
+/// 23–37 weeks — the gestation-specific threshold graphs: phototherapy
+/// rises in a straight line from 40 µmol/L at birth to (weeks × 10) − 100
+/// at 72 hours, exchange from 80 µmol/L to weeks × 10, both flat after
+/// 72 hours. Not yet checked against the published graphs
+/// ([pretermVerified]).
 class NiceCg98 implements BilirubinGuideline {
   const NiceCg98();
+
+  /// Whether the preterm (23–37 weeks) lines have been checked against
+  /// the NICE gestation-specific graphs. Flip only after that check.
+  static const bool pretermVerified = false;
+
+  /// NICE has graphs from 23 weeks; Table 1 from 38.
+  static const int minPretermWeeks = 23;
+  static const int termWeeks = 38;
 
   @override
   String get name => 'NICE CG98';
 
   @override
   String get source =>
-      'NICE CG98 threshold table (≥38 weeks, last updated 2016; NICE flagged '
-      'the thresholds for review in 2023). Check the current NICE table and '
-      'your laboratory\'s assay before acting.';
+      'NICE CG98 threshold table (≥38 weeks) and gestation-specific graphs '
+      '(23–37 weeks), last updated 2016; NICE flagged the thresholds for '
+      'review in 2023. Check the current NICE chart and your laboratory\'s '
+      'assay before acting.';
 
   /// hours → [repeat, consider phototherapy, phototherapy, exchange]
   /// (µmol/L), as published; null = the cell is blank in the NICE table
@@ -145,6 +161,24 @@ class NiceCg98 implements BilirubinGuideline {
     96: [null, 300, 350, 450],
   };
 
+  /// Preterm (23–37 weeks) phototherapy and exchange lines at [hours].
+  static BiliThresholds pretermThresholdsAt(int weeks, double hours) {
+    final f = hours.clamp(0, 72).toDouble() / 72;
+    final photo72 = weeks * 10.0 - 100;
+    final exch72 = weeks * 10.0;
+    return BiliThresholds(
+      phototherapy: 40 + (photo72 - 40) * f,
+      exchange: 80 + (exch72 - 80) * f,
+    );
+  }
+
+  /// Thresholds for [weeks] of gestation, or null below 23 weeks.
+  static BiliThresholds? thresholdsFor(int weeks, double hours) {
+    if (weeks < minPretermWeeks) return null;
+    return weeks >= termWeeks ? thresholdsAt(hours) : pretermThresholdsAt(weeks, hours);
+  }
+
+  /// Table 1 (38 weeks or more).
   static BiliThresholds thresholdsAt(double hours) {
     final h = hours.clamp(0, 96).toDouble();
     final lower = (h ~/ 6) * 6;
@@ -178,14 +212,14 @@ class NiceCg98 implements BilirubinGuideline {
       return BiliNotApplicable(
           name, 'Add the gestational age to compare with NICE thresholds.');
     }
-    if (gestationWeeks < 38) {
+    if (gestationWeeks < minPretermWeeks) {
       return BiliNotApplicable(name,
-          'NICE uses gestation-specific graphs below 38 weeks — not built in yet. Use the NICE preterm chart.');
+          'NICE threshold graphs start at $minPretermWeeks weeks — use your unit\'s chart.');
     }
     if (hoursOfAge < 0) {
       return BiliNotApplicable(name, 'The sample time is before the birth time.');
     }
-    final th = thresholdsAt(hoursOfAge);
+    final th = thresholdsFor(gestationWeeks, hoursOfAge)!;
     final action = tsbUmol > th.exchange
         ? BiliAction.exchange
         : tsbUmol > th.phototherapy

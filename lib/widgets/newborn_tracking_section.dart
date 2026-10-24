@@ -19,6 +19,7 @@ import 'app_sheet.dart';
 import 'bilirubin_chart.dart';
 import 'birth_time_field.dart';
 import 'inset_group.dart';
+import 'risk_factors_sheet.dart';
 
 /// Patient page (newborns): bilirubin trend + phototherapy, and weights.
 class NewbornTrackingSection extends StatefulWidget {
@@ -75,41 +76,37 @@ class _NewbornTrackingSectionState extends State<NewbornTrackingSection> {
 
   // ───────────────────────────── Bilirubin ─────────────────────────────
 
-  Widget _bilirubinGroup(
-      List<BilirubinReading> readings, List<PhototherapySession> sessions, bool error) {
-    return ValueListenableBuilder<GuidelineChoice>(
-      valueListenable: GuidelinePreference.choice,
-      builder: (context, choice, _) =>
-          _bilirubinGroupFor(choice, readings, sessions, error),
-    );
-  }
-
-  String _guidelineFooter(GuidelineChoice choice, ThresholdLines? lines) {
+  String _guidelineFooter(ThresholdLines? lines) {
     final ga = p.gestationWeeks;
     if (lines == null) {
       if (ga == null) return 'Add the gestational age (Edit details) to draw guideline lines.';
-      if (choice == GuidelineChoice.nice) {
-        return 'NICE lines are drawn for 38 weeks or more — switch to AAP 2022 (35 weeks or more).';
+      if (ga < NiceCg98.minPretermWeeks) {
+        return 'NICE graphs start at ${NiceCg98.minPretermWeeks} weeks — use your unit\'s chart.';
       }
-      if (ga < 35) return 'AAP 2022 covers 35 weeks or more — use a preterm chart.';
-      if (p.neuroRisk == null) return 'Record the neurotoxicity risk factors above to draw AAP lines.';
-      return 'AAP thresholds unavailable.';
+      if (ga >= kAapMinWeeks && p.neuroRisk == null) {
+        return 'Record the neurotoxicity risk factors above to draw AAP lines.';
+      }
+      return 'Guideline thresholds unavailable.';
     }
     final aap = lines.guideline == 'AAP 2022';
     return '${aap ? 'Orange: phototherapy · pale red: escalation of care · red: exchange (AAP 2022, '
-            '${p.neuroRisk! ? 'with' : 'no'} neurotoxicity risk factors).' : 'Orange: phototherapy · red: exchange (NICE CG98, ≥38 weeks).'}'
+            '${p.neuroRisk! ? 'with' : 'no'} neurotoxicity risk factors).' : 'Orange: phototherapy · red: exchange '
+            '(NICE CG98, ${ga! >= NiceCg98.termWeeks ? '≥38 weeks' : '$ga weeks'}).'}'
+        ' AAP 2022 is used from $kAapMinWeeks weeks, NICE below.'
         ' Hollow dots are transcutaneous — confirm with a serum level before treating.'
         '${aap && !Aap2022.dataVerified ? ' AAP data not yet verified against the published tables.' : ''}'
+        '${!aap && ga! < NiceCg98.termWeeks && !NiceCg98.pretermVerified ? ' NICE preterm lines not yet verified against the published graphs.' : ''}'
         ' Decision support only.';
   }
 
-  Widget _bilirubinGroupFor(GuidelineChoice choice, List<BilirubinReading> readings,
+  Widget _bilirubinGroup(List<BilirubinReading> readings,
       List<PhototherapySession> sessions, bool error) {
-    final lines = linesForPatient(p, choice);
-    final running = sessions.where((s) => s.isRunning).firstOrNull;
+    final choice = guidelineForGestation(p.gestationWeeks);
+    final lines = linesForPatient(p);
     final latest = readings.isEmpty ? null : readings.last;
     final assessment =
-        latest == null ? null : assessForPatient(p, latest.measuredAt, latest.umol, prefer: choice);
+        latest == null ? null : assessForPatient(p, latest.measuredAt, latest.umol);
+    final running = sessions.where((s) => s.isRunning).firstOrNull;
     final serum = [
       for (final r in readings)
         if (!r.transcutaneous) (at: r.measuredAt, umol: r.umol),
@@ -120,26 +117,17 @@ class _NewbornTrackingSectionState extends State<NewbornTrackingSection> {
     final factors = p.neuroRiskFactors;
     return InsetGroup(
       header: 'Bilirubin',
-      footer: _guidelineFooter(choice, lines),
+      footer: _guidelineFooter(lines),
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
-          child: CupertinoSlidingSegmentedControl<GuidelineChoice>(
-            groupValue: choice,
-            onValueChanged: (c) {
-              if (c == null) return;
-              Haptics.selection();
-              GuidelinePreference.set(c);
-            },
-            children: {
-              for (final c in GuidelineChoice.values)
-                c: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  child: Text(c.label,
-                      style: AppTypography.subheadline(
-                          color: AppColors.textPrimary, weight: FontWeight.w600)),
-                ),
-            },
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          child: Text(
+            choice == null
+                ? 'Guideline: needs gestational age'
+                : 'Guideline: ${choice.label} (${p.gestationLabel})',
+            style: AppTypography.subheadline(
+                color: choice == null ? AppColors.warning : AppColors.textPrimary,
+                weight: FontWeight.w600),
           ),
         ),
         Padding(
@@ -186,13 +174,7 @@ class _NewbornTrackingSectionState extends State<NewbornTrackingSection> {
                   ? AppColors.accent
                   : AppColors.danger,
           title: 'Neurotoxicity risk factors',
-          subtitle: factors == null
-              ? 'Not assessed — needed for AAP thresholds'
-              : factors.isEmpty
-                  ? 'None'
-                  : factors
-                      .map((f) => NeuroRiskFactor.fromName(f)?.label ?? f)
-                      .join(', '),
+          subtitle: riskFactorsLabel(factors) ?? 'Not assessed — needed for AAP thresholds',
           onTap: p.isActive ? _editRiskFactors : null,
         ),
         if (p.isActive)
@@ -226,19 +208,9 @@ class _NewbornTrackingSectionState extends State<NewbornTrackingSection> {
   }
 
   Future<void> _editRiskFactors() async {
-    final selected = await showAppSheet<Set<NeuroRiskFactor>>(
-      context: context,
-      isScrollControlled: true,
-      builder: (_) => _RiskFactorsSheet(
-        initial: {
-          for (final f in p.neuroRiskFactors ?? const <String>[])
-            if (NeuroRiskFactor.fromName(f) != null) NeuroRiskFactor.fromName(f)!,
-        },
-      ),
-    );
+    final selected = await showRiskFactorsSheet(context, p.neuroRiskFactors);
     if (selected == null) return;
-    await _run(() => PatientService()
-        .setNeuroRiskFactors(p.id, [for (final f in selected) f.name]));
+    await _run(() => PatientService().setNeuroRiskFactors(p.id, selected));
   }
 
   static String _fmt(double v) =>
@@ -531,68 +503,6 @@ class _AddReadingSheetState extends State<_AddReadingSheet> {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _RiskFactorsSheet extends StatefulWidget {
-  const _RiskFactorsSheet({required this.initial});
-  final Set<NeuroRiskFactor> initial;
-
-  @override
-  State<_RiskFactorsSheet> createState() => _RiskFactorsSheetState();
-}
-
-class _RiskFactorsSheetState extends State<_RiskFactorsSheet> {
-  late final Set<NeuroRiskFactor> _sel = {...widget.initial};
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                CupertinoButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancel'),
-                ),
-                Expanded(
-                  child: Text('Risk factors',
-                      textAlign: TextAlign.center,
-                      style: AppTypography.headline(color: AppColors.textPrimary)),
-                ),
-                CupertinoButton(
-                  onPressed: () => Navigator.pop(context, _sel),
-                  child: const Text('Save', style: TextStyle(fontWeight: FontWeight.w600)),
-                ),
-              ],
-            ),
-            InsetGroup(
-              footer: 'Gestation is accounted for by the curve itself. Save with nothing '
-                  'ticked to record "none". AAP 2022 neurotoxicity risk factors.',
-              dividerIndent: 16,
-              children: [
-                for (final f in NeuroRiskFactor.values)
-                  SettingsRow(
-                    title: f.label,
-                    trailing: Icon(
-                      _sel.contains(f) ? Icons.check_circle : Icons.circle_outlined,
-                      color: _sel.contains(f) ? AppColors.primary : AppColors.textSecondary,
-                    ),
-                    showChevron: false,
-                    onTap: () => setState(
-                        () => _sel.contains(f) ? _sel.remove(f) : _sel.add(f)),
-                  ),
-              ],
-            ),
-          ],
         ),
       ),
     );

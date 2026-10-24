@@ -222,6 +222,7 @@ class Patient {
     String? diagnosis,
     String? bloodGroup,
     String? hospitalId,
+    List<String>? neuroRiskFactors,
   }) {
     return Patient(
       id: id,
@@ -255,7 +256,7 @@ class Patient {
       motherName: motherName,
       motherAge: motherAge,
       gravidaPara: gravidaPara,
-      neuroRiskFactors: neuroRiskFactors,
+      neuroRiskFactors: neuroRiskFactors ?? this.neuroRiskFactors,
     );
   }
 

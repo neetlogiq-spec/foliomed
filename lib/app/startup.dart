@@ -3,7 +3,6 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../clinical/bilirubin.dart';
-import '../clinical/bilirubin_assess.dart';
 import '../config/supabase_config.dart';
 import '../services/accessibility_settings.dart';
 import '../services/push_registration.dart';
@@ -28,7 +27,6 @@ Future<bool> prepareApp() async {
   await step('AAP thresholds', () async {
     Aap2022.loadJson(await rootBundle.loadString('assets/clinical/aap2022_bilirubin.json'));
   });
-  await step('guideline preference', GuidelinePreference.load);
   await step('tips', TipStore.load);
 
   if (!SupabaseConfig.isConfigured) return false;
