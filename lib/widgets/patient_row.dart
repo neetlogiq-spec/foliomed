@@ -1,24 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../clinical/patient_status.dart';
 import '../models/patient.dart';
 import '../screens/patients/patient_board.dart';
 import '../screens/patients/patient_screen.dart';
 import '../utils/app_theme.dart';
 import '../utils/app_typography.dart';
+import 'status_dot.dart';
 
 /// A patient in a list, read like a ward board: bed on the left, who they
 /// are and what's wrong, and status marks on the right.
 class PatientRow extends StatelessWidget {
-  const PatientRow({super.key, required this.patient, this.signals = PatientSignals.none});
+  const PatientRow({super.key, required this.patient, this.signals = PatientSignals.none, this.onReturn});
 
   final Patient patient;
   final PatientSignals signals;
+
+  /// Called when the patient page closes (the board refreshes its data).
+  final VoidCallback? onReturn;
 
   @override
   Widget build(BuildContext context) {
     final p = patient;
     final s = signals;
+    final status = s.status;
     final hours = p.hoursSinceBirth();
     final facts = [
       if (hours != null && hours < 24 * 7) '$hours h' else p.ageLabel,
@@ -31,11 +37,17 @@ class PatientRow extends StatelessWidget {
       if (s.urgentNotes > 0) (Icons.priority_high, AppColors.danger, '${s.urgentNotes} urgent note'),
       if (s.overdueReminders > 0) (Icons.alarm, AppColors.danger, '${s.overdueReminders} overdue reminder'),
       if (s.phototherapy) (Icons.light_mode, AppColors.warning, 'Under phototherapy'),
+      for (final (topic, icon) in [(StatusTopic.bilirubin, Icons.show_chart), (StatusTopic.weight, Icons.monitor_weight_outlined)])
+        if (status?.reasons.where((r) => r.topic == topic).firstOrNull case final r?)
+          (icon, statusColor(r.level), r.text),
     ];
 
     return Semantics(
       button: true,
       label: [
+        if (status != null)
+          '${status.label}${status.needsReview ? ', review status' : ''}'
+              '${status.reasons.isEmpty ? '' : ': ${status.reasons.where((r) => r.level.index >= StatusLevel.watch.index).map((r) => r.text).join(', ')}'}',
         if (p.bedNumber.isNotEmpty) 'Bed ${p.bedNumber}',
         p.name,
         facts,
@@ -45,22 +57,35 @@ class PatientRow extends StatelessWidget {
       ].join('. '),
       excludeSemantics: true,
       child: InkWell(
-        onTap: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => PatientScreen(patientId: p.id))),
+        onTap: () async {
+          await Navigator.of(context).push(MaterialPageRoute(builder: (_) => PatientScreen(patientId: p.id)));
+          onReturn?.call();
+        },
         child: Padding(
           padding: const EdgeInsets.fromLTRB(0, 10, 10, 10),
           child: Row(
             children: [
               SizedBox(
                 width: 58,
-                child: Text(
-                  p.bedNumber.isEmpty ? '–' : p.bedNumber,
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.title3(
-                    color: p.bedNumber.isEmpty ? AppColors.tertiaryLabel : AppColors.textPrimary,
-                  ).copyWith(fontFeatures: AppTypography.tabular),
-                ),
+                child: Row(children: [
+                  SizedBox(
+                    width: 16,
+                    child: status == null
+                        ? null
+                        : Align(alignment: Alignment.centerRight, child: StatusDot(status: status, size: 10)),
+                  ),
+                  Expanded(
+                    child: Text(
+                      p.bedNumber.isEmpty ? '–' : p.bedNumber,
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.title3(
+                        color: p.bedNumber.isEmpty ? AppColors.tertiaryLabel : AppColors.textPrimary,
+                      ).copyWith(fontFeatures: AppTypography.tabular),
+                    ),
+                  ),
+                ]),
               ),
               Expanded(
                 child: Column(

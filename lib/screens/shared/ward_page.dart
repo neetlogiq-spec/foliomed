@@ -41,6 +41,27 @@ class _WardPageState extends State<WardPage> {
   late final Future<List<AppUser>> _members =
       WardService().getWardMembers(widget.ward.id);
 
+  late WardKind _kind = widget.ward.kind;
+
+  Future<void> _pickKind() async {
+    final k = await showOptionSheet<WardKind>(
+      context,
+      title: 'Ward type',
+      options: {for (final k in WardKind.values) k: k.label},
+      selected: _kind,
+    );
+    if (k == null || k == _kind || !mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await WardService().setKind(widget.ward.id, k);
+      Haptics.success();
+      setState(() => _kind = k);
+    } catch (e) {
+      Haptics.error();
+      messenger.showSnackBar(SnackBar(backgroundColor: AppColors.danger, content: Text(friendlyError(e))));
+    }
+  }
+
   bool get _isOwner =>
       widget.ward.ownerId.isNotEmpty &&
       widget.ward.ownerId == supabase.auth.currentUser?.id;
@@ -81,8 +102,16 @@ class _WardPageState extends State<WardPage> {
                 const SizedBox(height: 24),
                 InsetGroup(
                   header: 'About',
+                  footer: 'The ward type picks the automatic checks behind the patients’ status dots — '
+                      'newborn bilirubin and weight on PNC and NICU, support tags on PICU. '
+                      'Other follows the patient’s age.${_isOwner ? '' : ' Only the owner can change it.'}',
                   dividerIndent: 16,
                   children: [
+                    SettingsRow(
+                      title: 'Ward type',
+                      value: _kind.label,
+                      onTap: _isOwner ? _pickKind : null,
+                    ),
                     if (w.location.isNotEmpty) SettingsRow(title: 'Where', value: w.location),
                     SettingsRow(
                       title: 'Owner',

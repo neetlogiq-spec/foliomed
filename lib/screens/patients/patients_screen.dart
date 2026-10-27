@@ -23,6 +23,7 @@ import '../../widgets/empty_placeholder.dart';
 import '../../widgets/inset_group.dart';
 import '../../widgets/large_title_app_bar.dart';
 import '../../widgets/patient_row.dart';
+import '../../widgets/status_dot.dart';
 import '../../widgets/scope_button.dart';
 import '../shared/census_screen.dart';
 import 'patient_board.dart';
@@ -82,13 +83,20 @@ class _PatientsScreenState extends State<PatientsScreen> {
             future: _trackingFor(admitted),
             builder: (context, trackSnap) {
               final t = trackSnap.data ?? TrackingSnapshot.empty();
-              final signals = patientSignals(
-                now: DateTime.now(),
-                reminders: context.watch<ReminderProvider>().open,
-                jobs: context.watch<JobBoard>().open(),
-                notes: context.watch<WardFeed>().feed,
-                phototherapy: t.runningPhototherapy.keys.toSet(),
-                latestWeightG: {for (final e in t.latestWeight.entries) e.key: e.value.grams},
+              final now = DateTime.now();
+              final signals = withStatuses(
+                now: now,
+                admitted: admitted,
+                signals: patientSignals(
+                  now: now,
+                  reminders: context.watch<ReminderProvider>().open,
+                  jobs: context.watch<JobBoard>().open(),
+                  notes: context.watch<WardFeed>().feed,
+                  phototherapy: t.runningPhototherapy.keys.toSet(),
+                  latestWeightG: {for (final e in t.latestWeight.entries) e.key: e.value.grams},
+                ),
+                wardKinds: {for (final w in wards) w.id: w.kind},
+                latestBilirubin: t.latestBilirubin,
               );
               return RefreshIndicator.adaptive(
                 edgeOffset: MediaQuery.paddingOf(context).top + 52,
@@ -214,6 +222,10 @@ class _PatientsScreenState extends State<PatientsScreen> {
                 ),
             ]),
           ),
+          if (_filter != PatientFilter.discharged) ...[
+            const SizedBox(height: 8),
+            const StatusLegend(),
+          ],
           const SizedBox(height: 6),
           Row(children: [
             const ScopeButton(),
@@ -302,7 +314,14 @@ class _PatientsScreenState extends State<PatientsScreen> {
               dividerIndent: 58,
               children: [
                 for (final p in patients)
-                  PatientRow(key: ValueKey(p.id), patient: p, signals: signals[p.id] ?? PatientSignals.none),
+                  PatientRow(
+                    key: ValueKey(p.id),
+                    patient: p,
+                    signals: signals[p.id] ?? PatientSignals.none,
+                    onReturn: () {
+                      if (mounted) setState(() => _tracking = null);
+                    },
+                  ),
               ],
             ),
           );

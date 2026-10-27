@@ -84,6 +84,18 @@ class Patient {
   /// true/false once assessed, null before.
   bool? get neuroRisk => neuroRiskFactors == null ? null : neuroRiskFactors!.isNotEmpty;
 
+  /// Status staff set by hand: 'stable' / 'watch' / 'sick' (`Acuity`), or
+  /// null when not set, with an optional reason. Who and when are stamped
+  /// by the server. Saved only through PatientService.setStatus, so
+  /// [toRow] never writes these.
+  final String? acuity;
+  final String? acuityReason;
+  final DateTime? acuitySetAt;
+  final String? acuitySetByName;
+
+  /// Organ support ticked by staff (names of `SupportTag`), mostly PICU.
+  final List<String> supportTags;
+
   const Patient({
     required this.id,
     this.patientCode = '',
@@ -117,6 +129,11 @@ class Patient {
     this.motherAge,
     this.gravidaPara,
     this.neuroRiskFactors,
+    this.acuity,
+    this.acuityReason,
+    this.acuitySetAt,
+    this.acuitySetByName,
+    this.supportTags = const [],
   });
 
   /// "39+2 wk", or null when not recorded.
@@ -177,6 +194,11 @@ class Patient {
       motherAge: (row['mother_age'] as num?)?.toInt(),
       gravidaPara: row['gravida_para'] as String?,
       neuroRiskFactors: (row['neuro_risk_factors'] as List?)?.cast<String>(),
+      acuity: row['acuity'] as String?,
+      acuityReason: row['acuity_reason'] as String?,
+      acuitySetAt: parseTimestampOrNull(row['acuity_set_at']),
+      acuitySetByName: row['acuity_set_by_name'] as String?,
+      supportTags: (row['support_tags'] as List?)?.cast<String>() ?? const [],
     );
   }
 
@@ -257,6 +279,11 @@ class Patient {
       motherAge: motherAge,
       gravidaPara: gravidaPara,
       neuroRiskFactors: neuroRiskFactors ?? this.neuroRiskFactors,
+      acuity: acuity,
+      acuityReason: acuityReason,
+      acuitySetAt: acuitySetAt,
+      acuitySetByName: acuitySetByName,
+      supportTags: supportTags,
     );
   }
 

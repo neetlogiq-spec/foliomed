@@ -76,6 +76,15 @@ class WardService {
     await _wards.update(ward.toRow()).eq('id', ward.id);
   }
 
+  /// Owner only; throws when RLS blocks it (zero rows updated).
+  Future<void> setKind(String wardId, WardKind kind) async {
+    final rows = await _wards.update({'kind': kind.name}).eq('id', wardId).select('id');
+    if (rows.isEmpty) {
+      throw const PostgrestException(
+          message: 'Only the ward owner can change the ward type.', code: '42501');
+    }
+  }
+
   /// Joins by code. Returns false when no ward has that code.
   Future<bool> joinWard(String wardId) async {
     final ok = await _client.rpc('join_ward', params: {'p_ward_id': wardId});

@@ -73,6 +73,7 @@ class SettingsRow extends StatelessWidget {
     required this.title,
     this.icon,
     this.iconColor,
+    this.leading,
     this.subtitle,
     this.value,
     this.trailing,
@@ -83,6 +84,9 @@ class SettingsRow extends StatelessWidget {
 
   final String title;
   final IconData? icon;
+
+  /// A custom 28-pt leading widget, used instead of the [icon] tile.
+  final Widget? leading;
   final Color? iconColor;
   final String? subtitle;
   final String? value;
@@ -103,7 +107,10 @@ class SettingsRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         child: Row(
           children: [
-            if (icon != null) ...[
+            if (leading != null) ...[
+              SizedBox.square(dimension: 28, child: leading),
+              const SizedBox(width: 16),
+            ] else if (icon != null) ...[
               Container(
                 width: 28,
                 height: 28,

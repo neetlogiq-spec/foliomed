@@ -1,5 +1,22 @@
 import 'row_parsing.dart';
 
+/// What kind of ward this is; picks the automatic status rules
+/// (`lib/clinical/patient_status.dart`). [other] follows the patient's age.
+enum WardKind {
+  pnc('PNC / Newborn'),
+  nicu('NICU'),
+  picu('PICU'),
+  paeds('Paediatric ward'),
+  adult('Adult ward'),
+  other('Other');
+
+  const WardKind(this.label);
+  final String label;
+
+  static WardKind fromName(String? v) =>
+      values.firstWhere((k) => k.name == v, orElse: () => other);
+}
+
 /// A team space people join with its 5-digit [id] (the code they share).
 /// Dart names are FolioMed's; [Ward.fromRow] maps the `wards` columns.
 class Ward {
@@ -12,6 +29,7 @@ class Ward {
     this.ownerId = '',
     this.ownerEmail = '',
     required this.createdAt,
+    this.kind = WardKind.other,
   });
 
   final String id;
@@ -22,6 +40,9 @@ class Ward {
   final String ownerId;
   final String ownerEmail;
   final DateTime createdAt;
+
+  /// Set by the owner (WardService.setKind); [toRow] never writes it.
+  final WardKind kind;
 
   bool ownedBy(String uid) => uid.isNotEmpty && uid == ownerId;
 
@@ -36,6 +57,7 @@ class Ward {
       ownerId: text('creator_id'),
       ownerEmail: text('creator_email'),
       createdAt: parseTimestamp(row['created_at']),
+      kind: WardKind.fromName(row['kind'] as String?),
     );
   }
 

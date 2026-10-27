@@ -140,6 +140,17 @@ class PatientService {
     }
   }
 
+  /// Sets, reviews (same status again) or clears ([acuity] null) the
+  /// status and support tags; logged on the timeline.
+  Future<void> setStatus(String patientId,
+          {required String? acuity, String? reason, List<String> supportTags = const []}) =>
+      _client.rpc('set_patient_status', params: {
+        'p_patient': patientId,
+        'p_acuity': acuity,
+        'p_reason': reason,
+        'p_tags': supportTags,
+      });
+
   /// Notes and their comments cascade-delete in Postgres.
   Future<void> deletePatient(String patientId) async {
     await _patients.delete().eq('id', patientId);

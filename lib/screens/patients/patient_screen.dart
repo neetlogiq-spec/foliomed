@@ -21,6 +21,7 @@ import '../../widgets/empty_placeholder.dart';
 import '../../widgets/inset_group.dart';
 import '../../widgets/large_title_app_bar.dart';
 import '../../widgets/newborn_section.dart';
+import '../../widgets/patient_status_card.dart';
 import '../../widgets/newborn_tracking_section.dart';
 import '../../widgets/patient_actions.dart';
 import '../../widgets/patient_jobs_section.dart';
@@ -34,7 +35,7 @@ enum _View { overview, timeline }
 /// Timeline filter: everything, what people wrote, or system events.
 enum _Show { all, notes, events }
 
-const _eventKinds = {'transfer', 'discharge', 'admission', 'investigation', 'phototherapy'};
+const _eventKinds = {'transfer', 'discharge', 'admission', 'investigation', 'phototherapy', 'status'};
 
 /// One patient, laid out like a contact card: who they are and quick
 /// actions at the top, then Overview (details, newborn care, jobs,
@@ -155,6 +156,10 @@ class _PatientScreenState extends State<PatientScreen> {
 
   List<Widget> _overview(Patient p) => [
         if (p.isDischarged) ...[_DischargeNotice(patient: p), const SizedBox(height: 20)],
+        if (p.isActive) ...[
+          PatientStatusCard(key: ValueKey('status-${p.id}'), patient: p, wardKind: _ward?.kind),
+          const SizedBox(height: 24),
+        ],
         _Details(patient: p),
         const SizedBox(height: 24),
         if (p.bornAt != null) ...[

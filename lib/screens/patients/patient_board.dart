@@ -1,6 +1,9 @@
+import '../../clinical/patient_status.dart';
+import '../../models/newborn_tracking.dart';
 import '../../models/note.dart';
 import '../../models/patient.dart';
 import '../../models/patient_reminder.dart';
+import '../../models/ward.dart';
 import '../../models/ward_job.dart';
 
 /// What a patient row shows beside the name — worked out once per list.
@@ -12,6 +15,7 @@ class PatientSignals {
     this.urgentJobs = 0,
     this.urgentNotes = 0,
     this.latestWeightG,
+    this.status,
   });
 
   static const none = PatientSignals();
@@ -27,7 +31,25 @@ class PatientSignals {
   final int urgentNotes;
   final int? latestWeightG;
 
-  bool get needsAttention => overdueReminders > 0 || urgentJobs > 0 || urgentNotes > 0;
+  /// The status dot (admitted patients on the board), or null.
+  final PatientStatusResult? status;
+
+  /// Red or amber dot; without a status, any urgent task.
+  bool get needsAttention =>
+      status?.needsAttention ?? (overdueReminders > 0 || urgentJobs > 0 || urgentNotes > 0);
+
+  /// 3 red, 2 amber, 1 green, 0 grey / none — for "Needs Attention First".
+  int get attentionRank => status?.level.index ?? (needsAttention ? StatusLevel.act.index : 0);
+
+  PatientSignals withStatus(PatientStatusResult s) => PatientSignals(
+        phototherapy: phototherapy,
+        overdueReminders: overdueReminders,
+        openJobs: openJobs,
+        urgentJobs: urgentJobs,
+        urgentNotes: urgentNotes,
+        latestWeightG: latestWeightG,
+        status: s,
+      );
 }
 
 /// Signals for every patient id that has any.
@@ -64,6 +86,34 @@ Map<String, PatientSignals> patientSignals({
         latestWeightG: latestWeightG[id],
       ),
   };
+}
+
+/// [signals] plus a status dot for every admitted patient, using their
+/// ward's type ([wardKinds] by ward id; unknown wards count as Other).
+Map<String, PatientSignals> withStatuses({
+  required DateTime now,
+  required Iterable<Patient> admitted,
+  required Map<String, PatientSignals> signals,
+  required Map<String, WardKind> wardKinds,
+  Map<String, BilirubinReading> latestBilirubin = const {},
+}) {
+  final out = {...signals};
+  for (final p in admitted) {
+    if (!p.isActive) continue;
+    final s = signals[p.id] ?? PatientSignals.none;
+    out[p.id] = s.withStatus(patientStatus(StatusInputs(
+      patient: p,
+      wardKind: wardKinds[p.wardId] ?? WardKind.other,
+      now: now,
+      urgentNotes: s.urgentNotes,
+      overdueReminders: s.overdueReminders,
+      urgentJobs: s.urgentJobs,
+      latestBilirubin: latestBilirubin[p.id],
+      phototherapyRunning: s.phototherapy,
+      latestWeightG: s.latestWeightG,
+    )));
+  }
+  return out;
 }
 
 enum PatientFilter {
@@ -120,8 +170,8 @@ List<Patient> sortPatients(List<Patient> list, PatientSort sort, Map<String, Pat
       out.sort((a, b) => b.admittedAt.compareTo(a.admittedAt));
     case PatientSort.attention:
       out.sort((a, b) {
-        final sa = signals[a.id]?.needsAttention ?? false, sb = signals[b.id]?.needsAttention ?? false;
-        if (sa != sb) return sa ? -1 : 1;
+        final ra = signals[a.id]?.attentionRank ?? 0, rb = signals[b.id]?.attentionRank ?? 0;
+        if (ra != rb) return rb.compareTo(ra);
         return byBed(a, b);
       });
   }
