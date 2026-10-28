@@ -16,10 +16,12 @@
 library;
 
 import '../models/newborn_tracking.dart';
+import '../models/observation.dart';
 import '../models/patient.dart';
 import '../models/ward.dart';
 import 'bilirubin.dart';
 import 'bilirubin_assess.dart';
+import 'early_warning.dart';
 
 /// Status staff set by hand.
 enum Acuity {
@@ -83,10 +85,14 @@ extension WardKindStatus on WardKind {
         WardKind.other => p.bornAt != null && now.difference(p.bornAt!) < const Duration(days: 28),
         _ => false,
       };
+
+  /// Wards where NEWS2 / PEWS colour the dot (not intensive care, where
+  /// these scores aren't designed for patients on organ support).
+  bool get usesEarlyWarning => this == WardKind.paeds || this == WardKind.adult || this == WardKind.other;
 }
 
 /// What a reason is about (the row shows an icon for some).
-enum StatusTopic { staff, review, tasks, bilirubin, phototherapy, weight, missingData, support }
+enum StatusTopic { staff, review, tasks, bilirubin, phototherapy, weight, missingData, support, observations }
 
 /// One thing behind the colour.
 class StatusReason {
@@ -133,6 +139,7 @@ class StatusInputs {
     this.latestBilirubin,
     this.phototherapyRunning = false,
     this.latestWeightG,
+    this.latestObservation,
   });
 
   final Patient patient;
@@ -144,7 +151,11 @@ class StatusInputs {
   final BilirubinReading? latestBilirubin;
   final bool phototherapyRunning;
   final int? latestWeightG;
+  final Observation? latestObservation;
 }
+
+/// Observations older than this don't colour the dot.
+const Duration kStatusObservationMaxAge = Duration(hours: 12);
 
 /// Bilirubin readings older than this don't colour the dot.
 const Duration kStatusBilirubinMaxAge = Duration(hours: 72);
@@ -182,6 +193,7 @@ PatientStatusResult patientStatus(StatusInputs i) {
   // 3. Ward-type rules.
   if (i.wardKind.newbornRulesFor(p, i.now)) _newbornRules(i, add);
   if (tags.isNotEmpty) _supportRules(acuity, tags, add);
+  if (i.wardKind.usesEarlyWarning) _observationRules(i, add);
 
   reasons.sort((a, b) => b.level.index.compareTo(a.level.index));
   var level = reasons.isEmpty
@@ -245,4 +257,25 @@ void _supportRules(
   if (major.isNotEmpty && acuity == Acuity.stable) {
     add(StatusLevel.watch, '${major.map((t) => t.label).join(' and ')} but marked Stable — review', StatusTopic.support);
   }
+}
+
+void _observationRules(StatusInputs i, void Function(StatusLevel, String, [StatusTopic]) add) {
+  final o = i.latestObservation;
+  if (o == null) return;
+  if (i.now.difference(o.takenAt) > kStatusObservationMaxAge) {
+    if (earlyWarningFor(i.patient, i.now) != null) {
+      // A note only — it doesn't make a grey dot green.
+      add(StatusLevel.unknown, 'No observations in ${kStatusObservationMaxAge.inHours} h', StatusTopic.observations);
+    }
+    return;
+  }
+  final score = scoreObservation(i.patient, o, i.now);
+  if (score == null) return;
+  // An incomplete score is a lower bound: it can still raise the colour.
+  final level = switch (score.band) {
+    EarlyWarningBand.high || EarlyWarningBand.medium => StatusLevel.act,
+    EarlyWarningBand.lowMedium => StatusLevel.watch,
+    EarlyWarningBand.low => StatusLevel.ok,
+  };
+  add(level, score.label, StatusTopic.observations);
 }

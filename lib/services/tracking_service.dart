@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../models/newborn_tracking.dart';
+import '../models/observation.dart';
 import '../models/row_parsing.dart';
 import 'supabase_service.dart';
 
@@ -76,7 +77,8 @@ class TrackingService {
 
   Future<void> deleteWeight(String id) => _client.from('weights').delete().eq('id', id);
 
-  /// Latest reading / running phototherapy / latest weight for many
+  /// Latest reading / running phototherapy / latest weight / latest
+  /// observations for many
   /// patients at once (handover list). One query per table.
   Future<TrackingSnapshot> snapshot(List<String> patientIds) async {
     if (patientIds.isEmpty) return TrackingSnapshot.empty();
@@ -87,6 +89,11 @@ class TrackingService {
           .isFilter('stopped_at', null),
       _client.from('weights').select().inFilter('patient_id', patientIds)
           .order('measured_at', ascending: false).limit(1000),
+      // On its own failure path, so the rest still loads if it can't.
+      _client.from('observations').select().inFilter('patient_id', patientIds)
+          .gte('taken_at', DateTime.now().subtract(const Duration(days: 2)).toUtc().toIso8601String())
+          .order('taken_at', ascending: false).limit(2000)
+          .then<List<Map<String, dynamic>>>((rows) => rows, onError: (Object _) => const <Map<String, dynamic>>[]),
     ]);
     final latestBili = <String, BilirubinReading>{};
     for (final r in results[0].map(BilirubinReading.fromRow)) {
@@ -99,15 +106,23 @@ class TrackingService {
     for (final w in results[2].map(WeightEntry.fromRow)) {
       latestWeight.putIfAbsent(w.patientId, () => w);
     }
-    return TrackingSnapshot(latestBili, running, latestWeight);
+    final latestObs = <String, Observation>{};
+    for (final o in results[3].map(Observation.fromRow)) {
+      latestObs.putIfAbsent(o.patientId, () => o);
+    }
+    return TrackingSnapshot(latestBili, running, latestWeight, latestObs);
   }
 }
 
 class TrackingSnapshot {
-  TrackingSnapshot(this.latestBilirubin, this.runningPhototherapy, this.latestWeight);
+  TrackingSnapshot(this.latestBilirubin, this.runningPhototherapy, this.latestWeight,
+      [this.latestObservation = const {}]);
   TrackingSnapshot.empty() : this(const {}, const {}, const {});
 
   final Map<String, BilirubinReading> latestBilirubin;
   final Map<String, PhototherapySession> runningPhototherapy;
   final Map<String, WeightEntry> latestWeight;
+
+  /// Latest observations in the last 2 days (status dots).
+  final Map<String, Observation> latestObservation;
 }

@@ -97,6 +97,7 @@ class _PatientsScreenState extends State<PatientsScreen> {
                 ),
                 wardKinds: {for (final w in wards) w.id: w.kind},
                 latestBilirubin: t.latestBilirubin,
+                latestObservation: t.latestObservation,
               );
               return RefreshIndicator.adaptive(
                 edgeOffset: MediaQuery.paddingOf(context).top + 52,

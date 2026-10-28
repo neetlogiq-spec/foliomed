@@ -1,6 +1,7 @@
 import '../../clinical/patient_status.dart';
 import '../../models/newborn_tracking.dart';
 import '../../models/note.dart';
+import '../../models/observation.dart';
 import '../../models/patient.dart';
 import '../../models/patient_reminder.dart';
 import '../../models/ward.dart';
@@ -96,6 +97,7 @@ Map<String, PatientSignals> withStatuses({
   required Map<String, PatientSignals> signals,
   required Map<String, WardKind> wardKinds,
   Map<String, BilirubinReading> latestBilirubin = const {},
+  Map<String, Observation> latestObservation = const {},
 }) {
   final out = {...signals};
   for (final p in admitted) {
@@ -111,6 +113,7 @@ Map<String, PatientSignals> withStatuses({
       latestBilirubin: latestBilirubin[p.id],
       phototherapyRunning: s.phototherapy,
       latestWeightG: s.latestWeightG,
+      latestObservation: latestObservation[p.id],
     )));
   }
   return out;

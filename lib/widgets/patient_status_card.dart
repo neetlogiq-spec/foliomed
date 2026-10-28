@@ -2,14 +2,17 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../clinical/early_warning.dart';
 import '../clinical/patient_status.dart';
 import '../models/newborn_tracking.dart';
+import '../models/observation.dart';
 import '../models/patient.dart';
 import '../models/ward.dart';
 import '../providers/job_board.dart';
 import '../providers/reminder_provider.dart';
 import '../providers/ward_feed.dart';
 import '../screens/patients/patient_board.dart';
+import '../services/observation_service.dart';
 import '../services/patient_service.dart';
 import '../services/tracking_service.dart';
 import '../utils/app_theme.dart';
@@ -44,6 +47,10 @@ class _PatientStatusCardState extends State<PatientStatusCard> {
       _newborn ? _tracking.phototherapy(widget.patient.id) : Stream.value(const []);
   late final Stream<List<WeightEntry>> _weights =
       _newborn ? _tracking.weights(widget.patient.id) : Stream.value(const []);
+  late final Stream<List<Observation>> _observations =
+      earlyWarningFor(widget.patient, DateTime.now()) != null
+          ? ObservationService().watch(widget.patient.id)
+          : Stream.value(const []);
 
   Patient get p => widget.patient;
   WardKind get kind => widget.wardKind ?? WardKind.other;
@@ -64,22 +71,27 @@ class _PatientStatusCardState extends State<PatientStatusCard> {
         stream: _sessions,
         builder: (context, ss) => StreamBuilder<List<WeightEntry>>(
           stream: _weights,
-          builder: (context, ws) {
-            final readings = rs.data ?? const [];
-            final weights = ws.data ?? const [];
-            final status = patientStatus(StatusInputs(
-              patient: p,
-              wardKind: kind,
-              now: now,
-              urgentNotes: tasks.urgentNotes,
-              overdueReminders: tasks.overdueReminders,
-              urgentJobs: tasks.urgentJobs,
-              latestBilirubin: readings.isEmpty ? null : readings.last,
-              phototherapyRunning: (ss.data ?? const []).any((s) => s.isRunning),
-              latestWeightG: weights.isEmpty ? null : weights.last.grams,
-            ));
-            return _card(status);
-          },
+          builder: (context, ws) => StreamBuilder<List<Observation>>(
+            stream: _observations,
+            builder: (context, os) {
+              final readings = rs.data ?? const [];
+              final obs = os.data ?? const [];
+              final weights = ws.data ?? const [];
+              final status = patientStatus(StatusInputs(
+                patient: p,
+                wardKind: kind,
+                now: now,
+                urgentNotes: tasks.urgentNotes,
+                overdueReminders: tasks.overdueReminders,
+                urgentJobs: tasks.urgentJobs,
+                latestBilirubin: readings.isEmpty ? null : readings.last,
+                phototherapyRunning: (ss.data ?? const []).any((s) => s.isRunning),
+                latestWeightG: weights.isEmpty ? null : weights.last.grams,
+                latestObservation: obs.isEmpty ? null : obs.last,
+              ));
+              return _card(status);
+            },
+          ),
         ),
       ),
     );

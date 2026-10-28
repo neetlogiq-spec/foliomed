@@ -37,8 +37,13 @@ class PatientRow extends StatelessWidget {
       if (s.urgentNotes > 0) (Icons.priority_high, AppColors.danger, '${s.urgentNotes} urgent note'),
       if (s.overdueReminders > 0) (Icons.alarm, AppColors.danger, '${s.overdueReminders} overdue reminder'),
       if (s.phototherapy) (Icons.light_mode, AppColors.warning, 'Under phototherapy'),
-      for (final (topic, icon) in [(StatusTopic.bilirubin, Icons.show_chart), (StatusTopic.weight, Icons.monitor_weight_outlined)])
-        if (status?.reasons.where((r) => r.topic == topic).firstOrNull case final r?)
+      for (final (topic, icon) in [
+        (StatusTopic.bilirubin, Icons.show_chart),
+        (StatusTopic.weight, Icons.monitor_weight_outlined),
+        (StatusTopic.observations, Icons.monitor_heart_outlined),
+      ])
+        if (status?.reasons.where((r) => r.topic == topic && r.level.index >= StatusLevel.watch.index).firstOrNull
+            case final r?)
           (icon, statusColor(r.level), r.text),
     ];
 
