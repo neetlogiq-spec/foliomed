@@ -318,11 +318,13 @@ Future<T?> showOptionSheet<T>(
   required String title,
   required Map<T, String> options,
   T? selected,
+  String? message,
 }) {
   return showCupertinoModalPopup<T>(
     context: context,
     builder: (ctx) => CupertinoActionSheet(
       title: Text(title),
+      message: message == null ? null : Text(message),
       actions: [
         for (final e in options.entries)
           CupertinoActionSheetAction(

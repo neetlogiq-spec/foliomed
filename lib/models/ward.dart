@@ -15,6 +15,24 @@ enum WardKind {
 
   static WardKind fromName(String? v) =>
       values.firstWhere((k) => k.name == v, orElse: () => other);
+
+  /// A likely type from the ward's name ("NICU 2" → [nicu]), to
+  /// pre-select when setting one up. Null when the name gives no hint.
+  static WardKind? guessFrom(String wardName) {
+    final n = ' ${wardName.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), ' ')} ';
+    bool has(List<String> words) => words.any((w) => n.contains(' $w '));
+    if (has(['nicu', 'sncu', 'nnu', 'scbu', 'neonatal'])) return nicu;
+    if (has(['picu', 'phdu'])) return picu;
+    if (has(['pnc', 'postnatal', 'postpartum', 'maternity', 'newborn', 'rooming'])) return pnc;
+    if (has(['paeds', 'peds', 'paediatric', 'paediatrics', 'pediatric', 'pediatrics', 'children', 'childrens', 'child'])) {
+      return paeds;
+    }
+    if (has(['icu', 'micu', 'sicu', 'ccu', 'hdu', 'medical', 'surgical', 'medicine', 'surgery', 'adult', 'male', 'female',
+        'ortho', 'orthopaedic', 'orthopedic', 'general'])) {
+      return adult;
+    }
+    return null;
+  }
 }
 
 /// A team space people join with its 5-digit [id] (the code they share).

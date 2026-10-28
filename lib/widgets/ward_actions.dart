@@ -9,6 +9,7 @@ import '../utils/app_theme.dart';
 import '../utils/friendly_error.dart';
 import '../utils/haptics.dart';
 import 'app_alert_dialog.dart';
+import 'inset_group.dart';
 
 /// Joining, setting up, sharing, leaving and deleting wards — used by the
 /// Wards tab and the ward page. Every action refreshes the signed-in
@@ -57,10 +58,22 @@ class WardActions {
       action: 'Set Up',
     );
     if (values == null || values.first.isEmpty || !context.mounted) return;
+    // The type picks the automatic checks behind the patients' status dots.
+    // Dismissing the picker cancels the set-up, so every new ward has one.
+    final kind = await showOptionSheet<WardKind>(
+      context,
+      title: 'What kind of ward is ${values[0]}?',
+      options: {for (final k in WardKind.values) k: k.label},
+      selected: WardKind.guessFrom(values[0]),
+      message: 'This sets the automatic checks behind the patients’ status dots. '
+          'You can change it later on the ward’s page.',
+    );
+    if (kind == null || !context.mounted) return;
     final owner = context.read<AccountProvider>().currentUser?.name ?? '';
     await _run(context, () async {
-      final code = await WardService().createWard(name: values[0], location: values[1], ownerName: owner);
-      return '${values[0]} is ready. Its code is $code.';
+      final code = await WardService()
+          .createWard(name: values[0], location: values[1], ownerName: owner, kind: kind);
+      return '${values[0]} (${kind.label}) is ready. Its code is $code.';
     });
   }
 

@@ -44,7 +44,8 @@ class WardService {
 
   /// Sets up a ward and returns its code. Codes are random 5-digit numbers;
   /// if one is already taken the insert fails and another is drawn.
-  Future<String> createWard({required String name, String location = '', String ownerName = ''}) async {
+  Future<String> createWard(
+      {required String name, String location = '', String ownerName = '', WardKind kind = WardKind.other}) async {
     final user = _client.auth.currentUser;
     if (user == null) throw const AuthException('Not signed in');
     final random = Random.secure();
@@ -58,7 +59,8 @@ class WardService {
         ownerId: user.id,
         ownerEmail: user.email ?? '',
         createdAt: DateTime.now(),
-      ).toRow();
+      ).toRow()
+        ..['kind'] = kind.name;
       try {
         await _wards.insert(row);
       } on PostgrestException catch (e) {
