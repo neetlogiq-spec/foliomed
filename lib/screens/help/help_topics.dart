@@ -38,6 +38,8 @@ const List<HelpSection> kHelpSections = [
         'Tap the star on a patient’s page to follow them. The My Patients filter on the Patients tab shows everyone you follow, plus patients you’ve written a note about in the last 48 hours or have an open job for. Follows are private to you, and end when the patient is discharged or moves to a ward you’re not in.'),
     HelpTopic('How do consultants and tags work?',
         'On a patient’s page, under Team, set the consultant (names already used in the ward are offered) and tick clinical tags such as NPO or Isolation. Tags show as small chips on the Patients list, and Filter (next to the sort button) narrows the list to one consultant or one tag. The ward owner edits the ward’s tag list on the ward’s page. Search also finds consultant names and tags.'),
+    HelpTopic('How do clinical photos work?',
+        'On a patient’s page, under Photos, tap Add Photo, then take or choose one. FolioMed shrinks it before upload (usually from a few MB to about 200–300 KB, or larger with High detail for X-rays) and removes hidden data such as location. Add a caption, tick Consent obtained, and Upload. Photos are stored online in FolioMed — never in your phone’s gallery — and only members of the patient’s current ward can see them; they move with the patient on transfer. Each photo adds a line to the timeline. On Android, screenshots are blocked while photos are on screen; iPhone and web can’t block them, so treat photos as part of the patient’s record.'),
     HelpTopic('Can I find a baby by the mother’s name?',
         'Yes. Search on the Patients tab matches the patient’s name, the mother’s name, bed, diagnosis, FolioMed ID and hospital ID.'),
   ]),

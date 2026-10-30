@@ -26,6 +26,7 @@ dependencies:
 
   # Photos → text (on-device)
   image_picker: ^1.1.2
+  image: ^4.5.4
   google_mlkit_text_recognition: ^0.14.0
 
   # Device and platform

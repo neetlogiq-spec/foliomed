@@ -31,4 +31,11 @@ void main() {
     expect(friendlyError(Exception('boom')), 'That didn’t work. Please try again.');
     expect(friendlyError('This plan is no longer available.'), 'This plan is no longer available.');
   });
+
+  test('photo problems read plainly', () {
+    expect(friendlyError(const FormatException('That file isn’t a photo FolioMed can read.')),
+        'That file isn’t a photo FolioMed can read.');
+    expect(friendlyError(Exception('StorageException(message: Payload too large, statusCode: 413)')),
+        'That photo is too large to upload.');
+  });
 }

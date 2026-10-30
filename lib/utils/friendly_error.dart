@@ -10,6 +10,10 @@ String friendlyError(Object e) {
   if (_offline.any(text.contains)) {
     return 'FolioMed can’t reach the server. Check your connection and try again.';
   }
+  if (text.contains('payload too large') || text.contains('maximum allowed size')) {
+    return 'That photo is too large to upload.';
+  }
+  if (e is FormatException && e.message.isNotEmpty && e.message.length < 120) return e.message;
   if (text.contains('cancel')) return 'Cancelled.';
   if (e is String && e.trim().isNotEmpty && e.length < 120) return e;
   return 'That didn’t work. Please try again.';
