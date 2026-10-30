@@ -49,6 +49,7 @@ class _PatientFormScreenState extends State<PatientFormScreen> {
   final _name = TextEditingController();
   final _age = TextEditingController();
   final _hospitalId = TextEditingController();
+  final _consultant = TextEditingController();
   final _bed = TextEditingController();
   final _diagnosis = TextEditingController();
 
@@ -105,6 +106,7 @@ class _PatientFormScreenState extends State<PatientFormScreen> {
       _gaWeeks = p.gestationWeeks;
       _gaDays = p.gestationDays;
       _bed.text = p.bedNumber;
+      _consultant.text = p.consultant ?? '';
       _diagnosis.text = p.diagnosis;
       _gender = p.gender.isEmpty ? 'Male' : p.gender;
       _bloodGroup = _bloodGroups.contains(p.bloodGroup) ? p.bloodGroup : null;
@@ -145,7 +147,7 @@ class _PatientFormScreenState extends State<PatientFormScreen> {
 
   @override
   void dispose() {
-    for (final c in [_name, _age, _hospitalId, _bed, _diagnosis, _birthWeight, _indication, _motherName, _motherAge, _gravidaPara]) {
+    for (final c in [_name, _age, _hospitalId, _consultant, _bed, _diagnosis, _birthWeight, _indication, _motherName, _motherAge, _gravidaPara]) {
       c.dispose();
     }
     super.dispose();
@@ -181,6 +183,7 @@ class _PatientFormScreenState extends State<PatientFormScreen> {
       gender: _gender,
       wardId: wardId,
       bedNumber: _bed.text.trim(),
+      consultant: _consultant.text.trim().isEmpty ? null : _consultant.text.trim(),
       diagnosis: diagnosis,
       bloodGroup: _bloodGroup,
       admittedAt: old?.admittedAt ?? DateTime.now(),
@@ -720,6 +723,12 @@ class _PatientFormScreenState extends State<PatientFormScreen> {
       dividerIndent: 16,
       children: [
         InsetTextRow(label: 'Bed', controller: _bed, placeholder: 'Optional'),
+        InsetTextRow(
+          label: 'Consultant',
+          controller: _consultant,
+          placeholder: 'Optional',
+          textCapitalization: TextCapitalization.words,
+        ),
         InsetTextRow(
           label: 'Diagnosis',
           controller: _diagnosis,

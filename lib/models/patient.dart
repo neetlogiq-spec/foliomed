@@ -102,6 +102,14 @@ class Patient {
   final DateTime? handoverSummaryAt;
   final String? handoverSummaryByName;
 
+  /// Consultant in charge (free text; the app suggests names used in the
+  /// ward). Written by [toRow].
+  final String? consultant;
+
+  /// Clinical tags from the ward's list (`Ward.tagOptions`); saved by
+  /// PatientService.setTags, never by [toRow].
+  final List<String> tags;
+
   const Patient({
     required this.id,
     this.patientCode = '',
@@ -143,6 +151,8 @@ class Patient {
     this.handoverSummary,
     this.handoverSummaryAt,
     this.handoverSummaryByName,
+    this.consultant,
+    this.tags = const [],
   });
 
   /// "39+2 wk", or null when not recorded.
@@ -211,6 +221,8 @@ class Patient {
       handoverSummary: row['handover_summary'] as String?,
       handoverSummaryAt: parseTimestampOrNull(row['handover_summary_at']),
       handoverSummaryByName: row['handover_summary_by_name'] as String?,
+      consultant: row['consultant'] as String?,
+      tags: (row['tags'] as List?)?.cast<String>() ?? const [],
     );
   }
 
@@ -244,6 +256,7 @@ class Patient {
       'mother_name': _blankToNull(motherName),
       'mother_age': motherAge,
       'gravida_para': _blankToNull(gravidaPara),
+      'consultant': _blankToNull(consultant),
     };
   }
 
@@ -299,6 +312,8 @@ class Patient {
       handoverSummary: handoverSummary,
       handoverSummaryAt: handoverSummaryAt,
       handoverSummaryByName: handoverSummaryByName,
+      consultant: consultant,
+      tags: tags,
     );
   }
 

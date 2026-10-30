@@ -163,6 +163,27 @@ class PatientService {
     }
   }
 
+  /// Consultant (null clears); any ward member.
+  Future<void> setConsultant(String patientId, String? name) async {
+    final rows = await _patients
+        .update({'consultant': name == null || name.trim().isEmpty ? null : name.trim()})
+        .eq('id', patientId)
+        .select('id');
+    if (rows.isEmpty) {
+      throw const PostgrestException(
+          message: "You can't edit this patient — you may no longer be in their ward.", code: '42501');
+    }
+  }
+
+  /// Clinical tags; any ward member.
+  Future<void> setTags(String patientId, List<String> tags) async {
+    final rows = await _patients.update({'tags': tags}).eq('id', patientId).select('id');
+    if (rows.isEmpty) {
+      throw const PostgrestException(
+          message: "You can't edit this patient — you may no longer be in their ward.", code: '42501');
+    }
+  }
+
   /// Notes and their comments cascade-delete in Postgres.
   Future<void> deletePatient(String patientId) async {
     await _patients.delete().eq('id', patientId);

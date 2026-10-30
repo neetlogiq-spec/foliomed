@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -11,6 +12,7 @@ import '../../services/unit_service.dart';
 import '../../utils/friendly_error.dart';
 import '../../utils/haptics.dart';
 import '../../widgets/app_alert_dialog.dart';
+import '../../widgets/app_sheet.dart';
 import '../../providers/patient_roster.dart';
 import '../../providers/appearance_provider.dart';
 import '../../services/supabase_service.dart';
@@ -42,6 +44,25 @@ class _WardPageState extends State<WardPage> {
       WardService().getWardMembers(widget.ward.id);
 
   late WardKind _kind = widget.ward.kind;
+  late List<String> _tags = widget.ward.tagOptions;
+
+  Future<void> _editTags() async {
+    final tags = await showAppSheet<List<String>>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => _TagListSheet(initial: _tags),
+    );
+    if (tags == null || !mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await WardService().setTagOptions(widget.ward.id, tags);
+      Haptics.success();
+      setState(() => _tags = tags);
+    } catch (e) {
+      Haptics.error();
+      messenger.showSnackBar(SnackBar(backgroundColor: AppColors.danger, content: Text(friendlyError(e))));
+    }
+  }
 
   Future<void> _pickKind() async {
     final k = await showOptionSheet<WardKind>(
@@ -111,6 +132,12 @@ class _WardPageState extends State<WardPage> {
                       title: 'Ward type',
                       value: _kind.label,
                       onTap: _isOwner ? _pickKind : null,
+                    ),
+                    SettingsRow(
+                      title: 'Clinical tags',
+                      subtitle: _tags.isEmpty ? null : _tags.join(' · '),
+                      value: _tags.isEmpty ? 'None' : null,
+                      onTap: _isOwner ? _editTags : null,
                     ),
                     if (w.location.isNotEmpty) SettingsRow(title: 'Where', value: w.location),
                     SettingsRow(
@@ -484,4 +511,80 @@ class _MemberRow extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Owner: the ward's clinical tags (add, remove, reorder by re-adding).
+class _TagListSheet extends StatefulWidget {
+  const _TagListSheet({required this.initial});
+  final List<String> initial;
+
+  @override
+  State<_TagListSheet> createState() => _TagListSheetState();
+}
+
+class _TagListSheetState extends State<_TagListSheet> {
+  late final List<String> _tags = [...widget.initial];
+  final _add = TextEditingController();
+
+  @override
+  void dispose() {
+    _add.dispose();
+    super.dispose();
+  }
+
+  void _addTag() {
+    final t = _add.text.trim();
+    if (t.isEmpty || t.length > 24 || _tags.length >= 30) return;
+    if (_tags.any((x) => x.toLowerCase() == t.toLowerCase())) return;
+    setState(() => _tags.add(t));
+    _add.clear();
+  }
+
+  @override
+  Widget build(BuildContext context) => SafeArea(
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(16, 4, 16, 16 + MediaQuery.viewInsetsOf(context).bottom),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Row(children: [
+              CupertinoButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+              Expanded(
+                child: Text('Clinical tags',
+                    textAlign: TextAlign.center, style: AppTypography.headline(color: AppColors.textPrimary)),
+              ),
+              CupertinoButton(
+                onPressed: () => Navigator.pop(context, _tags),
+                child: const Text('Save', style: TextStyle(fontWeight: FontWeight.w600)),
+              ),
+            ]),
+            Flexible(
+              child: SingleChildScrollView(
+                child: InsetGroup(
+                  footer: 'Up to 30 tags of 24 characters. Members tick them on each patient; '
+                      'removing one here doesn’t remove it from patients who have it.',
+                  dividerIndent: 16,
+                  children: [
+                    for (final t in _tags)
+                      SettingsRow(
+                        title: t,
+                        trailing: IconButton(
+                          tooltip: 'Remove $t',
+                          icon: Icon(Icons.remove_circle, color: AppColors.danger),
+                          onPressed: () => setState(() => _tags.remove(t)),
+                        ),
+                      ),
+                    InsetTextRow(
+                      label: 'Add',
+                      controller: _add,
+                      placeholder: 'e.g. Oxygen',
+                      textCapitalization: TextCapitalization.sentences,
+                      onChanged: (_) {},
+                    ),
+                    SettingsRow(icon: Icons.add, title: 'Add tag', onTap: _addTag),
+                  ],
+                ),
+              ),
+            ),
+          ]),
+        ),
+      );
 }

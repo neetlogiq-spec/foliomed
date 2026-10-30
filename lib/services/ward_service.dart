@@ -87,6 +87,14 @@ class WardService {
     }
   }
 
+  /// Owner only; throws when RLS blocks it.
+  Future<void> setTagOptions(String wardId, List<String> tags) async {
+    final rows = await _wards.update({'tag_options': tags}).eq('id', wardId).select('id');
+    if (rows.isEmpty) {
+      throw const PostgrestException(message: 'Only the ward owner can change the clinical tags.', code: '42501');
+    }
+  }
+
   /// Joins by code. Returns false when no ward has that code.
   Future<bool> joinWard(String wardId) async {
     final ok = await _client.rpc('join_ward', params: {'p_ward_id': wardId});

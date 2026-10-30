@@ -35,6 +35,11 @@ enum WardKind {
   }
 }
 
+/// Starter clinical tags (the database default for new wards).
+const List<String> kDefaultTagOptions = [
+  'NPO', 'Isolation', 'Fall risk', 'Allergy', 'Awaiting scan', 'Awaiting results', 'For discharge',
+];
+
 /// A team space people join with its 5-digit [id] (the code they share).
 /// Dart names are FolioMed's; [Ward.fromRow] maps the `wards` columns.
 class Ward {
@@ -48,6 +53,7 @@ class Ward {
     this.ownerEmail = '',
     required this.createdAt,
     this.kind = WardKind.other,
+    this.tagOptions = kDefaultTagOptions,
   });
 
   final String id;
@@ -61,6 +67,10 @@ class Ward {
 
   /// Set by the owner (WardService.setKind); [toRow] never writes it.
   final WardKind kind;
+
+  /// The ward's clinical tags (owner edits via WardService.setTagOptions;
+  /// [toRow] never writes them).
+  final List<String> tagOptions;
 
   bool ownedBy(String uid) => uid.isNotEmpty && uid == ownerId;
 
@@ -76,6 +86,7 @@ class Ward {
       ownerEmail: text('creator_email'),
       createdAt: parseTimestamp(row['created_at']),
       kind: WardKind.fromName(row['kind'] as String?),
+      tagOptions: (row['tag_options'] as List?)?.cast<String>() ?? kDefaultTagOptions,
     );
   }
 

@@ -25,6 +25,7 @@ import '../../widgets/newborn_section.dart';
 import '../../widgets/observations_section.dart';
 import '../../widgets/patient_handover_section.dart';
 import '../../widgets/patient_status_card.dart';
+import '../../widgets/patient_team_section.dart';
 import '../../widgets/newborn_tracking_section.dart';
 import '../../widgets/patient_actions.dart';
 import '../../widgets/patient_jobs_section.dart';
@@ -113,7 +114,7 @@ class _PatientScreenState extends State<PatientScreen> {
         _loadWard(p.wardId);
         return _shell(
           title: p.name,
-          actions: [PatientActionsButton(patient: p)],
+          actions: [if (p.isActive) FollowButton(patient: p), PatientActionsButton(patient: p)],
           body: SliverPadding(
             padding: withBottomBarInset(context, const EdgeInsets.fromLTRB(16, 4, 16, 32)),
             sliver: SliverList.list(children: [
@@ -163,6 +164,8 @@ class _PatientScreenState extends State<PatientScreen> {
           PatientStatusCard(key: ValueKey('status-${p.id}'), patient: p, wardKind: _ward?.kind),
           const SizedBox(height: 24),
           PatientHandoverSection(key: ValueKey('handover-${p.id}'), patient: p),
+          const SizedBox(height: 24),
+          PatientTeamSection(patient: p, ward: _ward),
           const SizedBox(height: 24),
         ],
         _Details(patient: p),
