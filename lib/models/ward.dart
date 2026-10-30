@@ -54,6 +54,7 @@ class Ward {
     required this.createdAt,
     this.kind = WardKind.other,
     this.tagOptions = kDefaultTagOptions,
+    this.shiftStarts = const [480, 840, 1200],
   });
 
   final String id;
@@ -72,6 +73,10 @@ class Ward {
   /// [toRow] never writes them).
   final List<String> tagOptions;
 
+  /// Shift start times, minutes after local midnight (workload report).
+  /// Owner edits via WardService.setShiftStarts; [toRow] never writes it.
+  final List<int> shiftStarts;
+
   bool ownedBy(String uid) => uid.isNotEmpty && uid == ownerId;
 
   static Ward fromRow(DbRow row) {
@@ -87,6 +92,7 @@ class Ward {
       createdAt: parseTimestamp(row['created_at']),
       kind: WardKind.fromName(row['kind'] as String?),
       tagOptions: (row['tag_options'] as List?)?.cast<String>() ?? kDefaultTagOptions,
+      shiftStarts: [for (final m in (row['shift_starts'] as List?) ?? const [480, 840, 1200]) (m as num).toInt()],
     );
   }
 

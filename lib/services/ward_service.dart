@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../clinical/workload.dart';
 import '../models/app_user.dart';
 import '../models/ward.dart';
 import 'usage_counters.dart';
@@ -93,6 +94,24 @@ class WardService {
     if (rows.isEmpty) {
       throw const PostgrestException(message: 'Only the ward owner can change the clinical tags.', code: '42501');
     }
+  }
+
+  /// Owner only. [starts] are minutes after local midnight.
+  Future<void> setShiftStarts(String wardId, List<int> starts) async {
+    final rows = await _wards.update({'shift_starts': ([...starts]..sort())}).eq('id', wardId).select('id');
+    if (rows.isEmpty) {
+      throw const PostgrestException(message: 'Only the ward owner can change the shift times.', code: '42501');
+    }
+  }
+
+  /// Workload report rows (owner or admin; up to 31 days).
+  Future<List<WorkloadEvent>> workload(String wardId, DateTime from, DateTime to) async {
+    final rows = await _client.rpc('ward_workload', params: {
+      'p_ward': wardId,
+      'p_from': from.toUtc().toIso8601String(),
+      'p_to': to.toUtc().toIso8601String(),
+    }) as List<dynamic>;
+    return [for (final r in rows) WorkloadEvent.fromRow(r as Map<String, dynamic>)];
   }
 
   /// Joins by code. Returns false when no ward has that code.

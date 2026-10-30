@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show PostgrestException;
 
+import '../../clinical/workload.dart';
 import '../../models/app_user.dart';
 import '../../models/ward.dart';
 import '../../models/ward_unit.dart';
@@ -13,6 +14,7 @@ import '../../utils/friendly_error.dart';
 import '../../utils/haptics.dart';
 import '../../widgets/app_alert_dialog.dart';
 import '../../widgets/app_sheet.dart';
+import '../../providers/account_provider.dart';
 import '../../providers/patient_roster.dart';
 import '../../providers/appearance_provider.dart';
 import '../../services/supabase_service.dart';
@@ -23,6 +25,7 @@ import '../../utils/formatting.dart';
 import '../../widgets/inset_group.dart';
 import '../../widgets/large_title_app_bar.dart';
 import '../../widgets/ward_actions.dart';
+import 'workload_screen.dart';
 import '../jobs/jobs_screen.dart';
 import '../notes/ward_notes_screen.dart';
 import '../../providers/job_board.dart';
@@ -45,6 +48,25 @@ class _WardPageState extends State<WardPage> {
 
   late WardKind _kind = widget.ward.kind;
   late List<String> _tags = widget.ward.tagOptions;
+  late List<int> _shifts = widget.ward.shiftStarts;
+
+  Future<void> _editShifts() async {
+    final starts = await showAppSheet<List<int>>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => _ShiftSheet(initial: _shifts),
+    );
+    if (starts == null || !mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await WardService().setShiftStarts(widget.ward.id, starts);
+      Haptics.success();
+      setState(() => _shifts = [...starts]..sort());
+    } catch (e) {
+      Haptics.error();
+      messenger.showSnackBar(SnackBar(backgroundColor: AppColors.danger, content: Text(friendlyError(e))));
+    }
+  }
 
   Future<void> _editTags() async {
     final tags = await showAppSheet<List<String>>(
@@ -133,6 +155,19 @@ class _WardPageState extends State<WardPage> {
                       value: _kind.label,
                       onTap: _isOwner ? _pickKind : null,
                     ),
+                    SettingsRow(
+                      title: 'Shifts start',
+                      value: _shifts.map(clockLabel).join(' · '),
+                      onTap: _isOwner ? _editShifts : null,
+                    ),
+                    if (_isOwner || context.watch<AccountProvider>().currentUser?.role == UserRole.admin)
+                      SettingsRow(
+                        icon: Icons.insights_outlined,
+                        title: 'Workload',
+                        subtitle: 'Tasks per shift and response times',
+                        onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                            builder: (_) => WorkloadScreen(ward: w, shiftStarts: _shifts))),
+                      ),
                     SettingsRow(
                       title: 'Clinical tags',
                       subtitle: _tags.isEmpty ? null : _tags.join(' · '),
@@ -583,6 +618,89 @@ class _TagListSheetState extends State<_TagListSheet> {
                   ],
                 ),
               ),
+            ),
+          ]),
+        ),
+      );
+}
+
+/// Owner: shift start times (1–6), for the workload report.
+class _ShiftSheet extends StatefulWidget {
+  const _ShiftSheet({required this.initial});
+  final List<int> initial;
+
+  @override
+  State<_ShiftSheet> createState() => _ShiftSheetState();
+}
+
+class _ShiftSheetState extends State<_ShiftSheet> {
+  late final List<int> _starts = [...widget.initial]..sort();
+
+  Future<int?> _pick(int initial) async {
+    final t = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(hour: initial ~/ 60, minute: initial % 60),
+      builder: (ctx, child) => MediaQuery(
+        data: MediaQuery.of(ctx).copyWith(alwaysUse24HourFormat: true),
+        child: child!,
+      ),
+    );
+    return t == null ? null : t.hour * 60 + t.minute;
+  }
+
+  @override
+  Widget build(BuildContext context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Row(children: [
+              CupertinoButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+              Expanded(
+                child: Text('Shift start times',
+                    textAlign: TextAlign.center, style: AppTypography.headline(color: AppColors.textPrimary)),
+              ),
+              CupertinoButton(
+                onPressed: _starts.isEmpty ? null : () => Navigator.pop(context, _starts),
+                child: const Text('Save', style: TextStyle(fontWeight: FontWeight.w600)),
+              ),
+            ]),
+            InsetGroup(
+              footer: 'Each shift runs until the next one starts; the last runs past midnight. '
+                  'Used by the Workload report.',
+              dividerIndent: 16,
+              children: [
+                for (final (i, m) in _starts.indexed)
+                  SettingsRow(
+                    title: '${clockLabel(m)}–${clockLabel(_starts[(i + 1) % _starts.length])}',
+                    trailing: _starts.length <= 1
+                        ? null
+                        : IconButton(
+                            tooltip: 'Remove',
+                            icon: Icon(Icons.remove_circle, color: AppColors.danger),
+                            onPressed: () => setState(() => _starts.removeAt(i)),
+                          ),
+                    onTap: () async {
+                      final v = await _pick(m);
+                      if (v == null || _starts.contains(v)) return;
+                      setState(() {
+                        _starts[i] = v;
+                        _starts.sort();
+                      });
+                    },
+                  ),
+                if (_starts.length < 6)
+                  SettingsRow(
+                    icon: Icons.add,
+                    title: 'Add a shift',
+                    onTap: () async {
+                      final v = await _pick(_starts.isEmpty ? 480 : (_starts.last + 240) % 1440);
+                      if (v == null || _starts.contains(v)) return;
+                      setState(() => _starts
+                        ..add(v)
+                        ..sort());
+                    },
+                  ),
+              ],
             ),
           ]),
         ),
