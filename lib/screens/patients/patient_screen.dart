@@ -23,6 +23,7 @@ import '../../widgets/inset_group.dart';
 import '../../widgets/large_title_app_bar.dart';
 import '../../widgets/newborn_section.dart';
 import '../../widgets/observations_section.dart';
+import '../../widgets/patient_handover_section.dart';
 import '../../widgets/patient_status_card.dart';
 import '../../widgets/newborn_tracking_section.dart';
 import '../../widgets/patient_actions.dart';
@@ -160,6 +161,8 @@ class _PatientScreenState extends State<PatientScreen> {
         if (p.isDischarged) ...[_DischargeNotice(patient: p), const SizedBox(height: 20)],
         if (p.isActive) ...[
           PatientStatusCard(key: ValueKey('status-${p.id}'), patient: p, wardKind: _ward?.kind),
+          const SizedBox(height: 24),
+          PatientHandoverSection(key: ValueKey('handover-${p.id}'), patient: p),
           const SizedBox(height: 24),
         ],
         _Details(patient: p),

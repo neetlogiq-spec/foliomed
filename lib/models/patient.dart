@@ -96,6 +96,12 @@ class Patient {
   /// Organ support ticked by staff (names of `SupportTag`), mostly PICU.
   final List<String> supportTags;
 
+  /// I-PASS patient summary (1–3 lines), kept up to date between shifts;
+  /// saved by PatientService.setHandoverSummary, never by [toRow].
+  final String? handoverSummary;
+  final DateTime? handoverSummaryAt;
+  final String? handoverSummaryByName;
+
   const Patient({
     required this.id,
     this.patientCode = '',
@@ -134,6 +140,9 @@ class Patient {
     this.acuitySetAt,
     this.acuitySetByName,
     this.supportTags = const [],
+    this.handoverSummary,
+    this.handoverSummaryAt,
+    this.handoverSummaryByName,
   });
 
   /// "39+2 wk", or null when not recorded.
@@ -199,6 +208,9 @@ class Patient {
       acuitySetAt: parseTimestampOrNull(row['acuity_set_at']),
       acuitySetByName: row['acuity_set_by_name'] as String?,
       supportTags: (row['support_tags'] as List?)?.cast<String>() ?? const [],
+      handoverSummary: row['handover_summary'] as String?,
+      handoverSummaryAt: parseTimestampOrNull(row['handover_summary_at']),
+      handoverSummaryByName: row['handover_summary_by_name'] as String?,
     );
   }
 
@@ -284,6 +296,9 @@ class Patient {
       acuitySetAt: acuitySetAt,
       acuitySetByName: acuitySetByName,
       supportTags: supportTags,
+      handoverSummary: handoverSummary,
+      handoverSummaryAt: handoverSummaryAt,
+      handoverSummaryByName: handoverSummaryByName,
     );
   }
 

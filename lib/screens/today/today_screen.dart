@@ -20,6 +20,7 @@ import '../../utils/haptics.dart';
 import '../../utils/layout.dart';
 import '../../utils/scope_filter.dart';
 import '../../widgets/alert_inbox_sheet.dart';
+import '../../widgets/handover_banner.dart';
 import '../../widgets/inset_group.dart';
 import '../../widgets/job_row.dart';
 import '../../widgets/large_title_app_bar.dart';
@@ -129,6 +130,7 @@ class _TodayScreenState extends State<TodayScreen> {
               sliver: SliverList.list(children: [
                 const Align(alignment: Alignment.centerLeft, child: ScopeButton()),
                 const SizedBox(height: 12),
+                HandoverBanner(wardIds: _wardIds),
                 _upNextSection(items),
                 const SizedBox(height: 28),
                 _glance(f, feed, jobs, user?.uid ?? ''),
