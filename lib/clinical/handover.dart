@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../models/handover_session.dart';
 import '../models/newborn_tracking.dart';
 import '../models/patient.dart';
+import '../models/patient_infusion.dart';
 import '../models/patient_reminder.dart';
 import '../models/ward_job.dart';
 import 'bilirubin.dart';
@@ -25,6 +26,7 @@ class HandoverItem {
     this.status,
     this.openJobs = const [],
     this.contingencies = const [],
+    this.infusions = const [],
   });
 
   final Patient patient;
@@ -36,6 +38,9 @@ class HandoverItem {
   final PatientStatusResult? status;
   final List<WardJob> openJobs;
   final List<Contingency> contingencies;
+
+  /// Running infusions.
+  final List<PatientInfusion> infusions;
 
   /// The hand-kept summary, else the diagnosis, else the birth line.
   String? get summary {
@@ -109,6 +114,7 @@ class HandoverItem {
       head,
       if (severityLine != null) 'I: $severityLine',
       if (summary != null) 'P: $summary',
+      if (infusions.isNotEmpty) 'Infusions: ${infusions.map((i) => i.line).join('; ')}',
       if (phototherapy != null)
         '${phototherapy!.kind.label} phototherapy for ${phototherapy!.durationAt(now).inHours} h',
       if (bilirubin != null)

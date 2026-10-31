@@ -29,6 +29,7 @@ import '../../widgets/patient_status_card.dart';
 import '../../widgets/patient_team_section.dart';
 import '../../widgets/newborn_tracking_section.dart';
 import '../../widgets/patient_actions.dart';
+import '../../widgets/patient_infusions_section.dart';
 import '../../widgets/patient_jobs_section.dart';
 import '../../widgets/reminder_widgets.dart';
 import '../jobs/add_job_sheet.dart';
@@ -40,7 +41,16 @@ enum _View { overview, timeline }
 /// Timeline filter: everything, what people wrote, or system events.
 enum _Show { all, notes, events }
 
-const _eventKinds = {'transfer', 'discharge', 'admission', 'investigation', 'phototherapy', 'status', 'photo'};
+const _eventKinds = {
+  'transfer',
+  'discharge',
+  'admission',
+  'investigation',
+  'phototherapy',
+  'status',
+  'photo',
+  'infusion',
+};
 
 /// One patient, laid out like a contact card: who they are and quick
 /// actions at the top, then Overview (details, newborn care, jobs,
@@ -185,6 +195,8 @@ class _PatientScreenState extends State<PatientScreen> {
           ObservationsSection(key: ValueKey('obs-${p.id}'), patient: p),
           const SizedBox(height: 16),
         ],
+        PatientInfusionsSection(key: ValueKey('infusions-${p.id}'), patient: p),
+        const SizedBox(height: 16),
         PatientPhotosSection(key: ValueKey('photos-${p.id}'), patient: p),
         const SizedBox(height: 16),
         PatientJobsSection(patient: p),

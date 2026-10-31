@@ -4,6 +4,7 @@ import 'package:foliomed/clinical/handover.dart';
 import 'package:foliomed/clinical/patient_status.dart';
 import 'package:foliomed/models/handover_session.dart';
 import 'package:foliomed/models/patient.dart';
+import 'package:foliomed/models/patient_infusion.dart';
 import 'package:foliomed/models/patient_reminder.dart';
 import 'package:foliomed/models/ward_job.dart';
 import 'package:foliomed/widgets/handover_card.dart';
@@ -19,6 +20,24 @@ PatientStatusResult _st(StatusLevel l, [List<StatusReason> r = const []]) => Pat
 void main() {
   final ifThen = Contingency(
       id: 'c', patientId: 'a', ifText: 'SpO₂ below 92%', thenText: 'call the registrar', createdAt: _now);
+
+  test('running infusions are listed under the summary', () {
+    final text = HandoverItem(
+      patient: _p('a', '1', diagnosis: 'Septic shock'),
+      unitName: null,
+      openReminders: const [],
+      infusions: [
+        PatientInfusion(
+            id: 'i', patientId: 'a', wardId: 'w', drugName: 'Adrenaline', dose: 0.1, doseUnit: 'mcg/kg/min',
+            rateMlH: 1, concentration: 0.06, concUnit: 'mg/mL', startedAt: _now),
+        PatientInfusion(
+            id: 'j', patientId: 'a', wardId: 'w', drugName: 'Morphine', dose: 20, doseUnit: 'mcg/kg/h',
+            rateMlH: 1.5, concentration: 0.04, concUnit: 'mg/mL', startedAt: _now),
+      ],
+    ).toText(_now);
+    expect(text.split('\n')[1], 'P: Septic shock');
+    expect(text.split('\n')[2], 'Infusions: Adrenaline 0.1 mcg/kg/min (1 mL/h); Morphine 20 mcg/kg/h (1.5 mL/h)');
+  });
 
   test('summary: hand-kept, else diagnosis', () {
     expect(HandoverItem(patient: _p('a', '1', diagnosis: 'Bronchiolitis', summary: ' Day 2, HFNC '),

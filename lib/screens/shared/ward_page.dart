@@ -25,6 +25,7 @@ import '../../utils/formatting.dart';
 import '../../widgets/inset_group.dart';
 import '../../widgets/large_title_app_bar.dart';
 import '../../widgets/ward_actions.dart';
+import 'ward_drugs_screen.dart';
 import 'workload_screen.dart';
 import '../jobs/jobs_screen.dart';
 import '../notes/ward_notes_screen.dart';
@@ -168,6 +169,13 @@ class _WardPageState extends State<WardPage> {
                         onTap: () => Navigator.of(context).push(MaterialPageRoute(
                             builder: (_) => WorkloadScreen(ward: w, shiftStarts: _shifts))),
                       ),
+                    SettingsRow(
+                      icon: Icons.medication_outlined,
+                      title: 'Drug List',
+                      subtitle: 'Vials, standard syringes and sign-off',
+                      onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                          builder: (_) => WardDrugsScreen(ward: w, kind: _kind))),
+                    ),
                     SettingsRow(
                       title: 'Clinical tags',
                       subtitle: _tags.isEmpty ? null : _tags.join(' · '),

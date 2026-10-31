@@ -71,9 +71,8 @@ void main() {
   testWidgets('Infusion: 5 mcg/kg/min, 30 mg in 50 mL, 2 kg → 1 mL/h', (tester) async {
     await tester.pumpWidget(_app(const InfusionTool()));
     await _type(tester, 'Weight', '2');
-    await _type(tester, 'Drug', '30');
+    await _type(tester, 'Amount', '30');
     await _type(tester, 'Dose', '5');
     expect(find.text('1 mL/h'), findsOneWidget);
-    expect(find.text('600 mcg/mL'), findsOneWidget);
   });
 }

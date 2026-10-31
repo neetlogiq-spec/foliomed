@@ -4,11 +4,13 @@ import 'package:provider/provider.dart';
 import '../../clinical/handover.dart';
 import '../../models/handover_session.dart';
 import '../../models/patient.dart';
+import '../../models/patient_infusion.dart';
 import '../../models/ward.dart';
 import '../../providers/job_board.dart';
 import '../../providers/reminder_provider.dart';
 import '../../providers/unit_provider.dart';
 import '../../providers/ward_feed.dart';
+import '../../services/drug_service.dart';
 import '../../services/handover_service.dart';
 import '../../services/tracking_service.dart';
 import '../patients/patient_board.dart';
@@ -16,11 +18,14 @@ import '../patients/patient_board.dart';
 /// The one-shot data a handover list needs beyond the live providers:
 /// newborn tracking, latest observations and the If/then lines.
 class HandoverExtras {
-  const HandoverExtras(this.tracking, this.contingencies);
+  const HandoverExtras(this.tracking, this.contingencies, [this.infusions = const {}]);
   HandoverExtras.empty() : this(TrackingSnapshot.empty(), const {});
 
   final TrackingSnapshot tracking;
   final Map<String, List<Contingency>> contingencies;
+
+  /// Running infusions by patient.
+  final Map<String, List<PatientInfusion>> infusions;
 
   static Future<HandoverExtras> load(List<String> patientIds) async {
     final results = await Future.wait([
@@ -28,9 +33,10 @@ class HandoverExtras {
       HandoverService()
           .contingenciesFor(patientIds)
           .catchError((Object _) => const <String, List<Contingency>>{}),
+      DrugService().runningFor(patientIds).catchError((Object _) => const <String, List<PatientInfusion>>{}),
     ]);
-    return HandoverExtras(
-        results[0] as TrackingSnapshot, results[1] as Map<String, List<Contingency>>);
+    return HandoverExtras(results[0] as TrackingSnapshot, results[1] as Map<String, List<Contingency>>,
+        results[2] as Map<String, List<PatientInfusion>>);
   }
 }
 
@@ -75,6 +81,7 @@ List<HandoverItem> handoverItems(
         status: signals[p.id]?.status,
         openJobs: jobs.where((j) => j.patientId == p.id).toList(),
         contingencies: extras.contingencies[p.id] ?? const [],
+        infusions: extras.infusions[p.id] ?? const [],
       ),
   ];
   final unitOrder = units.units.map((u) => u.id).toList();

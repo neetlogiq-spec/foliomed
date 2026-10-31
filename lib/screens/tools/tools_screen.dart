@@ -15,6 +15,7 @@ import 'hypoglycaemia_tool.dart';
 import 'vaccines_tool.dart';
 import 'exchange_tool.dart';
 import 'fluids_tool.dart';
+import 'emergency_drugs_tool.dart';
 import 'infusion_tool.dart';
 import 'lines_tool.dart';
 import 'sarnat_tool.dart';
@@ -89,8 +90,16 @@ class _ToolsScreenState extends State<ToolsScreen> {
           'uvc uac umbilical catheter ett endotracheal tube intubation depth', LinesTool.new),
     ]),
     _Group('Drugs', [
-      _Tool('Infusion Rate', 'mL/h from a dose, or the dose from a rate', Icons.speed, AppColors.stable,
-          'infusion pump rate mcg/kg/min dopamine dobutamine morphine syringe', InfusionTool.new),
+      _Tool('Emergency Drugs', 'Weight-based doses and syringes for NICU and PICU', Icons.emergency_outlined,
+          AppColors.danger,
+          'emergency drugs resuscitation adrenaline epinephrine atropine adenosine bicarbonate calcium seizure '
+              'phenobarbitone levetiracetam phenytoin midazolam bolus stat nicu picu',
+          EmergencyDrugsTool.new),
+      _Tool('Infusion Rate', 'Pick a drug: syringe, strengths, rate table — or your own', Icons.speed,
+          AppColors.stable,
+          'infusion pump rate mcg/kg/min dopamine dobutamine adrenaline noradrenaline milrinone morphine fentanyl '
+              'midazolam insulin prostaglandin syringe inotrope',
+          InfusionTool.new),
     ]),
   ];
 

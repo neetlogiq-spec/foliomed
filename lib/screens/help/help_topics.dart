@@ -59,7 +59,11 @@ const List<HelpSection> kHelpSections = [
   ]),
   HelpSection('Tools', [
     HelpTopic('What’s in the Tools tab?',
-        'Bedside calculators — fluids and GIR (with dextrose mixing), corrected age, exchange transfusion volumes, UVC/UAC and ETT, infusion rates — low blood glucose, electrolytes and anion gap, blood pressure centiles, the national vaccine schedule — and newborn scores: Apgar, Downes, Silverman-Anderson, Thompson, LATCH, New Ballard and Modified Sarnat. A finished score can be copied or added to the baby’s notes. Tap Fill from a Baby to fill in weight, day of life and gestation from an admitted patient, then check each value.'),
+        'Bedside calculators — emergency drugs for NICU and PICU, infusion rates with standard syringes, fluids and GIR (with dextrose mixing), corrected age, exchange transfusion volumes, UVC/UAC and ETT — low blood glucose, electrolytes and anion gap, blood pressure centiles, the national vaccine schedule — and newborn scores: Apgar, Downes, Silverman-Anderson, Thompson, LATCH, New Ballard and Modified Sarnat. A finished score can be copied or added to the baby’s notes. Tap Fill from a Baby to fill in weight, day of life and gestation from an admitted patient, then check each value.'),
+    HelpTopic('How do Emergency Drugs and infusions work?',
+        'Enter the weight and choose NICU or PICU. One-off doses show the dose, the volume to draw up and how to dilute it; infusions show the standard syringe (1 mL/h gives a set dose) with strengths from ½× to 4×, syringe sizes and a rate table. From a baby’s page or the Infusion Rate tool you can start an infusion on the record; changes and stops go on the timeline and into handover.'),
+    HelpTopic('Who signs off a drug?',
+        'Each ward keeps its own drug list (ward page → Drug List). The owner can set the ward’s vial strengths, standard syringes and notes, or hide a drug; any doctor of the ward can sign a drug off after comparing it with the unit’s reference. A sign-off covers exactly what was shown — if the doses, vial or syringe change, the drug shows “Changed — recheck”.'),
     HelpTopic('Can I rely on the numbers?',
         'Each tool shows its formula and source. Until your unit has checked them, every tool says so at the top — confirm against your own protocol, and have a second person check drug rates.'),
   ]),

@@ -187,9 +187,17 @@ class ResultCard extends StatelessWidget {
                   for (final (label, value) in l.skip(1)) ...[
                     const SizedBox(height: 10),
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(child: Text(label, style: AppTypography.subheadline(color: AppColors.textSecondary))),
-                        Text(value, style: AppTypography.headline(color: AppColors.textPrimary)),
+                        Expanded(
+                            flex: 2,
+                            child: Text(label, style: AppTypography.subheadline(color: AppColors.textSecondary))),
+                        const SizedBox(width: 12),
+                        Flexible(
+                          flex: 3,
+                          child: Text(value,
+                              textAlign: TextAlign.end, style: AppTypography.headline(color: AppColors.textPrimary)),
+                        ),
                       ],
                     ),
                   ],
