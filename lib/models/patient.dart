@@ -84,6 +84,32 @@ class Patient {
   /// true/false once assessed, null before.
   bool? get neuroRisk => neuroRiskFactors == null ? null : neuroRiskFactors!.isNotEmpty;
 
+  /// Status staff set by hand: 'stable' / 'watch' / 'sick' (`Acuity`), or
+  /// null when not set, with an optional reason. Who and when are stamped
+  /// by the server. Saved only through PatientService.setStatus, so
+  /// [toRow] never writes these.
+  final String? acuity;
+  final String? acuityReason;
+  final DateTime? acuitySetAt;
+  final String? acuitySetByName;
+
+  /// Organ support ticked by staff (names of `SupportTag`), mostly PICU.
+  final List<String> supportTags;
+
+  /// I-PASS patient summary (1–3 lines), kept up to date between shifts;
+  /// saved by PatientService.setHandoverSummary, never by [toRow].
+  final String? handoverSummary;
+  final DateTime? handoverSummaryAt;
+  final String? handoverSummaryByName;
+
+  /// Consultant in charge (free text; the app suggests names used in the
+  /// ward). Written by [toRow].
+  final String? consultant;
+
+  /// Clinical tags from the ward's list (`Ward.tagOptions`); saved by
+  /// PatientService.setTags, never by [toRow].
+  final List<String> tags;
+
   const Patient({
     required this.id,
     this.patientCode = '',
@@ -117,6 +143,16 @@ class Patient {
     this.motherAge,
     this.gravidaPara,
     this.neuroRiskFactors,
+    this.acuity,
+    this.acuityReason,
+    this.acuitySetAt,
+    this.acuitySetByName,
+    this.supportTags = const [],
+    this.handoverSummary,
+    this.handoverSummaryAt,
+    this.handoverSummaryByName,
+    this.consultant,
+    this.tags = const [],
   });
 
   /// "39+2 wk", or null when not recorded.
@@ -177,6 +213,16 @@ class Patient {
       motherAge: (row['mother_age'] as num?)?.toInt(),
       gravidaPara: row['gravida_para'] as String?,
       neuroRiskFactors: (row['neuro_risk_factors'] as List?)?.cast<String>(),
+      acuity: row['acuity'] as String?,
+      acuityReason: row['acuity_reason'] as String?,
+      acuitySetAt: parseTimestampOrNull(row['acuity_set_at']),
+      acuitySetByName: row['acuity_set_by_name'] as String?,
+      supportTags: (row['support_tags'] as List?)?.cast<String>() ?? const [],
+      handoverSummary: row['handover_summary'] as String?,
+      handoverSummaryAt: parseTimestampOrNull(row['handover_summary_at']),
+      handoverSummaryByName: row['handover_summary_by_name'] as String?,
+      consultant: row['consultant'] as String?,
+      tags: (row['tags'] as List?)?.cast<String>() ?? const [],
     );
   }
 
@@ -210,6 +256,7 @@ class Patient {
       'mother_name': _blankToNull(motherName),
       'mother_age': motherAge,
       'gravida_para': _blankToNull(gravidaPara),
+      'consultant': _blankToNull(consultant),
     };
   }
 
@@ -222,6 +269,7 @@ class Patient {
     String? diagnosis,
     String? bloodGroup,
     String? hospitalId,
+    List<String>? neuroRiskFactors,
   }) {
     return Patient(
       id: id,
@@ -255,7 +303,17 @@ class Patient {
       motherName: motherName,
       motherAge: motherAge,
       gravidaPara: gravidaPara,
-      neuroRiskFactors: neuroRiskFactors,
+      neuroRiskFactors: neuroRiskFactors ?? this.neuroRiskFactors,
+      acuity: acuity,
+      acuityReason: acuityReason,
+      acuitySetAt: acuitySetAt,
+      acuitySetByName: acuitySetByName,
+      supportTags: supportTags,
+      handoverSummary: handoverSummary,
+      handoverSummaryAt: handoverSummaryAt,
+      handoverSummaryByName: handoverSummaryByName,
+      consultant: consultant,
+      tags: tags,
     );
   }
 

@@ -17,6 +17,7 @@ import '../../widgets/inset_group.dart';
 import '../../widgets/large_title_app_bar.dart';
 import '../../widgets/note_tile.dart';
 import '../../widgets/ward_actions.dart';
+import '../shared/workload_screen.dart';
 import '../notes/note_thread_sheet.dart';
 
 enum _View { team, patients, notes }
@@ -93,6 +94,12 @@ class _AdminWardScreenState extends State<AdminWardScreen> {
                   if (w != null) ...[
                     ChromeIconButton(icon: Icons.ios_share, tooltip: 'Invite', onPressed: () => WardActions.share(context, w)),
                     ChromeIconButton(icon: Icons.edit_outlined, tooltip: 'Edit ward', onPressed: () => _rename(w)),
+                    ChromeIconButton(
+                      icon: Icons.insights_outlined,
+                      tooltip: 'Workload',
+                      onPressed: () => Navigator.of(context)
+                          .push(MaterialPageRoute(builder: (_) => WorkloadScreen(ward: w))),
+                    ),
                   ],
                 ],
               ),

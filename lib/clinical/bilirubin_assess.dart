@@ -1,50 +1,52 @@
 import '../models/patient.dart';
 import 'bilirubin.dart';
 
-/// Gestation (completed weeks) from which FolioMed uses AAP 2022; below it,
-/// NICE CG98.
-const int kAapFromWeeks = 35;
+enum GuidelineChoice {
+  aap('AAP 2022'),
+  nice('NICE');
 
-/// The guideline for a baby of [gestationWeeks]: NICE CG98 under 35 weeks,
-/// AAP 2022 from 35 weeks. Null when the gestation isn't recorded.
-BilirubinGuideline? guidelineForGestation(int? gestationWeeks) {
-  if (gestationWeeks == null) return null;
-  return gestationWeeks < kAapFromWeeks ? const NiceCg98() : const Aap2022();
+  const GuidelineChoice(this.label);
+  final String label;
 }
 
-/// A [BiliAssessment] with the guideline for the gestation, or a
-/// [BiliNotApplicable] saying what is missing.
-Object assessByGestation({
-  required int? gestationWeeks,
-  required double hoursOfAge,
-  required double tsbUmol,
-  bool? neuroRisk,
-}) {
-  final g = guidelineForGestation(gestationWeeks);
-  if (g == null) {
-    return const BiliNotApplicable(
-        'Bilirubin', 'Add the gestational age to compare with guideline thresholds.');
-  }
-  return g.assess(
-    gestationWeeks: gestationWeeks,
-    hoursOfAge: hoursOfAge,
-    tsbUmol: tsbUmol,
-    neuroRisk: neuroRisk,
-  );
+/// AAP 2022 covers 35 weeks and up; NICE (gestation-specific graphs) is
+/// used below that.
+const int kAapMinWeeks = 35;
+
+/// The guideline for a baby's gestation: NICE below 35 weeks, AAP 2022 at
+/// 35 weeks or more. Null until the gestational age is recorded.
+GuidelineChoice? guidelineForGestation(int? weeks) {
+  if (weeks == null) return null;
+  return weeks < kAapMinWeeks ? GuidelineChoice.nice : GuidelineChoice.aap;
 }
 
-/// Assesses a reading for [p] with the guideline for its gestation. Null
-/// when it can't be applied (no birth time or gestation, or AAP before the
-/// risk factors are recorded). The result names the guideline used.
-BiliAssessment? assessForPatient(Patient p, DateTime measuredAt, double tsbUmol) {
+BilirubinGuideline guidelineFor(GuidelineChoice c) =>
+    c == GuidelineChoice.aap ? const Aap2022() : const NiceCg98();
+
+/// Assesses a reading for [p] with the guideline for its gestation
+/// (BiliAssessment), or explains why it can't (BiliNotApplicable — e.g.
+/// no gestational age, or AAP before risk factors are recorded).
+Object assessReading(Patient p, DateTime measuredAt, double tsbUmol) {
   final born = p.bornAt;
-  if (born == null) return null;
-  final a = assessByGestation(
+  if (born == null) {
+    return const BiliNotApplicable('Bilirubin', 'Add the date and time of birth.');
+  }
+  final c = guidelineForGestation(p.gestationWeeks);
+  if (c == null) {
+    return const BiliNotApplicable(
+        'Bilirubin', 'Add the gestational age (Edit details) to compare with guideline thresholds.');
+  }
+  return guidelineFor(c).assess(
     gestationWeeks: p.gestationWeeks,
     hoursOfAge: measuredAt.difference(born).inMinutes / 60,
     tsbUmol: tsbUmol,
     neuroRisk: p.neuroRisk,
   );
+}
+
+/// [assessReading] when it gives a result, else null.
+BiliAssessment? assessForPatient(Patient p, DateTime measuredAt, double tsbUmol) {
+  final a = assessReading(p, measuredAt, tsbUmol);
   return a is BiliAssessment ? a : null;
 }
 
@@ -60,11 +62,12 @@ class ThresholdLines {
 
 ThresholdLines? linesForPatient(Patient p) {
   final ga = p.gestationWeeks;
-  if (ga == null) return null;
-  if (ga < kAapFromWeeks) {
-    if (ga < NiceCg98.pretermFromWeeks) return null;
-    return ThresholdLines('NICE CG98', (h) => NiceCg98.thresholdsFor(ga, h).phototherapy,
-        (h) => NiceCg98.thresholdsFor(ga, h).exchange);
+  final c = guidelineForGestation(ga);
+  if (ga == null || c == null) return null;
+  if (c == GuidelineChoice.nice) {
+    if (ga < NiceCg98.minPretermWeeks) return null;
+    return ThresholdLines('NICE CG98', (h) => NiceCg98.thresholdsFor(ga, h)!.phototherapy,
+        (h) => NiceCg98.thresholdsFor(ga, h)!.exchange);
   }
   final risk = p.neuroRisk;
   if (risk == null || !Aap2022.isLoaded) return null;

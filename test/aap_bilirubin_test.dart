@@ -105,8 +105,8 @@ void main() {
     });
   });
 
-  group('guideline by gestation: NICE under 35 weeks, AAP from 35', () {
-    Patient baby({int ga = 39, List<String>? risk}) => Patient.fromRow({
+  group('guideline by gestation', () {
+    Patient baby({int? ga = 39, List<String>? risk}) => Patient.fromRow({
           'name': 'B',
           'born_at': DateTime.utc(2026, 10, 18).toIso8601String(),
           'gestation_weeks': ga,
@@ -114,36 +114,41 @@ void main() {
         });
     final at = DateTime.utc(2026, 10, 20); // 48 h
 
-    test('35 weeks and over use AAP', () {
-      expect(guidelineForGestation(35)!.name, 'AAP 2022');
-      expect(assessForPatient(baby(risk: []), at, 200)!.guideline, 'AAP 2022');
-      expect(assessForPatient(baby(ga: 35, risk: ['sepsis']), at, 200)!.guideline, 'AAP 2022');
-    });
-
-    test('AAP without recorded risk factors does not fall back to NICE', () {
-      expect(assessForPatient(baby(), at, 200), isNull);
-      expect(linesForPatient(baby()), isNull);
-    });
-
-    test('under 35 weeks use NICE, risk factors not needed', () {
-      expect(guidelineForGestation(34)!.name, 'NICE CG98');
-      final a = assessForPatient(baby(ga: 34), at, 200)!;
-      expect(a.guideline, 'NICE CG98');
-      // 34 weeks at 48 h: 40 + (240 − 40) × 48/72 ≈ 173 → above phototherapy.
-      expect(a.action, BiliAction.phototherapy);
-      expect(linesForPatient(baby(ga: 30))!.phototherapy(96), 200);
-    });
-
-    test('no gestation, no guideline', () {
+    test('NICE below 35 weeks, AAP 2022 from 35', () {
       expect(guidelineForGestation(null), isNull);
-      expect(assessByGestation(gestationWeeks: null, hoursOfAge: 48, tsbUmol: 200),
-          isA<BiliNotApplicable>());
+      expect(guidelineForGestation(30), GuidelineChoice.nice);
+      expect(guidelineForGestation(34), GuidelineChoice.nice);
+      expect(guidelineForGestation(35), GuidelineChoice.aap);
+      expect(guidelineForGestation(40), GuidelineChoice.aap);
     });
 
-    test('chart lines: AAP adds an escalation line 2 mg/dL under exchange', () {
+    test('assessments follow the gestation, with no fallback', () {
+      expect(assessForPatient(baby(ga: 34), at, 200)!.guideline, 'NICE CG98');
+      expect(assessForPatient(baby(ga: 35, risk: []), at, 200)!.guideline, 'AAP 2022');
+      expect(assessForPatient(baby(risk: ['sepsis']), at, 200)!.guideline, 'AAP 2022');
+      expect(assessForPatient(baby(), at, 200), isNull, reason: 'AAP needs risk factors');
+      expect(assessReading(baby(), at, 200), isA<BiliNotApplicable>());
+      expect(assessForPatient(baby(ga: null), at, 200), isNull);
+    });
+
+    test('risk factors select the lower AAP lines', () {
+      final none = assessForPatient(baby(risk: []), at, 200)!;
+      final some = assessForPatient(baby().copyWith(neuroRiskFactors: ['sepsis']), at, 200)!;
+      expect(some.thresholds.phototherapy, lessThan(none.thresholds.phototherapy));
+    });
+
+    test('chart lines: NICE preterm below 35, AAP (with escalation) from 35', () {
+      final n = linesForPatient(baby(ga: 32))!;
+      expect(n.guideline, 'NICE CG98');
+      expect(n.phototherapy(72), 220);
+      expect(n.escalation, isNull);
       final l = linesForPatient(baby(risk: []))!;
+      expect(l.guideline, 'AAP 2022');
       expect(umolToMgdl(l.exchange(48)! - l.escalation!(48)!), closeTo(2, 1e-9));
-      expect(linesForPatient(baby(ga: 30))!.escalation, isNull);
+      expect(linesForPatient(baby()), isNull);
+      expect(linesForPatient(baby(ga: null)), isNull);
+      expect(linesForPatient(baby(ga: 21)), isNull);
+      expect(linesForPatient(baby(ga: 22))!.guideline, 'NICE CG98');
     });
   });
 

@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../clinical/workload.dart';
 import '../models/app_user.dart';
 import '../models/ward.dart';
 import 'usage_counters.dart';
@@ -44,7 +45,8 @@ class WardService {
 
   /// Sets up a ward and returns its code. Codes are random 5-digit numbers;
   /// if one is already taken the insert fails and another is drawn.
-  Future<String> createWard({required String name, String location = '', String ownerName = ''}) async {
+  Future<String> createWard(
+      {required String name, String location = '', String ownerName = '', WardKind kind = WardKind.other}) async {
     final user = _client.auth.currentUser;
     if (user == null) throw const AuthException('Not signed in');
     final random = Random.secure();
@@ -58,7 +60,8 @@ class WardService {
         ownerId: user.id,
         ownerEmail: user.email ?? '',
         createdAt: DateTime.now(),
-      ).toRow();
+      ).toRow()
+        ..['kind'] = kind.name;
       try {
         await _wards.insert(row);
       } on PostgrestException catch (e) {
@@ -74,6 +77,41 @@ class WardService {
 
   Future<void> updateWard(Ward ward) async {
     await _wards.update(ward.toRow()).eq('id', ward.id);
+  }
+
+  /// Owner only; throws when RLS blocks it (zero rows updated).
+  Future<void> setKind(String wardId, WardKind kind) async {
+    final rows = await _wards.update({'kind': kind.name}).eq('id', wardId).select('id');
+    if (rows.isEmpty) {
+      throw const PostgrestException(
+          message: 'Only the ward owner can change the ward type.', code: '42501');
+    }
+  }
+
+  /// Owner only; throws when RLS blocks it.
+  Future<void> setTagOptions(String wardId, List<String> tags) async {
+    final rows = await _wards.update({'tag_options': tags}).eq('id', wardId).select('id');
+    if (rows.isEmpty) {
+      throw const PostgrestException(message: 'Only the ward owner can change the clinical tags.', code: '42501');
+    }
+  }
+
+  /// Owner only. [starts] are minutes after local midnight.
+  Future<void> setShiftStarts(String wardId, List<int> starts) async {
+    final rows = await _wards.update({'shift_starts': ([...starts]..sort())}).eq('id', wardId).select('id');
+    if (rows.isEmpty) {
+      throw const PostgrestException(message: 'Only the ward owner can change the shift times.', code: '42501');
+    }
+  }
+
+  /// Workload report rows (owner or admin; up to 31 days).
+  Future<List<WorkloadEvent>> workload(String wardId, DateTime from, DateTime to) async {
+    final rows = await _client.rpc('ward_workload', params: {
+      'p_ward': wardId,
+      'p_from': from.toUtc().toIso8601String(),
+      'p_to': to.toUtc().toIso8601String(),
+    }) as List<dynamic>;
+    return [for (final r in rows) WorkloadEvent.fromRow(r as Map<String, dynamic>)];
   }
 
   /// Joins by code. Returns false when no ward has that code.

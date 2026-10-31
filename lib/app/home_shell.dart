@@ -7,6 +7,7 @@ import '../models/app_user.dart';
 import '../providers/account_provider.dart';
 import '../providers/ward_feed.dart';
 import '../providers/patient_roster.dart';
+import '../providers/follows.dart';
 import '../providers/job_board.dart';
 import '../providers/reminder_provider.dart';
 import '../providers/appearance_provider.dart';
@@ -111,6 +112,7 @@ class _HomeShellState extends State<HomeShell> with WidgetsBindingObserver {
       context.read<ReminderProvider>().subscribe(wardIds);
       context.read<JobBoard>().watchWards(wardIds);
       context.read<UnitProvider>().subscribe(wardIds);
+      context.read<Follows>().watch(context.read<AccountProvider>().currentUser?.uid);
     });
   }
 

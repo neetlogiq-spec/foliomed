@@ -71,7 +71,7 @@ class _NewbornSectionState extends State<NewbornSection> {
         return InsetGroup(
           header: 'Newborn',
           footer: p.gestationWeeks == null
-              ? 'Add the gestational age (Edit details) so bilirubin can be compared with NICE thresholds.'
+              ? 'Add the gestational age (Edit details) so bilirubin can be compared with guideline thresholds.'
               : null,
           children: rows,
         );

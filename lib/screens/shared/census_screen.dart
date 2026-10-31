@@ -4,25 +4,28 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../../clinical/bilirubin.dart';
 import '../../clinical/handover.dart';
-import '../../models/newborn_tracking.dart';
+import '../../clinical/patient_status.dart';
+import '../../models/handover_session.dart';
 import '../../models/patient.dart';
 import '../../models/ward.dart';
 import '../../providers/patient_roster.dart';
-import '../../providers/reminder_provider.dart';
 import '../../providers/unit_provider.dart';
+import '../../services/handover_service.dart';
 import '../../services/patient_service.dart';
-import '../../services/tracking_service.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/app_typography.dart';
+import '../../utils/formatting.dart';
+import '../../utils/friendly_error.dart';
 import '../../utils/haptics.dart';
 import '../../utils/stream_cache.dart';
 import '../../widgets/empty_placeholder.dart';
+import '../../widgets/handover_card.dart';
 import '../../widgets/inset_group.dart';
 import '../../widgets/large_title_app_bar.dart';
 import '../../widgets/scope_button.dart';
-import '../patients/patient_screen.dart';
+import 'handover_data.dart';
+import 'handover_session_screen.dart';
 
 enum _CensusView { census, handover }
 
@@ -40,8 +43,10 @@ class _CensusScreenState extends State<CensusScreen> {
 
   _CensusView _mode = _CensusView.census;
   DateTime _day = DateTime.now();
-  Future<TrackingSnapshot>? _snapshot;
-  String _snapshotKey = '';
+  static final _sessionStreams = StreamCache<List<HandoverSession>>();
+  Future<HandoverExtras>? _extras;
+  String _extrasKey = '';
+  bool _sickestFirst = false;
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +99,7 @@ class _CensusScreenState extends State<CensusScreen> {
                     if (_mode == _CensusView.census)
                       _census(active, wards)
                     else
-                      _handover(active, units),
+                      _handover(active, wards, units),
                   ],
                 ),
               ),
@@ -203,166 +208,145 @@ class _CensusScreenState extends State<CensusScreen> {
 
   // ───────────────────────────── Handover ─────────────────────────────
 
-  Future<TrackingSnapshot> _snapshotFor(List<Patient> active) {
+  Future<HandoverExtras> _extrasFor(List<Patient> active) {
     final key = (active.map((p) => p.id).toList()..sort()).join(',');
-    if (key != _snapshotKey || _snapshot == null) {
-      _snapshotKey = key;
-      _snapshot = TrackingService().snapshot(active.map((p) => p.id).toList());
+    if (key != _extrasKey || _extras == null) {
+      _extrasKey = key;
+      _extras = HandoverExtras.load(active.map((p) => p.id).toList());
     }
-    return _snapshot!;
+    return _extras!;
   }
 
-  List<HandoverItem> _items(List<Patient> active, TrackingSnapshot snap, UnitProvider units) {
-    final reminders = context.read<ReminderProvider>().open;
-    final items = [
-      for (final p in active)
-        HandoverItem(
-          patient: p,
-          unitName: units.unitById(p.unitId)?.name,
-          openReminders: reminders.where((r) => r.patientId == p.id).toList(),
-          bilirubin: snap.latestBilirubin[p.id],
-          phototherapy: snap.runningPhototherapy[p.id],
-          weight: snap.latestWeight[p.id],
-        ),
-    ];
-    final unitOrder = units.units.map((u) => u.id).toList();
-    items.sort((a, b) => compareHandover(a, b, unitOrder));
-    return items;
+  Widget _handover(List<Patient> active, List<Ward> wards, UnitProvider units) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _sessionsGroup(wards, units),
+        const SizedBox(height: 16),
+        if (active.isEmpty)
+          const EmptyPlaceholder(
+            icon: Icons.assignment_outlined,
+            title: 'Nobody to hand over',
+            subtitle: 'No admitted patients in this ward or unit.',
+          )
+        else
+          FutureBuilder<HandoverExtras>(
+            future: _extrasFor(active),
+            builder: (context, snap) {
+              if (!snap.hasData) {
+                return const Padding(
+                  padding: EdgeInsets.all(32),
+                  child: Center(child: CircularProgressIndicator.adaptive()),
+                );
+              }
+              final items = handoverItems(context,
+                  patients: active, wards: wards, extras: snap.data!, sickestFirst: _sickestFirst);
+              final now = DateTime.now();
+              final red = items.where((i) => i.status?.level == StatusLevel.act).length;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 4, 6),
+                    child: Row(children: [
+                      Expanded(
+                        child: Text(
+                          '${items.length} patients · $red need action',
+                          style: AppTypography.footnote(color: AppColors.textSecondary, weight: FontWeight.w600),
+                        ),
+                      ),
+                      TextButton.icon(
+                        onPressed: () => setState(() => _sickestFirst = !_sickestFirst),
+                        icon: const Icon(Icons.swap_vert, size: 18),
+                        label: Text(_sickestFirst ? 'Sickest first' : 'Bed order'),
+                      ),
+                    ]),
+                  ),
+                  for (final i in items) ...[
+                    HandoverCard(item: i, now: now),
+                    const SizedBox(height: 10),
+                  ],
+                ],
+              );
+            },
+          ),
+      ],
+    );
   }
 
-  Widget _handover(List<Patient> active, UnitProvider units) {
-    if (active.isEmpty) {
-      return const EmptyPlaceholder(
-        icon: Icons.assignment_outlined,
-        title: 'Nobody to hand over',
-        subtitle: 'No admitted patients in this ward or unit.',
-      );
-    }
-    return FutureBuilder<TrackingSnapshot>(
-      future: _snapshotFor(active),
+  /// Start Handover, the one in progress, and the last few.
+  Widget _sessionsGroup(List<Ward> wards, UnitProvider units) {
+    final ids = wards.map((w) => w.id).toList();
+    return StreamBuilder<List<HandoverSession>>(
+      stream: ids.isEmpty ? Stream.value(const []) : _sessionStreams.get(ids.join(','), () => HandoverService().sessions(ids)),
       builder: (context, snap) {
-        if (snap.hasError) {
-          return EmptyPlaceholder(
-            icon: Icons.cloud_off_outlined,
-            title: "Couldn't load the handover",
-            subtitle: 'Check your connection.',
-            buttonLabel: 'Try again',
-            onButtonTap: () => setState(() => _snapshot = null),
-          );
-        }
-        if (!snap.hasData) {
-          return const Padding(
-            padding: EdgeInsets.all(32),
-            child: Center(child: CircularProgressIndicator.adaptive()),
-          );
-        }
-        final items = _items(active, snap.data!, units);
-        final now = DateTime.now();
-        final flagged = items.where((i) => i.flags(now).isNotEmpty).length;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        final sessions = snap.data ?? const <HandoverSession>[];
+        final open = sessions.where((s) => s.isOpen).toList();
+        final recent = sessions.where((s) => !s.isOpen).take(5).toList();
+        return InsetGroup(
+          header: 'Shift handover',
+          footer: 'I-PASS: Illness severity, Patient summary, Action list, Situation awareness (if/then), '
+              'Synthesis — the person taking over confirms each patient.',
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-              child: Text(
-                '${items.length} patients · $flagged need attention',
-                style: AppTypography.footnote(color: AppColors.textSecondary, weight: FontWeight.w600),
+            for (final s in open)
+              SettingsRow(
+                icon: Icons.play_circle_outline,
+                iconColor: AppColors.stable,
+                title: 'In progress · ${s.scopeLabel}',
+                subtitle: 'Started ${formatClock(s.startedAt)} by ${s.givenByName}',
+                onTap: () => _openSession(s),
               ),
+            SettingsRow(
+              icon: Icons.handshake_outlined,
+              title: 'Start Handover',
+              subtitle: 'For ${scopeLabel(units.scope, wards, units)}',
+              onTap: wards.isEmpty ? null : () => _start(wards, units),
             ),
-            for (final i in items) ...[
-              _HandoverCard(item: i, now: now),
-              const SizedBox(height: 10),
-            ],
+            for (final s in recent)
+              SettingsRow(
+                icon: Icons.history,
+                iconColor: AppColors.textSecondary,
+                title: s.scopeLabel,
+                subtitle: '${formatDueTime(s.startedAt)} · ${s.givenByName}',
+                onTap: () => _openSession(s),
+              ),
           ],
         );
       },
     );
   }
 
-  Future<void> _share(List<Patient> active, List<Ward> wards, UnitProvider units) async {
-    final snap = await _snapshotFor(active);
-    if (!mounted) return;
-    final items = _items(active, snap, units);
-    final now = DateTime.now();
-    final header = 'Handover — ${scopeLabel(units.scope, wards, units)} — '
-        '${DateFormat('d MMM, h:mm a').format(now)} — ${items.length} patients';
-    final text = [header, for (final i in items) i.toText(now)].join('\n\n');
-    await Share.share(text, subject: header);
-  }
-}
+  void _openSession(HandoverSession s) => Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => HandoverSessionScreen(handoverId: s.id, wardId: s.wardId)));
 
-class _HandoverCard extends StatelessWidget {
-  const _HandoverCard({required this.item, required this.now});
-
-  final HandoverItem item;
-  final DateTime now;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = item.patient;
-    final flags = item.flags(now);
-    final a = item.assessment;
-    final wc = item.weightChange;
-    final pending = item.openReminders.where((r) => !r.isOverdueAt(now)).toList();
-    Widget line(IconData icon, String text, {Color? color}) => Padding(
-          padding: const EdgeInsets.only(top: 3),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(icon, size: 15, color: color ?? AppColors.textSecondary),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(text,
-                    style: AppTypography.footnote(color: color ?? AppColors.textSecondary)),
-              ),
-            ],
-          ),
-        );
-    return Material(
-      color: AppColors.card,
-      borderRadius: BorderRadius.circular(AppRadii.card),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(AppRadii.card),
-        onTap: () => Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => PatientScreen(patientId: p.id),
-        )),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                [
-                  if (p.bedNumber.isNotEmpty) 'Bed ${p.bedNumber}',
-                  p.name,
-                ].join(' · '),
-                style: AppTypography.headline(color: AppColors.textPrimary),
-              ),
-              Text(
-                [p.ageLabel, if (item.unitName != null) item.unitName!, if (p.patientCode.isNotEmpty) p.patientCode]
-                    .join(' · '),
-                style: AppTypography.footnote(color: AppColors.textSecondary),
-              ),
-              if (p.diagnosis.isNotEmpty) ...[
-                const SizedBox(height: 4),
-                Text(p.diagnosis, style: AppTypography.subheadline(color: AppColors.textPrimary)),
-              ],
-              for (final f in flags) line(Icons.error, f, color: AppColors.danger),
-              if (item.phototherapy != null)
-                line(Icons.light_mode, '${item.phototherapy!.kind.label} phototherapy · '
-                    '${item.phototherapy!.durationAt(now).inHours} h', color: AppColors.warning),
-              if (item.bilirubin != null && (a == null || a.action.index < BiliAction.considerPhototherapy.index))
-                line(Icons.show_chart,
-                    'Last ${item.bilirubin!.transcutaneous ? 'TcB' : 'TSB'} '
-                    '${item.bilirubin!.value} ${item.bilirubin!.isUmol ? 'µmol/L' : 'mg/dL'}'
-                    '${a == null ? '' : ' · ${a.guideline}: ${a.action.label}'}'),
-              if (wc != null && wc.flag == WeightFlag.ok)
-                line(Icons.monitor_weight_outlined, 'Weight ${wc.label} from birth'),
-              for (final r in pending.take(2)) line(Icons.schedule, r.title),
-            ],
-          ),
-        ),
-      ),
+  Future<void> _start(List<Ward> wards, UnitProvider units) async {
+    final scope = units.scope;
+    var wardId = scope.wardId ?? (wards.length == 1 ? wards.first.id : null);
+    wardId ??= await showOptionSheet<String>(
+      context,
+      title: 'Hand over which ward?',
+      options: {for (final w in wards) w.id: w.name},
     );
+    if (wardId == null || !mounted) return;
+    final unitId = scope.wardId == wardId ? scope.unitId : null;
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final id = await HandoverService().start(wardId, unitId: unitId);
+      Haptics.success();
+      if (!mounted) return;
+      await Navigator.of(context)
+          .push(MaterialPageRoute(builder: (_) => HandoverSessionScreen(handoverId: id, wardId: wardId!)));
+    } catch (e) {
+      Haptics.error();
+      messenger.showSnackBar(SnackBar(backgroundColor: AppColors.danger, content: Text(friendlyError(e))));
+    }
+  }
+
+  Future<void> _share(List<Patient> active, List<Ward> wards, UnitProvider units) async {
+    final extras = await _extrasFor(active);
+    if (!mounted) return;
+    final items = handoverItems(context, patients: active, wards: wards, extras: extras, sickestFirst: _sickestFirst);
+    final scope = scopeLabel(units.scope, wards, units);
+    await Share.share(handoverText(items, scope, DateTime.now()), subject: 'Handover — $scope');
   }
 }

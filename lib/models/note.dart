@@ -75,6 +75,8 @@ class Note {
     'admission': Icons.login,
     'investigation': Icons.science_outlined,
     'phototherapy': Icons.light_mode_outlined,
+    'status': Icons.circle_outlined,
+    'photo': Icons.photo_camera_outlined,
   };
 
   IconData get kindIcon => _kindIcons[kind.toLowerCase()] ?? Icons.sticky_note_2_outlined;

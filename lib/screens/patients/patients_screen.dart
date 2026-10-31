@@ -6,6 +6,7 @@ import '../../models/patient.dart';
 import '../../models/ward.dart';
 import '../../providers/account_provider.dart';
 import '../../providers/appearance_provider.dart';
+import '../../providers/follows.dart';
 import '../../providers/job_board.dart';
 import '../../providers/patient_roster.dart';
 import '../../providers/reminder_provider.dart';
@@ -23,6 +24,7 @@ import '../../widgets/empty_placeholder.dart';
 import '../../widgets/inset_group.dart';
 import '../../widgets/large_title_app_bar.dart';
 import '../../widgets/patient_row.dart';
+import '../../widgets/status_dot.dart';
 import '../../widgets/scope_button.dart';
 import '../shared/census_screen.dart';
 import 'patient_board.dart';
@@ -44,6 +46,8 @@ class _PatientsScreenState extends State<PatientsScreen> {
   String _query = '';
   PatientFilter _filter = PatientFilter.admitted;
   PatientSort _sort = PatientSort.bed;
+  String? _consultant;
+  String? _tag;
 
   /// Phototherapy and weights, fetched once per set of admitted patients.
   String _trackingKey = '';
@@ -82,13 +86,28 @@ class _PatientsScreenState extends State<PatientsScreen> {
             future: _trackingFor(admitted),
             builder: (context, trackSnap) {
               final t = trackSnap.data ?? TrackingSnapshot.empty();
-              final signals = patientSignals(
-                now: DateTime.now(),
-                reminders: context.watch<ReminderProvider>().open,
-                jobs: context.watch<JobBoard>().open(),
-                notes: context.watch<WardFeed>().feed,
-                phototherapy: t.runningPhototherapy.keys.toSet(),
-                latestWeightG: {for (final e in t.latestWeight.entries) e.key: e.value.grams},
+              final now = DateTime.now();
+              final signals = withStatuses(
+                now: now,
+                admitted: admitted,
+                signals: patientSignals(
+                  now: now,
+                  reminders: context.watch<ReminderProvider>().open,
+                  jobs: context.watch<JobBoard>().open(),
+                  notes: context.watch<WardFeed>().feed,
+                  phototherapy: t.runningPhototherapy.keys.toSet(),
+                  latestWeightG: {for (final e in t.latestWeight.entries) e.key: e.value.grams},
+                ),
+                wardKinds: {for (final w in wards) w.id: w.kind},
+                latestBilirubin: t.latestBilirubin,
+                latestObservation: t.latestObservation,
+                followed: context.watch<Follows>().ids,
+                involved: involvedPatients(
+                  uid: context.read<AccountProvider>().currentUser?.uid ?? '',
+                  now: now,
+                  notes: context.read<WardFeed>().feed,
+                  jobs: context.read<JobBoard>().open(),
+                ),
               );
               return RefreshIndicator.adaptive(
                 edgeOffset: MediaQuery.paddingOf(context).top + 52,
@@ -214,10 +233,15 @@ class _PatientsScreenState extends State<PatientsScreen> {
                 ),
             ]),
           ),
+          if (_filter != PatientFilter.discharged) ...[
+            const SizedBox(height: 8),
+            const StatusLegend(),
+          ],
           const SizedBox(height: 6),
           Row(children: [
             const ScopeButton(),
             const Spacer(),
+            _teamFilterMenu(admitted),
             MenuAnchor(
               menuChildren: [
                 for (final s in PatientSort.values)
@@ -239,6 +263,54 @@ class _PatientsScreenState extends State<PatientsScreen> {
     );
   }
 
+  /// Consultant / tag filter (only shown once the ward uses them).
+  Widget _teamFilterMenu(List<Patient> admitted) {
+    final consultants = consultantsOf(admitted);
+    final tags = {for (final p in admitted) ...p.tags}.toList()..sort();
+    if (consultants.isEmpty && tags.isEmpty && _consultant == null && _tag == null) return const SizedBox.shrink();
+    final active = _consultant != null || _tag != null;
+    return MenuAnchor(
+      menuChildren: [
+        if (active)
+          MenuItemButton(
+            leadingIcon: const Icon(Icons.clear),
+            onPressed: () => setState(() => _consultant = _tag = null),
+            child: const Text('Clear filter'),
+          ),
+        if (consultants.isNotEmpty)
+          SubmenuButton(
+            menuChildren: [
+              for (final c in consultants)
+                MenuItemButton(
+                  leadingIcon: Icon(c == _consultant ? Icons.check : null),
+                  onPressed: () => setState(() => _consultant = c == _consultant ? null : c),
+                  child: Text(c),
+                ),
+            ],
+            child: const Text('Consultant'),
+          ),
+        if (tags.isNotEmpty)
+          SubmenuButton(
+            menuChildren: [
+              for (final t in tags)
+                MenuItemButton(
+                  leadingIcon: Icon(t == _tag ? Icons.check : null),
+                  onPressed: () => setState(() => _tag = t == _tag ? null : t),
+                  child: Text(t),
+                ),
+            ],
+            child: const Text('Tag'),
+          ),
+      ],
+      builder: (context, controller, _) => TextButton.icon(
+        onPressed: () => controller.isOpen ? controller.close() : controller.open(),
+        icon: Icon(active ? Icons.filter_alt : Icons.filter_alt_outlined, size: 18),
+        label: Text(active ? [_consultant, _tag].whereType<String>().join(' · ') : 'Filter',
+            overflow: TextOverflow.ellipsis),
+      ),
+    );
+  }
+
   bool _matches(Patient p) {
     final q = _query;
     if (q.isEmpty) return true;
@@ -247,7 +319,9 @@ class _PatientsScreenState extends State<PatientsScreen> {
         p.diagnosis.toLowerCase().contains(q) ||
         p.patientCode.toLowerCase().contains(q) ||
         (p.hospitalId?.toLowerCase().contains(q) ?? false) ||
-        (p.motherName?.toLowerCase().contains(q) ?? false);
+        (p.motherName?.toLowerCase().contains(q) ?? false) ||
+        (p.consultant?.toLowerCase().contains(q) ?? false) ||
+        p.tags.any((t) => t.toLowerCase().contains(q));
   }
 
   /// Ward → unit → unassigned groups, each sorted.
@@ -258,6 +332,7 @@ class _PatientsScreenState extends State<PatientsScreen> {
     final shown = source
         .where((p) => scope.includes(wardId: p.wardId, unitId: p.unitId))
         .where((p) => _filter.keeps(p, signals[p.id] ?? PatientSignals.none))
+        .where((p) => matchesTeamFilter(p, consultant: _consultant, tag: _tag))
         .where(_matches)
         .toList();
     if (shown.isEmpty) {
@@ -265,6 +340,10 @@ class _PatientsScreenState extends State<PatientsScreen> {
           ? _message('Nothing matches “$_query”', Icons.person_search_outlined)
           : switch (_filter) {
               PatientFilter.attention => _message('Nothing needs attention', Icons.task_alt),
+              PatientFilter.mine => _message(
+                  'Star a patient (on their page) to follow them. Patients you’ve written about in the last '
+                  '48 hours, or have a job for, appear here too.',
+                  Icons.star_border),
               PatientFilter.newborns => _message('No newborns admitted', Icons.child_care),
               PatientFilter.phototherapy => _message('Nobody is under phototherapy', Icons.light_mode_outlined),
               PatientFilter.discharged => _message('No one discharged yet', Icons.home_outlined),
@@ -302,7 +381,14 @@ class _PatientsScreenState extends State<PatientsScreen> {
               dividerIndent: 58,
               children: [
                 for (final p in patients)
-                  PatientRow(key: ValueKey(p.id), patient: p, signals: signals[p.id] ?? PatientSignals.none),
+                  PatientRow(
+                    key: ValueKey(p.id),
+                    patient: p,
+                    signals: signals[p.id] ?? PatientSignals.none,
+                    onReturn: () {
+                      if (mounted) setState(() => _tracking = null);
+                    },
+                  ),
               ],
             ),
           );

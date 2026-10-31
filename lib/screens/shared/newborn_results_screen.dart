@@ -11,6 +11,7 @@ import '../../services/text_scan_service.dart';
 import '../../models/newborn_screen.dart';
 import '../../models/patient.dart';
 import '../../services/newborn_screen_service.dart';
+import '../../services/patient_service.dart';
 import '../../utils/app_theme.dart';
 import '../../utils/app_typography.dart';
 import '../../utils/formatting.dart';
@@ -18,6 +19,7 @@ import '../../utils/friendly_error.dart';
 import '../../utils/haptics.dart';
 import '../../widgets/birth_time_field.dart';
 import '../../widgets/inset_group.dart';
+import '../../widgets/risk_factors_sheet.dart';
 
 /// Enter (or correct) the newborn investigation results. Bilirubin is
 /// compared live with the guideline thresholds for the baby's hour of age
@@ -61,6 +63,16 @@ class _NewbornResultsScreenState extends State<NewbornResultsScreen> {
       _initial.motherBloodGroup ?? widget.patient.motherBloodGroup;
   late OaeResult? _oaeR = _initial.oaeRight;
   late OaeResult? _oaeL = _initial.oaeLeft;
+
+  /// AAP 2022 neurotoxicity risk factors; saved to the patient with the
+  /// results (null = not assessed).
+  late List<String>? _riskFactors = widget.patient.neuroRiskFactors;
+  bool _riskChanged = false;
+
+  /// The patient as it will be after saving (for the live assessment).
+  Patient get _patient => _riskChanged
+      ? widget.patient.copyWith(neuroRiskFactors: _riskFactors)
+      : widget.patient;
   bool _saving = false;
   bool _scanning = false;
 
@@ -155,33 +167,29 @@ class _NewbornResultsScreenState extends State<NewbornResultsScreen> {
   }
 
   /// The assessment with the guideline for the baby's gestation (NICE
-  /// under 35 weeks, AAP from 35 weeks).
+  /// below 35 weeks, AAP 2022 from 35), or why it can't be made.
   List<Object> _assessments(NewbornResults r) {
     final total = r.tsbTotal;
-    final hours = _hoursAtSample;
-    if (total == null || hours == null) return const [];
-    return [
-      assessByGestation(
-        gestationWeeks: widget.patient.gestationWeeks,
-        hoursOfAge: hours,
-        tsbUmol: r.biliUnit == BiliUnit.mgdl ? mgdlToUmol(total) : total,
-        neuroRisk: widget.patient.neuroRisk,
-      ),
-    ];
+    if (total == null || _hoursAtSample == null) return const [];
+    final umol = r.biliUnit == BiliUnit.mgdl ? mgdlToUmol(total) : total;
+    return [assessReading(_patient, _sampledAt, umol)];
   }
 
   Future<void> _save() async {
     setState(() => _saving = true);
     final r = _results;
-    final bili = _assessments(r).whereType<BiliAssessment>().firstOrNull;
+    final nice = _assessments(r).whereType<BiliAssessment>().firstOrNull;
     final summary = r.summary(
-      biliAssessment: bili == null
+      biliAssessment: nice == null
           ? null
-          : '${bili.guideline} at ${bili.hoursOfAge.round()} h: ${bili.action.label}',
+          : '${nice.guideline} at ${nice.hoursOfAge.round()} h: ${nice.action.label}',
     );
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
     try {
+      if (_riskChanged) {
+        await PatientService().setNeuroRiskFactors(widget.patient.id, _riskFactors ?? const []);
+      }
       await NewbornScreenService().saveResults(widget.screen.id, r, summary);
       Haptics.success();
       navigator.pop(true);
@@ -278,9 +286,29 @@ class _NewbornResultsScreenState extends State<NewbornResultsScreen> {
               subtitle: 'Total − direct',
               value: r.tsbIndirect == null ? '—' : '${_fmt(r.tsbIndirect!)} ${_unit.label}',
             ),
+            if (guidelineForGestation(widget.patient.gestationWeeks) != GuidelineChoice.nice)
+              SettingsRow(
+                icon: Icons.health_and_safety_outlined,
+                iconColor: _riskFactors == null
+                    ? AppColors.warning
+                    : _riskFactors!.isEmpty
+                        ? AppColors.accent
+                        : AppColors.danger,
+                title: 'Neurotoxicity risk factors',
+                subtitle: riskFactorsLabel(_riskFactors) ??
+                    'Not assessed — needed for AAP thresholds',
+                onTap: () async {
+                  final picked = await showRiskFactorsSheet(context, _riskFactors);
+                  if (picked == null) return;
+                  setState(() {
+                    _riskFactors = picked;
+                    _riskChanged = true;
+                  });
+                },
+              ),
           ]),
           const SizedBox(height: 12),
-          _BilirubinCard(assessments: _assessments(r), patient: widget.patient,
+          _BilirubinCard(assessments: _assessments(r), patient: _patient,
               hasTsb: r.tsbTotal != null),
           const SizedBox(height: 24),
           InsetGroup(header: 'CBC', dividerIndent: 16, children: [

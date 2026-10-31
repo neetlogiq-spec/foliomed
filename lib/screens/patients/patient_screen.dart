@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
+import '../../clinical/early_warning.dart';
 import '../../models/note.dart';
 import '../../models/patient.dart';
 import '../../models/ward.dart';
@@ -21,6 +22,11 @@ import '../../widgets/empty_placeholder.dart';
 import '../../widgets/inset_group.dart';
 import '../../widgets/large_title_app_bar.dart';
 import '../../widgets/newborn_section.dart';
+import '../../widgets/observations_section.dart';
+import '../../widgets/patient_handover_section.dart';
+import '../../widgets/patient_photos_section.dart';
+import '../../widgets/patient_status_card.dart';
+import '../../widgets/patient_team_section.dart';
 import '../../widgets/newborn_tracking_section.dart';
 import '../../widgets/patient_actions.dart';
 import '../../widgets/patient_jobs_section.dart';
@@ -34,7 +40,7 @@ enum _View { overview, timeline }
 /// Timeline filter: everything, what people wrote, or system events.
 enum _Show { all, notes, events }
 
-const _eventKinds = {'transfer', 'discharge', 'admission', 'investigation', 'phototherapy'};
+const _eventKinds = {'transfer', 'discharge', 'admission', 'investigation', 'phototherapy', 'status', 'photo'};
 
 /// One patient, laid out like a contact card: who they are and quick
 /// actions at the top, then Overview (details, newborn care, jobs,
@@ -109,7 +115,7 @@ class _PatientScreenState extends State<PatientScreen> {
         _loadWard(p.wardId);
         return _shell(
           title: p.name,
-          actions: [PatientActionsButton(patient: p)],
+          actions: [if (p.isActive) FollowButton(patient: p), PatientActionsButton(patient: p)],
           body: SliverPadding(
             padding: withBottomBarInset(context, const EdgeInsets.fromLTRB(16, 4, 16, 32)),
             sliver: SliverList.list(children: [
@@ -155,6 +161,14 @@ class _PatientScreenState extends State<PatientScreen> {
 
   List<Widget> _overview(Patient p) => [
         if (p.isDischarged) ...[_DischargeNotice(patient: p), const SizedBox(height: 20)],
+        if (p.isActive) ...[
+          PatientStatusCard(key: ValueKey('status-${p.id}'), patient: p, wardKind: _ward?.kind),
+          const SizedBox(height: 24),
+          PatientHandoverSection(key: ValueKey('handover-${p.id}'), patient: p),
+          const SizedBox(height: 24),
+          PatientTeamSection(patient: p, ward: _ward),
+          const SizedBox(height: 24),
+        ],
         _Details(patient: p),
         const SizedBox(height: 24),
         if (p.bornAt != null) ...[
@@ -167,6 +181,12 @@ class _PatientScreenState extends State<PatientScreen> {
           NewbornTrackingSection(patient: p),
           const SizedBox(height: 16),
         ],
+        if (earlyWarningFor(p, DateTime.now()) != null) ...[
+          ObservationsSection(key: ValueKey('obs-${p.id}'), patient: p),
+          const SizedBox(height: 16),
+        ],
+        PatientPhotosSection(key: ValueKey('photos-${p.id}'), patient: p),
+        const SizedBox(height: 16),
         PatientJobsSection(patient: p),
         const SizedBox(height: 16),
         PatientRemindersSection(patient: p),

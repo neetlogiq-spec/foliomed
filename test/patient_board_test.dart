@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:foliomed/clinical/patient_status.dart';
 import 'package:foliomed/models/note.dart';
 import 'package:foliomed/models/patient.dart';
 import 'package:foliomed/models/patient_reminder.dart';
+import 'package:foliomed/models/ward.dart';
 import 'package:foliomed/models/ward_job.dart';
 import 'package:foliomed/screens/patients/patient_board.dart';
 
@@ -77,5 +79,43 @@ void main() {
     expect(sortPatients(list, PatientSort.name, signals).map((p) => p.id), ['b', 'c', 'a']);
     expect(sortPatients(list, PatientSort.newest, signals).map((p) => p.id), ['b', 'c', 'a']);
     expect(sortPatients(list, PatientSort.attention, signals).map((p) => p.id), ['a', 'b', 'c']);
+  });
+
+  test('status dots: every admitted patient gets one, by their ward type', () {
+    final picuChild = _p('a', '1');
+    final pncBaby = Patient(
+        id: 'b', name: 'B', age: 0, gender: '', wardId: 'pnc', bedNumber: '2', diagnosis: '',
+        admittedAt: _now, bornAt: _now.subtract(const Duration(hours: 30)), gestationWeeks: 39,
+        neuroRiskFactors: const [], birthWeightG: 3000);
+    final sick = Patient(
+        id: 'c', name: 'C', age: 4, gender: '', wardId: 'w', bedNumber: '3', diagnosis: '',
+        admittedAt: _now, acuity: 'sick', acuitySetAt: _now);
+    final out = withStatuses(
+      now: _now,
+      admitted: [picuChild, pncBaby, sick],
+      signals: {'b': const PatientSignals(latestWeightG: 2650)},
+      wardKinds: {'w': WardKind.picu, 'pnc': WardKind.pnc},
+    );
+    expect(out['a']!.status!.level, StatusLevel.unknown);
+    expect(out['b']!.status!.level, StatusLevel.act, reason: 'weight −11.7%');
+    expect(out['b']!.latestWeightG, 2650);
+    expect(out['c']!.status!.level, StatusLevel.act);
+    expect(out['a']!.needsAttention, isFalse);
+    expect(out['b']!.needsAttention, isTrue);
+    expect(sortPatients([picuChild, pncBaby, sick], PatientSort.attention, out).map((p) => p.id), ['b', 'c', 'a']);
+  });
+
+  test('attention sort ranks red, then amber, then the rest', () {
+    PatientSignals withLevel(StatusLevel l) => PatientSignals.none.withStatus(PatientStatusResult(l, const []));
+    final list = [_p('a', '1'), _p('b', '2'), _p('c', '3'), _p('d', '4')];
+    final signals = {
+      'a': withLevel(StatusLevel.ok),
+      'b': withLevel(StatusLevel.watch),
+      'c': withLevel(StatusLevel.act),
+      'd': withLevel(StatusLevel.unknown),
+    };
+    expect(sortPatients(list, PatientSort.attention, signals).map((p) => p.id), ['c', 'b', 'a', 'd']);
+    expect(PatientFilter.attention.keeps(list[1], signals['b']!), isTrue);
+    expect(PatientFilter.attention.keeps(list[0], signals['a']!), isFalse);
   });
 }

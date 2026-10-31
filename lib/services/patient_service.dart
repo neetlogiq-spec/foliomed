@@ -140,6 +140,50 @@ class PatientService {
     }
   }
 
+  /// Sets, reviews (same status again) or clears ([acuity] null) the
+  /// status and support tags; logged on the timeline.
+  Future<void> setStatus(String patientId,
+          {required String? acuity, String? reason, List<String> supportTags = const []}) =>
+      _client.rpc('set_patient_status', params: {
+        'p_patient': patientId,
+        'p_acuity': acuity,
+        'p_reason': reason,
+        'p_tags': supportTags,
+      });
+
+  /// I-PASS summary; blank clears it. Who/when are stamped by the server.
+  Future<void> setHandoverSummary(String patientId, String summary) async {
+    final rows = await _patients
+        .update({'handover_summary': summary.trim().isEmpty ? null : summary.trim()})
+        .eq('id', patientId)
+        .select('id');
+    if (rows.isEmpty) {
+      throw const PostgrestException(
+          message: "You can't edit this patient — you may no longer be in their ward.", code: '42501');
+    }
+  }
+
+  /// Consultant (null clears); any ward member.
+  Future<void> setConsultant(String patientId, String? name) async {
+    final rows = await _patients
+        .update({'consultant': name == null || name.trim().isEmpty ? null : name.trim()})
+        .eq('id', patientId)
+        .select('id');
+    if (rows.isEmpty) {
+      throw const PostgrestException(
+          message: "You can't edit this patient — you may no longer be in their ward.", code: '42501');
+    }
+  }
+
+  /// Clinical tags; any ward member.
+  Future<void> setTags(String patientId, List<String> tags) async {
+    final rows = await _patients.update({'tags': tags}).eq('id', patientId).select('id');
+    if (rows.isEmpty) {
+      throw const PostgrestException(
+          message: "You can't edit this patient — you may no longer be in their ward.", code: '42501');
+    }
+  }
+
   /// Notes and their comments cascade-delete in Postgres.
   Future<void> deletePatient(String patientId) async {
     await _patients.delete().eq('id', patientId);

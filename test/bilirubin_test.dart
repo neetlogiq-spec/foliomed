@@ -43,8 +43,8 @@ void main() {
       expect(umolToMgdl(342), closeTo(20, 0.01));
     });
 
-    test('refuses under 22 weeks, unknown gestation and negative age', () {
-      expect(nice.assess(gestationWeeks: 21, hoursOfAge: 48, tsbUmol: 100),
+    test('refuses below 22 weeks, unknown gestation and negative age', () {
+      expect(nice.assess(gestationWeeks: 21, hoursOfAge: 48, tsbUmol: 200),
           isA<BiliNotApplicable>());
       expect(nice.assess(gestationWeeks: null, hoursOfAge: 48, tsbUmol: 200),
           isA<BiliNotApplicable>());
@@ -53,39 +53,37 @@ void main() {
     });
   });
 
-  group('NICE CG98 graphs (22–37 weeks)', () {
-    // Values from the data sheet formulas of NICE's "Treatment threshold
-    // graphs" spreadsheet: 40 → weeks×10−100 and 80 → weeks×10 over 72 h.
-    test('lines start at 40 / 80 µmol/L at birth', () {
-      final t = NiceCg98.pretermAt(30, 0);
-      expect(t.phototherapy, 40);
-      expect(t.exchange, 80);
+  group('NICE CG98 preterm graphs (22–37 weeks)', () {
+    test('marked unverified until checked against the NICE graphs', () {
+      expect(NiceCg98.pretermVerified, isFalse);
     });
 
-    test('plateau from 72 h at weeks×10−100 and weeks×10', () {
-      for (final h in [72.0, 100.0, 336.0]) {
-        expect(NiceCg98.pretermAt(30, h).phototherapy, 200);
-        expect(NiceCg98.pretermAt(30, h).exchange, 300);
-      }
-      expect(NiceCg98.pretermAt(22, 96).phototherapy, 120);
-      expect(NiceCg98.pretermAt(37, 96).exchange, 370);
+    test('40 / 80 µmol/L at birth, rising to weeks×10 − 100 / weeks×10 at 72 h, then flat', () {
+      final b = NiceCg98.pretermThresholdsAt(30, 0);
+      expect([b.phototherapy, b.exchange], [40, 80]);
+      final at72 = NiceCg98.pretermThresholdsAt(30, 72);
+      expect([at72.phototherapy, at72.exchange], [200, 300]);
+      final at36 = NiceCg98.pretermThresholdsAt(30, 36);
+      expect([at36.phototherapy, at36.exchange], [120, 190]);
+      expect(NiceCg98.pretermThresholdsAt(30, 200).phototherapy, 200);
+      expect(NiceCg98.pretermThresholdsAt(23, 100).exchange, 230);
+      expect(NiceCg98.pretermThresholdsAt(37, 100).phototherapy, 270);
     });
 
-    test('rises in a straight line (spreadsheet 6-hour steps)', () {
-      // 32 weeks: phototherapy step (220−40)/12 = 15 per 6 h; exchange (320−80)/12 = 20.
-      expect(NiceCg98.pretermAt(32, 6).phototherapy, closeTo(55, 1e-9));
-      expect(NiceCg98.pretermAt(32, 36).phototherapy, closeTo(130, 1e-9));
-      expect(NiceCg98.pretermAt(32, 36).exchange, closeTo(200, 1e-9));
+    test('thresholdsFor picks the preterm graph below 38 weeks, Table 1 from 38', () {
+      expect(NiceCg98.thresholdsFor(21, 48), isNull);
+      // NICE's spreadsheet draws graphs from 22 weeks (plateau 120 / 220).
+      expect(NiceCg98.thresholdsFor(22, 72)!.phototherapy, 120);
+      expect(NiceCg98.thresholdsFor(22, 72)!.exchange, 220);
+      expect(NiceCg98.thresholdsFor(34, 72)!.phototherapy, 240);
+      expect(NiceCg98.thresholdsFor(38, 48)!.phototherapy, 250);
     });
 
-    test('assess uses the preterm graph and has no repeat/consider band', () {
-      final a = nice.assess(gestationWeeks: 30, hoursOfAge: 72, tsbUmol: 210) as BiliAssessment;
-      expect(a.action, BiliAction.phototherapy);
-      expect(a.thresholds.repeat, isNull);
-      final b = nice.assess(gestationWeeks: 30, hoursOfAge: 72, tsbUmol: 190) as BiliAssessment;
-      expect(b.action, BiliAction.none);
-      final c = nice.assess(gestationWeeks: 30, hoursOfAge: 72, tsbUmol: 301) as BiliAssessment;
-      expect(c.action, BiliAction.exchange);
+    test('actions for a 32-week baby at 48 h (photo 160, exchange 240)', () {
+      expect(assess(48, 140, ga: 32).action, BiliAction.none);
+      expect(assess(48, 160, ga: 32).action, BiliAction.none, reason: 'NICE uses >');
+      expect(assess(48, 170, ga: 32).action, BiliAction.phototherapy);
+      expect(assess(48, 250, ga: 32).action, BiliAction.exchange);
     });
   });
 

@@ -71,8 +71,7 @@ void main() {
       );
       final flags = item.flags(_now);
       expect(flags[0], startsWith('OVERDUE: Send 48-hour'));
-      // 34 weeks → NICE graph: 12 mg/dL ≈ 205 > 176 (phototherapy), < 257 (exchange) at 49 h.
-      expect(flags[1], 'Bilirubin: Start phototherapy');
+      expect(flags[1], 'Bilirubin: Start phototherapy'); // 12 mg/dL ≈ 205 > 176 (NICE, 34 wk) at 49 h
       expect(flags[2], 'Weight −10.3% from birth');
       final text = item.toText(_now);
       expect(text, startsWith('Bed 4 · Baby of p1 · '));

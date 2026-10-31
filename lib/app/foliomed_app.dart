@@ -18,6 +18,7 @@ List<SingleChildWidget> sharedState() => [
       ChangeNotifierProvider.value(value: JobBoard()),
       ChangeNotifierProvider.value(value: UnitProvider()),
       ChangeNotifierProvider.value(value: AlertInbox()),
+      ChangeNotifierProvider.value(value: Follows()),
     ];
 
 /// The app: shared state above a MaterialApp that follows the chosen
