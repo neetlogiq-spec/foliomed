@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>System Status — FolioMed</title>
+  <meta name="description" content="Live status of FolioMed's sign-in, database and web app." />
+  <link rel="canonical" href="https://www.foliomed.app/status/" />
+  <link rel="icon" href="/app/favicon.png" />
+  <link rel="stylesheet" href="../site.css" />
+  <style>
+    .status-hero { padding: 64px 0 32px; }
+    .overall { display: flex; align-items: center; gap: 14px; margin-top: 18px; font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
+    .overall .dot { width: 12px; height: 12px; }
+    .checked { color: var(--ink-2); font-size: 14px; margin-top: 8px; }
+    .group { background: var(--bg-raised); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .svc { display: flex; align-items: center; gap: 14px; padding: 16px 20px; }
+    .svc + .svc { border-top: 0.5px solid var(--line); }
+    .svc-name { font-weight: 600; letter-spacing: -0.02em; }
+    .svc-detail { color: var(--ink-2); font-size: 14px; }
+    .svc-state { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 500; color: var(--ink); white-space: nowrap; }
+    .svc[data-state="ok"] .dot { background: var(--green-dot); }
+    .svc[data-state="pending"] .dot { background: var(--orange-dot); }
+    .svc[data-state="down"] .dot { background: var(--red-dot); }
+    .svc[data-state="checking"] .dot { background: var(--ink-3); }
+    .feed { list-style: none; margin: 0; padding: 0; }
+    .feed li { display: flex; justify-content: space-between; gap: 12px; padding: 12px 20px; font-size: 15px; }
+    .feed li + li { border-top: 0.5px solid var(--line); }
+    .feed time { color: var(--ink-2); font-variant-numeric: tabular-nums; }
+    .feed .empty { color: var(--ink-2); }
+    .row-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 40px 0 10px; }
+    .row-head h2 { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
+    .numbers { grid-template-columns: repeat(3, 1fr); }
+    .numbers strong { font-size: 32px; }
+    @media (max-width: 600px) { .numbers { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .svc { flex-wrap: wrap; } .svc-state { margin-left: 0; } }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="nav">
+    <div class="wrap">
+      <a class="brand" href="/" aria-label="FolioMed home"><span class="brand-mark" aria-hidden="true">F</span>FolioMed</a>
+      <nav class="nav-links" aria-label="Site">
+        <a href="/#how">How it works</a>
+        <a href="/#features">Features</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/status/" aria-current="page">Status</a>
+      </nav>
+      <a class="btn btn-sm" href="/app/">Open FolioMed</a>
+    </div>
+  </header>
+
+  <main id="main" class="wrap">
+    <div class="status-hero">
+      <h1 class="headline">System status</h1>
+      <p class="overall" id="overall" role="status" aria-live="polite"><span class="dot" style="background:var(--ink-3)"></span><span>Checking…</span></p>
+      <p class="checked">Last checked <span id="last-check">—</span> · <button id="recheck" class="btn btn-plain btn-sm" type="button">Check again</button></p>
+    </div>
+
+    <div class="group" aria-label="Services">
+      <div class="svc" id="svc-auth" data-state="checking">
+        <div><div class="svc-name">Sign-in</div><div class="svc-detail" data-slot="detail">Google and Apple sign-in via Supabase Auth</div></div>
+        <span class="svc-state"><span class="dot"></span><span data-slot="label">Checking</span></span>
+      </div>
+      <div class="svc" id="svc-database" data-state="checking">
+        <div><div class="svc-name">Database &amp; live updates</div><div class="svc-detail" data-slot="detail">Wards, patients and notes</div></div>
+        <span class="svc-state"><span class="dot"></span><span data-slot="label">Checking</span></span>
+      </div>
+      <div class="svc" data-state="ok">
+        <div><div class="svc-name">Web app</div><div class="svc-detail">foliomed.app/app</div></div>
+        <span class="svc-state"><span class="dot"></span><span>Operational</span></span>
+      </div>
+      <div class="svc" data-state="pending">
+        <div><div class="svc-name">Background notifications</div><div class="svc-detail">Alerts appear while FolioMed is open; push to closed apps is in development</div></div>
+        <span class="svc-state"><span class="dot"></span><span>In development</span></span>
+      </div>
+      <div class="svc" data-state="pending">
+        <div><div class="svc-name">iPhone &amp; Android apps</div><div class="svc-detail">Preparing for the App Store and Google Play</div></div>
+        <span class="svc-state"><span class="dot"></span><span>Coming soon</span></span>
+      </div>
+    </div>
+
+    <div class="row-head"><h2>Totals</h2><span class="small muted">Last activity <span id="last-activity">—</span></span></div>
+    <div class="numbers" aria-live="polite">
+      <div><strong class="num" id="ct-wards">—</strong><span>Wards</span></div>
+      <div><strong class="num" id="ct-users">—</strong><span>Clinicians</span></div>
+      <div><strong class="num" id="ct-patients">—</strong><span>Patients</span></div>
+      <div><strong class="num" id="ct-notes">—</strong><span>Notes</span></div>
+      <div><strong class="num" id="ct-acks">—</strong><span>Acknowledgements</span></div>
+      <div><strong class="num" id="ct-comments">—</strong><span>Replies</span></div>
+    </div>
+
+    <div class="row-head"><h2>Recent activity</h2><span class="small muted">Event type and time only</span></div>
+    <div class="group" style="margin-bottom:96px">
+      <ul class="feed" id="activity-feed"><li class="empty">Loading…</li></ul>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>© 2026 FolioMed · Made by Kashyap Anand</span>
+      <nav aria-label="Footer">
+        <a href="/">Home</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="mailto:kashyap2k007@gmail.com">Contact</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script type="module" src="status.js"></script>
+</body>
+</html>
