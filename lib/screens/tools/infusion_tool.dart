@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../models/patient.dart';
+import '../../services/tracking_service.dart';
 import '../../services/drug_service.dart';
 import '../../tools/drugs/drug_list.dart';
 import '../../tools/drugs/drug_model.dart';
@@ -61,7 +62,8 @@ class _InfusionToolState extends State<InfusionTool> {
     _drugKey = widget.drugKey;
     _care = widget.care;
     writeNumber(_kg, widget.weightKg);
-    if (_kg.text.isEmpty && _baby?.birthWeightG != null) writeNumber(_kg, _baby!.birthWeightG! / 1000);
+    final baby = _baby;
+    if (_kg.text.isEmpty && baby != null) WidgetsBinding.instance.addPostFrameCallback((_) => _fromBaby(baby));
   }
 
   @override
@@ -74,10 +76,21 @@ class _InfusionToolState extends State<InfusionTool> {
 
   void _changed() => setState(() {});
 
-  void _fromBaby(Patient p) => setState(() {
-    _baby = p;
-    if (p.birthWeightG != null) writeNumber(_kg, p.birthWeightG! / 1000);
-  });
+  /// Fills the latest recorded weight (else birth weight).
+  Future<void> _fromBaby(Patient p) async {
+    setState(() {
+      _baby = p;
+      writeNumber(_kg, dosingWeightKg(birthGrams: p.birthWeightG));
+    });
+    try {
+      final latest = (await TrackingService().snapshot([p.id])).latestWeight[p.id]?.grams;
+      if (mounted && latest != null && _baby?.id == p.id) {
+        setState(() => writeNumber(_kg, dosingWeightKg(latestGrams: latest)));
+      }
+    } catch (_) {
+      // Offline or not signed in: keep the birth weight shown.
+    }
+  }
 
   Future<void> _pickDrug(CareSetting care) async {
     final options = {for (final d in drugsFor(care, infusions: true)) d.key: d.name, '': 'Enter my own drug'};

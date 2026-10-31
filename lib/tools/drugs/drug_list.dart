@@ -727,5 +727,12 @@ List<Drug> drugsFor(CareSetting s, {required bool infusions}) => [
     if (infusions ? d.hasInfusionFor(s) : d.bolusesFor(s).isNotEmpty) d,
 ];
 
+/// The weight to dose by: the latest recorded weight, else birth weight
+/// (grams → kg). Null when neither is known.
+double? dosingWeightKg({int? latestGrams, int? birthGrams}) {
+  final g = latestGrams ?? birthGrams;
+  return g == null ? null : g / 1000;
+}
+
 /// FolioMed's default vial strength for [key] (per mL).
 double? drugBaseVial(String key) => drugByKey(key)?.vial.perMl;

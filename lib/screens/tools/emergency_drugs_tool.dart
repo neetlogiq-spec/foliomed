@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/patient.dart';
+import '../../services/tracking_service.dart';
+import '../../tools/drugs/drug_list.dart';
 import '../../tools/drugs/drug_model.dart';
 import '../../tools/drugs/ward_drugs.dart';
 import '../../utils/app_theme.dart';
@@ -48,10 +50,21 @@ class _EmergencyDrugsToolState extends State<EmergencyDrugsTool> {
     super.dispose();
   }
 
-  void _fromBaby(Patient p) => setState(() {
-    _baby = p;
-    if (p.birthWeightG != null) writeNumber(_kg, p.birthWeightG! / 1000);
-  });
+  /// Fills the latest recorded weight (else birth weight).
+  Future<void> _fromBaby(Patient p) async {
+    setState(() {
+      _baby = p;
+      writeNumber(_kg, dosingWeightKg(birthGrams: p.birthWeightG));
+    });
+    try {
+      final latest = (await TrackingService().snapshot([p.id])).latestWeight[p.id]?.grams;
+      if (mounted && latest != null && _baby?.id == p.id) {
+        setState(() => writeNumber(_kg, dosingWeightKg(latestGrams: latest)));
+      }
+    } catch (_) {
+      // Offline or not signed in: keep the birth weight shown.
+    }
+  }
 
   bool _matches(Drug d) {
     if (_q.isEmpty) return true;

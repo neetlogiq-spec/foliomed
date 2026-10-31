@@ -89,6 +89,12 @@ void main() {
       expect(doseSteps(5, 5), [5]);
     });
 
+    test('doses use the latest weight, else birth weight', () {
+      expect(dosingWeightKg(latestGrams: 2650, birthGrams: 3100), 2.65);
+      expect(dosingWeightKg(birthGrams: 3100), 3.1);
+      expect(dosingWeightKg(), isNull);
+    });
+
     test('rounding: pump to 0.1 mL/h, draw to 0.01 mL under 1 mL', () {
       expect(roundRate(0.46), 0.5);
       expect(roundDraw(0.754), 0.75);
