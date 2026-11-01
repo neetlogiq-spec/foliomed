@@ -79,6 +79,7 @@ class Note {
     'photo': Icons.photo_camera_outlined,
     'infusion': Icons.water_drop_outlined,
     'allergy': Icons.warning_amber_rounded,
+    'form': Icons.assignment_outlined,
   };
 
   IconData get kindIcon => _kindIcons[kind.toLowerCase()] ?? Icons.sticky_note_2_outlined;

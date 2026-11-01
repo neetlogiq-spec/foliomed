@@ -5,6 +5,7 @@ import '../../clinical/handover.dart';
 import '../../models/handover_session.dart';
 import '../../models/medication.dart';
 import '../../models/patient.dart';
+import '../../models/patient_form.dart';
 import '../../models/patient_infusion.dart';
 import '../../models/ward.dart';
 import '../../providers/job_board.dart';
@@ -12,6 +13,7 @@ import '../../providers/reminder_provider.dart';
 import '../../providers/unit_provider.dart';
 import '../../providers/ward_feed.dart';
 import '../../services/drug_service.dart';
+import '../../services/form_service.dart';
 import '../../services/handover_service.dart';
 import '../../services/medication_service.dart';
 import '../../services/tracking_service.dart';
@@ -26,6 +28,7 @@ class HandoverExtras {
     this.infusions = const {},
     this.medications = const {},
     this.allergies = const {},
+    this.abnormalForms = const {},
   ]);
   HandoverExtras.empty() : this(TrackingSnapshot.empty(), const {});
 
@@ -39,6 +42,9 @@ class HandoverExtras {
   final Map<String, List<PatientMedication>> medications;
   final Map<String, List<PatientAllergy>> allergies;
 
+  /// Newest form with abnormal answers in the last 24 h, by patient.
+  final Map<String, PatientForm> abnormalForms;
+
   static Future<HandoverExtras> load(List<String> patientIds) async {
     final results = await Future.wait([
       TrackingService().snapshot(patientIds).catchError((Object _) => TrackingSnapshot.empty()),
@@ -49,6 +55,7 @@ class HandoverExtras {
           .catchError(
             (Object _) => (const <String, List<PatientMedication>>{}, const <String, List<PatientAllergy>>{}),
           ),
+      FormService().recentAbnormal(patientIds).catchError((Object _) => const <String, PatientForm>{}),
     ]);
     final meds = results[3] as (Map<String, List<PatientMedication>>, Map<String, List<PatientAllergy>>);
     return HandoverExtras(
@@ -57,6 +64,7 @@ class HandoverExtras {
       results[2] as Map<String, List<PatientInfusion>>,
       meds.$1,
       meds.$2,
+      results[4] as Map<String, PatientForm>,
     );
   }
 }
@@ -105,6 +113,7 @@ List<HandoverItem> handoverItems(
         infusions: extras.infusions[p.id] ?? const [],
         medications: extras.medications[p.id] ?? const [],
         allergies: extras.allergies[p.id] ?? const [],
+        abnormalForm: extras.abnormalForms[p.id],
       ),
   ];
   final unitOrder = units.units.map((u) => u.id).toList();

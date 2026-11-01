@@ -25,6 +25,7 @@ import '../../utils/formatting.dart';
 import '../../widgets/inset_group.dart';
 import '../../widgets/large_title_app_bar.dart';
 import '../../widgets/ward_actions.dart';
+import '../forms/ward_forms_screen.dart';
 import 'ward_drugs_screen.dart';
 import 'workload_screen.dart';
 import '../jobs/jobs_screen.dart';
@@ -44,8 +45,7 @@ class WardPage extends StatefulWidget {
 }
 
 class _WardPageState extends State<WardPage> {
-  late final Future<List<AppUser>> _members =
-      WardService().getWardMembers(widget.ward.id);
+  late final Future<List<AppUser>> _members = WardService().getWardMembers(widget.ward.id);
 
   late WardKind _kind = widget.ward.kind;
   late List<String> _tags = widget.ward.tagOptions;
@@ -106,27 +106,19 @@ class _WardPageState extends State<WardPage> {
     }
   }
 
-  bool get _isOwner =>
-      widget.ward.ownerId.isNotEmpty &&
-      widget.ward.ownerId == supabase.auth.currentUser?.id;
+  bool get _isOwner => widget.ward.ownerId.isNotEmpty && widget.ward.ownerId == supabase.auth.currentUser?.id;
 
   Future<void> _copyCode() async {
     await Clipboard.setData(ClipboardData(text: widget.ward.id));
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Copied ${widget.ward.id}')),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Copied ${widget.ward.id}')));
   }
 
   @override
   Widget build(BuildContext context) {
     context.watch<AppearanceProvider>();
     final w = widget.ward;
-    final patients = context
-        .watch<PatientRoster>()
-        .patients
-        .where((p) => p.wardId == w.id)
-        .length;
+    final patients = context.watch<PatientRoster>().patients.where((p) => p.wardId == w.id).length;
     return Scaffold(
       backgroundColor: AppColors.surface,
       body: CustomScrollView(
@@ -146,16 +138,13 @@ class _WardPageState extends State<WardPage> {
                 const SizedBox(height: 24),
                 InsetGroup(
                   header: 'About',
-                  footer: 'The ward type picks the automatic checks behind the patients’ status dots — '
+                  footer:
+                      'The ward type picks the automatic checks behind the patients’ status dots — '
                       'newborn bilirubin and weight on PNC and NICU, support tags on PICU. '
                       'Other follows the patient’s age.${_isOwner ? '' : ' Only the owner can change it.'}',
                   dividerIndent: 16,
                   children: [
-                    SettingsRow(
-                      title: 'Ward type',
-                      value: _kind.label,
-                      onTap: _isOwner ? _pickKind : null,
-                    ),
+                    SettingsRow(title: 'Ward type', value: _kind.label, onTap: _isOwner ? _pickKind : null),
                     SettingsRow(
                       title: 'Shifts start',
                       value: _shifts.map(clockLabel).join(' · '),
@@ -166,15 +155,34 @@ class _WardPageState extends State<WardPage> {
                         icon: Icons.insights_outlined,
                         title: 'Workload',
                         subtitle: 'Tasks per shift and response times',
-                        onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                            builder: (_) => WorkloadScreen(ward: w, shiftStarts: _shifts))),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => WorkloadScreen(ward: w, shiftStarts: _shifts),
+                          ),
+                        ),
                       ),
                     SettingsRow(
                       icon: Icons.medication_outlined,
                       title: 'Drug List',
                       subtitle: 'Vials, standard syringes and sign-off',
-                      onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                          builder: (_) => WardDrugsScreen(ward: w, kind: _kind))),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => WardDrugsScreen(ward: w, kind: _kind),
+                        ),
+                      ),
+                    ),
+                    SettingsRow(
+                      icon: Icons.assignment_outlined,
+                      title: 'Forms',
+                      subtitle: 'Ward round, admission and other quick forms',
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => WardFormsScreen(
+                            ward: w,
+                            canEdit: _isOwner || context.read<AccountProvider>().currentUser?.role == UserRole.doctor,
+                          ),
+                        ),
+                      ),
                     ),
                     SettingsRow(
                       title: 'Clinical tags',
@@ -267,23 +275,16 @@ class _WardPageState extends State<WardPage> {
     final w = widget.ward;
     final units = context.watch<UnitProvider>();
     final list = units.unitsOf(w.id);
-    final admitted = context
-        .watch<PatientRoster>()
-        .patients
-        .where((p) => p.wardId == w.id)
-        .toList();
+    final admitted = context.watch<PatientRoster>().patients.where((p) => p.wardId == w.id).toList();
     final counts = UnitCounts.of(admitted.map((p) => p.unitId));
     final mine = units.myUnitFor(w.id);
     return InsetGroup(
       header: 'Units (teams)',
       footer: list.isEmpty
           ? (_isOwner
-              ? 'Add units such as Unit A and Unit B to sort and count patients by team. Everyone in the ward still sees every unit.'
-              : 'The ward owner can add units (teams) here.')
-          : '${counts.total} admitted · ${[
-              for (final u in list) '${u.name} ${counts.byUnit[u.id] ?? 0}',
-              if (counts.unassigned > 0) 'Unassigned ${counts.unassigned}',
-            ].join(' · ')}',
+                ? 'Add units such as Unit A and Unit B to sort and count patients by team. Everyone in the ward still sees every unit.'
+                : 'The ward owner can add units (teams) here.')
+          : '${counts.total} admitted · ${[for (final u in list) '${u.name} ${counts.byUnit[u.id] ?? 0}', if (counts.unassigned > 0) 'Unassigned ${counts.unassigned}'].join(' · ')}',
       children: [
         for (final (i, u) in list.indexed)
           SettingsRow(
@@ -347,9 +348,11 @@ class _WardPageState extends State<WardPage> {
       },
     );
     if (name == null || name.isEmpty || !mounted) return;
-    await _run(() => unit == null
-        ? UnitService().add(widget.ward.id, name, position: position)
-        : UnitService().rename(unit.id, name));
+    await _run(
+      () => unit == null
+          ? UnitService().add(widget.ward.id, name, position: position)
+          : UnitService().rename(unit.id, name),
+    );
   }
 
   Future<void> _unitActions(WardUnit u, int index, List<WardUnit> list) async {
@@ -376,8 +379,8 @@ class _WardPageState extends State<WardPage> {
             final pos = x.id == u.id
                 ? (action == 'up' ? index - 1 : index + 1)
                 : x.id == other.id
-                    ? index
-                    : i;
+                ? index
+                : i;
             if (pos != x.position) await UnitService().setPosition(x.id, pos);
           }
         });
@@ -408,27 +411,24 @@ class _WardPageState extends State<WardPage> {
       Haptics.commit();
     } catch (e) {
       Haptics.error();
-      messenger.showSnackBar(SnackBar(
-        backgroundColor: AppColors.danger,
-        content: Text(e is PostgrestException && e.code == '23505'
-            ? 'There is already a unit with that name.'
-            : friendlyError(e)),
-      ));
+      messenger.showSnackBar(
+        SnackBar(
+          backgroundColor: AppColors.danger,
+          content: Text(
+            e is PostgrestException && e.code == '23505' ? 'There is already a unit with that name.' : friendlyError(e),
+          ),
+        ),
+      );
     }
   }
 
   Widget _codeCard(Ward w) {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(AppRadii.card),
-      ),
+      decoration: BoxDecoration(color: AppColors.card, borderRadius: BorderRadius.circular(AppRadii.card)),
       child: Column(
         children: [
-          Text('WARD CODE',
-              style: AppTypography.footnote(color: AppColors.textSecondary)
-                  .copyWith(letterSpacing: 0.6)),
+          Text('WARD CODE', style: AppTypography.footnote(color: AppColors.textSecondary).copyWith(letterSpacing: 0.6)),
           const SizedBox(height: 6),
           // Monospaced, tabular digits: the code is read aloud and typed —
           // every digit must be unambiguous.
@@ -443,9 +443,11 @@ class _WardPageState extends State<WardPage> {
             ).copyWith(fontFeatures: AppTypography.tabular),
           ),
           const SizedBox(height: 4),
-          Text('Colleagues tap Join a Ward on the Wards tab and enter this code',
-              textAlign: TextAlign.center,
-              style: AppTypography.footnote(color: AppColors.textSecondary)),
+          Text(
+            'Colleagues tap Join a Ward on the Wards tab and enter this code',
+            textAlign: TextAlign.center,
+            style: AppTypography.footnote(color: AppColors.textSecondary),
+          ),
           const SizedBox(height: 10),
           Row(
             children: [
@@ -476,19 +478,24 @@ class _WardPageState extends State<WardPage> {
       future: _members,
       builder: (context, snap) {
         if (snap.hasError) {
-          return const InsetGroup(header: 'Members', children: [
-            SettingsRow(title: "Couldn't load members"),
-          ]);
+          return const InsetGroup(
+            header: 'Members',
+            children: [SettingsRow(title: "Couldn't load members")],
+          );
         }
         if (!snap.hasData) {
-          return const InsetGroup(header: 'Members', children: [
-            Padding(
-              padding: EdgeInsets.all(16),
-              child: Center(child: CircularProgressIndicator.adaptive()),
-            ),
-          ]);
+          return const InsetGroup(
+            header: 'Members',
+            children: [
+              Padding(
+                padding: EdgeInsets.all(16),
+                child: Center(child: CircularProgressIndicator.adaptive()),
+              ),
+            ],
+          );
         }
-        final members = [...snap.data!]..sort((a, b) {
+        final members = [...snap.data!]
+          ..sort((a, b) {
             if (a.uid == widget.ward.ownerId) return -1;
             if (b.uid == widget.ward.ownerId) return 1;
             return a.name.toLowerCase().compareTo(b.name.toLowerCase());
@@ -496,10 +503,7 @@ class _WardPageState extends State<WardPage> {
         return InsetGroup(
           header: 'Members · ${members.length}',
           dividerIndent: 68,
-          children: [
-            for (final m in members)
-              _MemberRow(member: m, isOwner: m.uid == widget.ward.ownerId),
-          ],
+          children: [for (final m in members) _MemberRow(member: m, isOwner: m.uid == widget.ward.ownerId)],
         );
       },
     );
@@ -525,30 +529,30 @@ class _MemberRow extends StatelessWidget {
             backgroundColor: m.roleColor.withValues(alpha: 0.15),
             child: m.emoji != null && m.emoji!.isNotEmpty
                 ? Text(m.emoji!, style: const TextStyle(fontSize: 18))
-                : Text(initialsOf(name),
-                    style: AppTypography.footnote(
-                        color: m.roleColor, weight: FontWeight.w700)),
+                : Text(
+                    initialsOf(name),
+                    style: AppTypography.footnote(color: m.roleColor, weight: FontWeight.w700),
+                  ),
           ),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name,
-                    style: AppTypography.body(color: AppColors.textPrimary)),
+                Text(name, style: AppTypography.body(color: AppColors.textPrimary)),
                 if (m.email.isNotEmpty)
-                  Text(m.email,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTypography.footnote(
-                          color: AppColors.textSecondary)),
+                  Text(
+                    m.email,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.footnote(color: AppColors.textSecondary),
+                  ),
               ],
             ),
           ),
           Text(
             isOwner ? '${m.roleLabel} · Owner' : m.roleLabel,
-            style: AppTypography.footnote(
-                color: AppColors.textSecondary, weight: FontWeight.w600),
+            style: AppTypography.footnote(color: AppColors.textSecondary, weight: FontWeight.w600),
           ),
         ],
       ),
@@ -585,51 +589,61 @@ class _TagListSheetState extends State<_TagListSheet> {
 
   @override
   Widget build(BuildContext context) => SafeArea(
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(16, 4, 16, 16 + MediaQuery.viewInsetsOf(context).bottom),
-          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Row(children: [
+    child: Padding(
+      padding: EdgeInsets.fromLTRB(16, 4, 16, 16 + MediaQuery.viewInsetsOf(context).bottom),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
               CupertinoButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
               Expanded(
-                child: Text('Clinical tags',
-                    textAlign: TextAlign.center, style: AppTypography.headline(color: AppColors.textPrimary)),
+                child: Text(
+                  'Clinical tags',
+                  textAlign: TextAlign.center,
+                  style: AppTypography.headline(color: AppColors.textPrimary),
+                ),
               ),
               CupertinoButton(
                 onPressed: () => Navigator.pop(context, _tags),
                 child: const Text('Save', style: TextStyle(fontWeight: FontWeight.w600)),
               ),
-            ]),
-            Flexible(
-              child: SingleChildScrollView(
-                child: InsetGroup(
-                  footer: 'Up to 30 tags of 24 characters. Members tick them on each patient; '
-                      'removing one here doesn’t remove it from patients who have it.',
-                  dividerIndent: 16,
-                  children: [
-                    for (final t in _tags)
-                      SettingsRow(
-                        title: t,
-                        trailing: IconButton(
-                          tooltip: 'Remove $t',
-                          icon: Icon(Icons.remove_circle, color: AppColors.danger),
-                          onPressed: () => setState(() => _tags.remove(t)),
-                        ),
+            ],
+          ),
+          Flexible(
+            child: SingleChildScrollView(
+              child: InsetGroup(
+                footer:
+                    'Up to 30 tags of 24 characters. Members tick them on each patient; '
+                    'removing one here doesn’t remove it from patients who have it.',
+                dividerIndent: 16,
+                children: [
+                  for (final t in _tags)
+                    SettingsRow(
+                      title: t,
+                      trailing: IconButton(
+                        tooltip: 'Remove $t',
+                        icon: Icon(Icons.remove_circle, color: AppColors.danger),
+                        onPressed: () => setState(() => _tags.remove(t)),
                       ),
-                    InsetTextRow(
-                      label: 'Add',
-                      controller: _add,
-                      placeholder: 'e.g. Oxygen',
-                      textCapitalization: TextCapitalization.sentences,
-                      onChanged: (_) {},
                     ),
-                    SettingsRow(icon: Icons.add, title: 'Add tag', onTap: _addTag),
-                  ],
-                ),
+                  InsetTextRow(
+                    label: 'Add',
+                    controller: _add,
+                    placeholder: 'e.g. Oxygen',
+                    textCapitalization: TextCapitalization.sentences,
+                    onChanged: (_) {},
+                  ),
+                  SettingsRow(icon: Icons.add, title: 'Add tag', onTap: _addTag),
+                ],
               ),
             ),
-          ]),
-        ),
-      );
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 /// Owner: shift start times (1–6), for the workload report.
@@ -648,69 +662,79 @@ class _ShiftSheetState extends State<_ShiftSheet> {
     final t = await showTimePicker(
       context: context,
       initialTime: TimeOfDay(hour: initial ~/ 60, minute: initial % 60),
-      builder: (ctx, child) => MediaQuery(
-        data: MediaQuery.of(ctx).copyWith(alwaysUse24HourFormat: true),
-        child: child!,
-      ),
+      builder: (ctx, child) =>
+          MediaQuery(data: MediaQuery.of(ctx).copyWith(alwaysUse24HourFormat: true), child: child!),
     );
     return t == null ? null : t.hour * 60 + t.minute;
   }
 
   @override
   Widget build(BuildContext context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Row(children: [
+    child: Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
               CupertinoButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
               Expanded(
-                child: Text('Shift start times',
-                    textAlign: TextAlign.center, style: AppTypography.headline(color: AppColors.textPrimary)),
+                child: Text(
+                  'Shift start times',
+                  textAlign: TextAlign.center,
+                  style: AppTypography.headline(color: AppColors.textPrimary),
+                ),
               ),
               CupertinoButton(
                 onPressed: _starts.isEmpty ? null : () => Navigator.pop(context, _starts),
                 child: const Text('Save', style: TextStyle(fontWeight: FontWeight.w600)),
               ),
-            ]),
-            InsetGroup(
-              footer: 'Each shift runs until the next one starts; the last runs past midnight. '
-                  'Used by the Workload report.',
-              dividerIndent: 16,
-              children: [
-                for (final (i, m) in _starts.indexed)
-                  SettingsRow(
-                    title: '${clockLabel(m)}–${clockLabel(_starts[(i + 1) % _starts.length])}',
-                    trailing: _starts.length <= 1
-                        ? null
-                        : IconButton(
-                            tooltip: 'Remove',
-                            icon: Icon(Icons.remove_circle, color: AppColors.danger),
-                            onPressed: () => setState(() => _starts.removeAt(i)),
-                          ),
-                    onTap: () async {
-                      final v = await _pick(m);
-                      if (v == null || _starts.contains(v)) return;
-                      setState(() {
-                        _starts[i] = v;
-                        _starts.sort();
-                      });
-                    },
-                  ),
-                if (_starts.length < 6)
-                  SettingsRow(
-                    icon: Icons.add,
-                    title: 'Add a shift',
-                    onTap: () async {
-                      final v = await _pick(_starts.isEmpty ? 480 : (_starts.last + 240) % 1440);
-                      if (v == null || _starts.contains(v)) return;
-                      setState(() => _starts
+            ],
+          ),
+          InsetGroup(
+            footer:
+                'Each shift runs until the next one starts; the last runs past midnight. '
+                'Used by the Workload report.',
+            dividerIndent: 16,
+            children: [
+              for (final (i, m) in _starts.indexed)
+                SettingsRow(
+                  title: '${clockLabel(m)}–${clockLabel(_starts[(i + 1) % _starts.length])}',
+                  trailing: _starts.length <= 1
+                      ? null
+                      : IconButton(
+                          tooltip: 'Remove',
+                          icon: Icon(Icons.remove_circle, color: AppColors.danger),
+                          onPressed: () => setState(() => _starts.removeAt(i)),
+                        ),
+                  onTap: () async {
+                    final v = await _pick(m);
+                    if (v == null || _starts.contains(v)) return;
+                    setState(() {
+                      _starts[i] = v;
+                      _starts.sort();
+                    });
+                  },
+                ),
+              if (_starts.length < 6)
+                SettingsRow(
+                  icon: Icons.add,
+                  title: 'Add a shift',
+                  onTap: () async {
+                    final v = await _pick(_starts.isEmpty ? 480 : (_starts.last + 240) % 1440);
+                    if (v == null || _starts.contains(v)) return;
+                    setState(
+                      () => _starts
                         ..add(v)
-                        ..sort());
-                    },
-                  ),
-              ],
-            ),
-          ]),
-        ),
-      );
+                        ..sort(),
+                    );
+                  },
+                ),
+            ],
+          ),
+        ],
+      ),
+    ),
+  );
 }

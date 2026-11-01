@@ -31,6 +31,7 @@ import '../../widgets/patient_status_card.dart';
 import '../../widgets/patient_team_section.dart';
 import '../../widgets/newborn_tracking_section.dart';
 import '../../widgets/patient_actions.dart';
+import '../../widgets/patient_forms_section.dart';
 import '../../widgets/patient_infusions_section.dart';
 import '../../widgets/patient_medications_section.dart';
 import '../../widgets/patient_jobs_section.dart';
@@ -190,6 +191,8 @@ class _PatientScreenState extends State<PatientScreen> {
           PatientTeamSection(patient: p, ward: _ward),
           const SizedBox(height: 24),
         ],
+        PatientFormsSection(key: ValueKey('forms-${p.id}'), patient: p),
+        const SizedBox(height: 24),
         _Details(patient: p),
         const SizedBox(height: 24),
         if (p.bornAt != null) ...[

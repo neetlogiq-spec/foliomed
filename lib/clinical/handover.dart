@@ -4,9 +4,11 @@ import '../models/handover_session.dart';
 import '../models/medication.dart';
 import '../models/newborn_tracking.dart';
 import '../models/patient.dart';
+import '../models/patient_form.dart';
 import '../models/patient_infusion.dart';
 import '../models/patient_reminder.dart';
 import '../models/ward_job.dart';
+import '../forms/form_summary.dart';
 import 'bilirubin.dart';
 import 'bilirubin_assess.dart';
 import 'birth_summary.dart';
@@ -30,6 +32,7 @@ class HandoverItem {
     this.infusions = const [],
     this.medications = const [],
     this.allergies = const [],
+    this.abnormalForm,
   });
 
   final Patient patient;
@@ -48,6 +51,19 @@ class HandoverItem {
   /// Active medicines on this admission.
   final List<PatientMedication> medications;
   final List<PatientAllergy> allergies;
+
+  /// The newest form in the last 24 h with abnormal answers.
+  final PatientForm? abnormalForm;
+
+  /// "Ward round 9:10 am: not pain controlled — on PRN only".
+  String? get formLine {
+    final f = abnormalForm;
+    if (f == null) return null;
+    final abnormal = summariseForm(formName: f.templateName, definition: f.definition, answers: f.answers).abnormal;
+    return abnormal.isEmpty
+        ? null
+        : '${f.templateName} ${DateFormat('h:mm a').format(f.createdAt).toLowerCase()}: ${abnormal.join('; ')}';
+  }
 
   /// "ALLERGY: Penicillin (urticaria); Egg" — null when none recorded.
   String? get allergyLine => allergies.isEmpty ? null : 'ALLERGY: ${allergies.map((a) => a.line).join('; ')}';
@@ -130,6 +146,7 @@ class HandoverItem {
       if (summary != null) 'P: $summary',
       if (infusions.isNotEmpty) 'Infusions: ${infusions.map((i) => i.line).join('; ')}',
       if (medicationLine != null) medicationLine!,
+      if (formLine != null) '⚠ $formLine',
       if (phototherapy != null)
         '${phototherapy!.kind.label} phototherapy for ${phototherapy!.durationAt(now).inHours} h',
       if (bilirubin != null)
