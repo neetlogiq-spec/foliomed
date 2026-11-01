@@ -1,6 +1,7 @@
 import 'package:intl/intl.dart';
 
 import '../models/handover_session.dart';
+import '../models/medication.dart';
 import '../models/newborn_tracking.dart';
 import '../models/patient.dart';
 import '../models/patient_infusion.dart';
@@ -27,6 +28,8 @@ class HandoverItem {
     this.openJobs = const [],
     this.contingencies = const [],
     this.infusions = const [],
+    this.medications = const [],
+    this.allergies = const [],
   });
 
   final Patient patient;
@@ -41,6 +44,16 @@ class HandoverItem {
 
   /// Running infusions.
   final List<PatientInfusion> infusions;
+
+  /// Active medicines on this admission.
+  final List<PatientMedication> medications;
+  final List<PatientAllergy> allergies;
+
+  /// "ALLERGY: Penicillin (urticaria); Egg" — null when none recorded.
+  String? get allergyLine => allergies.isEmpty ? null : 'ALLERGY: ${allergies.map((a) => a.line).join('; ')}';
+
+  /// "On: Amoxicillin 50 mg/kg IV TDS; Paracetamol 15 mg/kg Oral QID".
+  String? get medicationLine => medications.isEmpty ? null : 'On: ${medications.map((m) => m.line).join('; ')}';
 
   /// The hand-kept summary, else the diagnosis, else the birth line.
   String? get summary {
@@ -62,12 +75,12 @@ class HandoverItem {
 
   /// Action list: overdue reminders, urgent/overdue jobs, then the rest.
   List<String> actions(DateTime now) => [
-        for (final r in openReminders.where((r) => r.isOverdueAt(now))) 'OVERDUE: ${r.title}',
-        for (final j in openJobs.where((j) => j.urgent || j.isOverdueAt(now)))
-          '${j.urgent ? 'URGENT' : 'OVERDUE'} job: ${j.title}${_who(j)}',
-        for (final r in openReminders.where((r) => !r.isOverdueAt(now))) 'Pending: ${r.title}',
-        for (final j in openJobs.where((j) => !j.urgent && !j.isOverdueAt(now))) 'Job: ${j.title}${_who(j)}',
-      ];
+    for (final r in openReminders.where((r) => r.isOverdueAt(now))) 'OVERDUE: ${r.title}',
+    for (final j in openJobs.where((j) => j.urgent || j.isOverdueAt(now)))
+      '${j.urgent ? 'URGENT' : 'OVERDUE'} job: ${j.title}${_who(j)}',
+    for (final r in openReminders.where((r) => !r.isOverdueAt(now))) 'Pending: ${r.title}',
+    for (final j in openJobs.where((j) => !j.urgent && !j.isOverdueAt(now))) 'Job: ${j.title}${_who(j)}',
+  ];
 
   static String _who(WardJob j) => j.assignedName?.isNotEmpty ?? false ? ' (${j.assignedName})' : '';
 
@@ -112,9 +125,11 @@ class HandoverItem {
     final acts = actions(now);
     final lines = <String>[
       head,
+      if (allergyLine != null) '⚠ $allergyLine',
       if (severityLine != null) 'I: $severityLine',
       if (summary != null) 'P: $summary',
       if (infusions.isNotEmpty) 'Infusions: ${infusions.map((i) => i.line).join('; ')}',
+      if (medicationLine != null) medicationLine!,
       if (phototherapy != null)
         '${phototherapy!.kind.label} phototherapy for ${phototherapy!.durationAt(now).inHours} h',
       if (bilirubin != null)
@@ -132,17 +147,20 @@ class HandoverItem {
     return lines.join('\n');
   }
 
-  static String _n(double v) =>
-      v == v.roundToDouble() ? v.toStringAsFixed(0) : v.toStringAsFixed(1);
+  static String _n(double v) => v == v.roundToDouble() ? v.toStringAsFixed(0) : v.toStringAsFixed(1);
 }
 
 /// The whole list as shareable text (WhatsApp etc.), I-PASS per patient.
 String handoverText(List<HandoverItem> items, String scope, DateTime now) {
   final red = items.where((i) => i.status?.level == StatusLevel.act).length;
-  final header = 'Handover — $scope — ${DateFormat('d MMM, h:mm a').format(now)} — '
+  final header =
+      'Handover — $scope — ${DateFormat('d MMM, h:mm a').format(now)} — '
       '${items.length} patient${items.length == 1 ? '' : 's'}${red == 0 ? '' : ', $red need action'}';
-  return [header, 'I: illness severity · P: summary · A: actions · S: if/then', for (final i in items) i.toText(now)]
-      .join('\n\n');
+  return [
+    header,
+    'I: illness severity · P: summary · A: actions · S: if/then',
+    for (final i in items) i.toText(now),
+  ].join('\n\n');
 }
 
 /// Sort for handover: unit (in the ward's order), then bed (numbers
@@ -182,11 +200,7 @@ class DayCensus {
     return l.year == d.year && l.month == d.month && l.day == d.day;
   }
 
-  static DayCensus of({
-    required List<Patient> active,
-    required List<Patient> discharged,
-    required DateTime day,
-  }) {
+  static DayCensus of({required List<Patient> active, required List<Patient> discharged, required DateTime day}) {
     final everyone = [...active, ...discharged];
     return DayCensus(
       current: active.length,

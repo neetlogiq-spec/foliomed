@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../clinical/handover.dart';
 import '../../models/handover_session.dart';
+import '../../models/medication.dart';
 import '../../models/patient.dart';
 import '../../models/patient_infusion.dart';
 import '../../models/ward.dart';
@@ -12,13 +13,20 @@ import '../../providers/unit_provider.dart';
 import '../../providers/ward_feed.dart';
 import '../../services/drug_service.dart';
 import '../../services/handover_service.dart';
+import '../../services/medication_service.dart';
 import '../../services/tracking_service.dart';
 import '../patients/patient_board.dart';
 
 /// The one-shot data a handover list needs beyond the live providers:
 /// newborn tracking, latest observations and the If/then lines.
 class HandoverExtras {
-  const HandoverExtras(this.tracking, this.contingencies, [this.infusions = const {}]);
+  const HandoverExtras(
+    this.tracking,
+    this.contingencies, [
+    this.infusions = const {},
+    this.medications = const {},
+    this.allergies = const {},
+  ]);
   HandoverExtras.empty() : this(TrackingSnapshot.empty(), const {});
 
   final TrackingSnapshot tracking;
@@ -27,16 +35,29 @@ class HandoverExtras {
   /// Running infusions by patient.
   final Map<String, List<PatientInfusion>> infusions;
 
+  /// Active admission medicines and allergies by patient.
+  final Map<String, List<PatientMedication>> medications;
+  final Map<String, List<PatientAllergy>> allergies;
+
   static Future<HandoverExtras> load(List<String> patientIds) async {
     final results = await Future.wait([
       TrackingService().snapshot(patientIds).catchError((Object _) => TrackingSnapshot.empty()),
-      HandoverService()
-          .contingenciesFor(patientIds)
-          .catchError((Object _) => const <String, List<Contingency>>{}),
+      HandoverService().contingenciesFor(patientIds).catchError((Object _) => const <String, List<Contingency>>{}),
       DrugService().runningFor(patientIds).catchError((Object _) => const <String, List<PatientInfusion>>{}),
+      MedicationService()
+          .snapshot(patientIds)
+          .catchError(
+            (Object _) => (const <String, List<PatientMedication>>{}, const <String, List<PatientAllergy>>{}),
+          ),
     ]);
-    return HandoverExtras(results[0] as TrackingSnapshot, results[1] as Map<String, List<Contingency>>,
-        results[2] as Map<String, List<PatientInfusion>>);
+    final meds = results[3] as (Map<String, List<PatientMedication>>, Map<String, List<PatientAllergy>>);
+    return HandoverExtras(
+      results[0] as TrackingSnapshot,
+      results[1] as Map<String, List<Contingency>>,
+      results[2] as Map<String, List<PatientInfusion>>,
+      meds.$1,
+      meds.$2,
+    );
   }
 }
 
@@ -82,6 +103,8 @@ List<HandoverItem> handoverItems(
         openJobs: jobs.where((j) => j.patientId == p.id).toList(),
         contingencies: extras.contingencies[p.id] ?? const [],
         infusions: extras.infusions[p.id] ?? const [],
+        medications: extras.medications[p.id] ?? const [],
+        allergies: extras.allergies[p.id] ?? const [],
       ),
   ];
   final unitOrder = units.units.map((u) => u.id).toList();

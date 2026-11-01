@@ -5,9 +5,11 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../clinical/early_warning.dart';
+import '../../models/app_user.dart';
 import '../../models/note.dart';
 import '../../models/patient.dart';
 import '../../models/ward.dart';
+import '../../providers/account_provider.dart';
 import '../../providers/unit_provider.dart';
 import '../../providers/ward_feed.dart';
 import '../../services/patient_service.dart';
@@ -30,6 +32,7 @@ import '../../widgets/patient_team_section.dart';
 import '../../widgets/newborn_tracking_section.dart';
 import '../../widgets/patient_actions.dart';
 import '../../widgets/patient_infusions_section.dart';
+import '../../widgets/patient_medications_section.dart';
 import '../../widgets/patient_jobs_section.dart';
 import '../../widgets/reminder_widgets.dart';
 import '../jobs/add_job_sheet.dart';
@@ -50,6 +53,7 @@ const _eventKinds = {
   'status',
   'photo',
   'infusion',
+  'allergy',
 };
 
 /// One patient, laid out like a contact card: who they are and quick
@@ -169,7 +173,14 @@ class _PatientScreenState extends State<PatientScreen> {
         child: Text(label, style: AppTypography.subheadline(color: AppColors.textPrimary, weight: FontWeight.w600)),
       );
 
+  bool get _canPrescribe {
+    final u = context.read<AccountProvider>().currentUser;
+    return u?.role == UserRole.doctor || (_ward?.ownedBy(u?.uid ?? '') ?? false);
+  }
+
   List<Widget> _overview(Patient p) => [
+        AllergyBanner(key: ValueKey('allergy-${p.id}'), patient: p),
+        const SizedBox(height: 20),
         if (p.isDischarged) ...[_DischargeNotice(patient: p), const SizedBox(height: 20)],
         if (p.isActive) ...[
           PatientStatusCard(key: ValueKey('status-${p.id}'), patient: p, wardKind: _ward?.kind),
@@ -195,6 +206,8 @@ class _PatientScreenState extends State<PatientScreen> {
           ObservationsSection(key: ValueKey('obs-${p.id}'), patient: p),
           const SizedBox(height: 16),
         ],
+        PatientMedicationsSection(key: ValueKey('meds-${p.id}'), patient: p, canPrescribe: _canPrescribe),
+        const SizedBox(height: 16),
         PatientInfusionsSection(key: ValueKey('infusions-${p.id}'), patient: p),
         const SizedBox(height: 16),
         PatientPhotosSection(key: ValueKey('photos-${p.id}'), patient: p),

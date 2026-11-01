@@ -102,6 +102,10 @@ class Patient {
   final DateTime? handoverSummaryAt;
   final String? handoverSummaryByName;
 
+  /// "No known allergies" was recorded (cleared when one is added).
+  final DateTime? nkaRecordedAt;
+  final String? nkaRecordedByName;
+
   /// Consultant in charge (free text; the app suggests names used in the
   /// ward). Written by [toRow].
   final String? consultant;
@@ -151,6 +155,8 @@ class Patient {
     this.handoverSummary,
     this.handoverSummaryAt,
     this.handoverSummaryByName,
+    this.nkaRecordedAt,
+    this.nkaRecordedByName,
     this.consultant,
     this.tags = const [],
   });
@@ -221,6 +227,8 @@ class Patient {
       handoverSummary: row['handover_summary'] as String?,
       handoverSummaryAt: parseTimestampOrNull(row['handover_summary_at']),
       handoverSummaryByName: row['handover_summary_by_name'] as String?,
+      nkaRecordedAt: parseTimestampOrNull(row['nka_recorded_at']),
+      nkaRecordedByName: row['nka_recorded_by_name'] as String?,
       consultant: row['consultant'] as String?,
       tags: (row['tags'] as List?)?.cast<String>() ?? const [],
     );
@@ -312,6 +320,8 @@ class Patient {
       handoverSummary: handoverSummary,
       handoverSummaryAt: handoverSummaryAt,
       handoverSummaryByName: handoverSummaryByName,
+      nkaRecordedAt: nkaRecordedAt,
+      nkaRecordedByName: nkaRecordedByName,
       consultant: consultant,
       tags: tags,
     );
