@@ -8,6 +8,7 @@ import '../models/patient_form.dart';
 import '../models/patient_infusion.dart';
 import '../models/patient_reminder.dart';
 import '../models/ward_job.dart';
+import '../forms/form_due.dart';
 import '../forms/form_summary.dart';
 import 'bilirubin.dart';
 import 'bilirubin_assess.dart';
@@ -33,6 +34,7 @@ class HandoverItem {
     this.medications = const [],
     this.allergies = const [],
     this.abnormalForm,
+    this.filledFormKeys,
   });
 
   final Patient patient;
@@ -54,6 +56,11 @@ class HandoverItem {
 
   /// The newest form in the last 24 h with abnormal answers.
   final PatientForm? abnormalForm;
+
+  /// Admission-form keys already filled; null when not loaded.
+  final Set<String>? filledFormKeys;
+
+  List<FormDue> get formsDue => filledFormKeys == null ? const [] : admissionFormsDue(patient, filledFormKeys!);
 
   /// "Ward round 9:10 am: not pain controlled — on PRN only".
   String? get formLine {
@@ -91,6 +98,7 @@ class HandoverItem {
 
   /// Action list: overdue reminders, urgent/overdue jobs, then the rest.
   List<String> actions(DateTime now) => [
+    for (final f in formsDue.where((f) => f.isOverdueAt(now))) 'OVERDUE: ${f.name} not done',
     for (final r in openReminders.where((r) => r.isOverdueAt(now))) 'OVERDUE: ${r.title}',
     for (final j in openJobs.where((j) => j.urgent || j.isOverdueAt(now)))
       '${j.urgent ? 'URGENT' : 'OVERDUE'} job: ${j.title}${_who(j)}',

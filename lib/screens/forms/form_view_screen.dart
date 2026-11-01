@@ -73,7 +73,19 @@ class FormViewScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 for (final s in f.definition.sections) ...[
-                  InsetGroup(header: s.title, dividerIndent: 16, children: [for (final field in s.fields) _row(field)]),
+                  InsetGroup(
+                    header: s.title,
+                    dividerIndent: 16,
+                    children: [
+                      for (final field in s.fields) _row(field),
+                      if (s.scoreFor(f.answers) case final sc?)
+                        SettingsRow(
+                          icon: sc.band?.abnormal ?? false ? Icons.warning_rounded : Icons.functions,
+                          iconColor: sc.band?.abnormal ?? false ? AppColors.warning : AppColors.primary,
+                          title: sc.complete ? sc.line : '${sc.line} (incomplete)',
+                        ),
+                    ],
+                  ),
                   const SizedBox(height: 20),
                 ],
               ],

@@ -17,7 +17,11 @@ enum FieldType {
 
   /// Weight, temperature, breathing rate, heart rate, BP, SpO₂ — recorded
   /// as an observation as well.
-  vitals('Vital signs');
+  vitals('Vital signs'),
+
+  /// One item of a scored tool (FLACC, Aldrete…): pick an option, worth
+  /// [FormFieldDef.points]. The section adds them up ([ScoreSpec]).
+  score('Score item');
 
   const FieldType(this.label);
   final String label;
@@ -37,6 +41,8 @@ class FormFieldDef {
     this.unit,
     this.normal,
     this.hint,
+    this.points = const [],
+    this.link,
   });
 
   final String id;
@@ -49,13 +55,32 @@ class FormFieldDef {
   final String? normal;
   final String? hint;
 
+  /// Score items: points for each of [options], in order.
+  final List<int> points;
+
+  /// A record an abnormal answer should also go into: [kLinkAllergy] or
+  /// [kLinkDrugHistory]. The app offers to add it after saving.
+  final String? link;
+
+  /// Points for a chosen score option, or null when not answered.
+  int? pointsFor(Object? value) {
+    final i = value is String ? options.indexOf(value) : -1;
+    return i < 0 || i >= points.length ? null : points[i];
+  }
+
+  int get maxPoints => points.isEmpty ? 0 : points.reduce((a, b) => a > b ? a : b);
+
   /// Detail text for an abnormal answer is stored under this key.
   String get detailKey => '$id.detail';
 
-  bool get hasNormal => normal != null && (type == FieldType.yesNo || type == FieldType.choice);
+  /// Has an expected answer that "All Normal" can fill in.
+  bool get hasNormal =>
+      normal != null && (type == FieldType.yesNo || type == FieldType.choice || type == FieldType.score);
 
-  /// True when [value] is answered and is not the expected answer.
-  bool isAbnormal(Object? value) => hasNormal && value is String && value.isNotEmpty && value != kNa && value != normal;
+  /// True when [value] is answered and is not the expected answer. (Score
+  /// items are judged by their section's total instead.)
+  bool isAbnormal(Object? value) =>
+      hasNormal && type != FieldType.score && value is String && value.isNotEmpty && value != kNa && value != normal;
 
   Map<String, Object?> toJson() => {
     'id': id,
@@ -65,6 +90,8 @@ class FormFieldDef {
     if (unit != null) 'unit': unit,
     if (normal != null) 'normal': normal,
     if (hint != null) 'hint': hint,
+    if (points.isNotEmpty) 'points': points,
+    if (link != null) 'link': link,
   };
 
   static FormFieldDef fromJson(Map<String, Object?> j) => FormFieldDef(
@@ -75,6 +102,8 @@ class FormFieldDef {
     unit: j['unit'] as String?,
     normal: j['normal'] as String?,
     hint: j['hint'] as String?,
+    points: (j['points'] as List?)?.whereType<num>().map((n) => n.toInt()).toList() ?? const [],
+    link: j['link'] as String?,
   );
 
   FormFieldDef copyWith({
@@ -93,21 +122,106 @@ class FormFieldDef {
     unit: clearUnit ? null : (unit ?? this.unit),
     normal: clearNormal ? null : (normal ?? this.normal),
     hint: hint,
+    points: points,
+    link: link,
   );
 }
 
+const kLinkAllergy = 'allergy', kLinkDrugHistory = 'drug_history';
+
+/// A band of a score: totals from [min] up (to the next band) read [label].
+class ScoreBand {
+  const ScoreBand(this.min, this.label, {this.abnormal = false});
+  final int min;
+  final String label;
+  final bool abnormal;
+
+  Map<String, Object?> toJson() => {'min': min, 'label': label, if (abnormal) 'abnormal': true};
+
+  static ScoreBand fromJson(Map<String, Object?> j) =>
+      ScoreBand((j['min'] as num?)?.toInt() ?? 0, j['label'] as String? ?? '', abnormal: j['abnormal'] == true);
+}
+
+/// A section whose score items add up to a named total.
+class ScoreSpec {
+  const ScoreSpec({required this.name, required this.bands});
+  final String name;
+
+  /// Ascending by [ScoreBand.min].
+  final List<ScoreBand> bands;
+
+  ScoreBand? bandFor(int total) {
+    ScoreBand? out;
+    for (final b in bands) {
+      if (total >= b.min) out = b;
+    }
+    return out;
+  }
+
+  Map<String, Object?> toJson() => {
+    'name': name,
+    'bands': [for (final b in bands) b.toJson()],
+  };
+
+  static ScoreSpec? fromJson(Object? j) => j is Map
+      ? ScoreSpec(
+          name: j['name'] as String? ?? 'Score',
+          bands: [
+            for (final b in (j['bands'] as List? ?? const []))
+              if (b is Map) ScoreBand.fromJson(b.cast<String, Object?>()),
+          ],
+        )
+      : null;
+}
+
+/// A section's score: total, the most it could be, and whether every item
+/// is answered.
+class SectionScore {
+  const SectionScore(this.spec, this.total, this.max, {required this.complete});
+  final ScoreSpec spec;
+  final int total, max;
+  final bool complete;
+
+  ScoreBand? get band => spec.bandFor(total);
+
+  /// "FLACC 6/10 — moderate pain".
+  String get line => '${spec.name} $total/$max${band == null ? '' : ' — ${band!.label}'}';
+}
+
 class FormSectionDef {
-  const FormSectionDef({required this.id, required this.title, required this.fields});
+  const FormSectionDef({required this.id, required this.title, required this.fields, this.score});
   final String id;
   final String title;
   final List<FormFieldDef> fields;
 
+  /// Set when the section's score items add up to a named total.
+  final ScoreSpec? score;
+
   bool get hasNormals => fields.any((f) => f.hasNormal);
+
+  FormSectionDef copyWith({String? title, List<FormFieldDef>? fields}) =>
+      FormSectionDef(id: id, title: title ?? this.title, fields: fields ?? this.fields, score: score);
+
+  /// The total so far, or null for an unscored section or no answers yet.
+  SectionScore? scoreFor(Map<String, Object?> answers) {
+    final spec = score;
+    if (spec == null) return null;
+    final items = fields.where((f) => f.type == FieldType.score).toList();
+    final got = [for (final f in items) f.pointsFor(answers[f.id])];
+    if (got.every((p) => p == null)) return null;
+    return SectionScore(
+      spec,
+      got.whereType<int>().fold(0, (a, b) => a + b),
+      items.fold(0, (a, f) => a + f.maxPoints),
+      complete: got.every((p) => p != null),
+    );
+  }
 
   Map<String, Object?> toJson() => {
     'id': id,
     'title': title,
     'fields': [for (final f in fields) f.toJson()],
+    if (score != null) 'score': score!.toJson(),
   };
 
   static FormSectionDef fromJson(Map<String, Object?> j) => FormSectionDef(
@@ -117,6 +231,7 @@ class FormSectionDef {
       for (final f in (j['fields'] as List? ?? const []))
         if (f is Map) FormFieldDef.fromJson(f.cast<String, Object?>()),
     ],
+    score: ScoreSpec.fromJson(j['score']),
   );
 }
 
@@ -208,11 +323,12 @@ Map<String, Object?> markSectionNormal(Map<String, Object?> answers, FormSection
 }
 
 /// Answers worth carrying into the next form of the same kind ("copy from
-/// last time"): everything except vital signs and dates.
+/// last time"): everything except vital signs, dates and scores, which are
+/// measured afresh each time.
 Map<String, Object?> carryForward(Map<String, Object?> previous, FormDefinition def) {
   final skip = {
     for (final f in def.fields)
-      if (f.type == FieldType.vitals || f.type == FieldType.date) f.id,
+      if (f.type == FieldType.vitals || f.type == FieldType.date || f.type == FieldType.score) f.id,
   };
   return {
     for (final e in previous.entries)

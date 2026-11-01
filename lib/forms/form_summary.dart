@@ -71,13 +71,25 @@ FormSummary summariseForm({
   final abnormal = <String>[];
   final values = <String>[];
   final texts = <String>[];
+  final scores = <String>[];
+
+  for (final section in definition.sections) {
+    final sc = section.scoreFor(answers);
+    if (sc == null) continue;
+    final line = sc.complete ? sc.line : '${sc.line} (incomplete)';
+    if (sc.complete && (sc.band?.abnormal ?? false)) {
+      abnormal.add(line);
+    } else {
+      scores.add(line);
+    }
+  }
 
   for (final f in definition.fields) {
     final v = answers[f.id];
     final detail = (answers[f.detailKey] as String?)?.trim();
     final withDetail = detail == null || detail.isEmpty ? '' : ' — $detail';
     switch (f.type) {
-      case FieldType.vitals:
+      case FieldType.vitals || FieldType.score:
         break;
       case FieldType.yesNo:
         if (v is! String || v.isEmpty) break;
@@ -108,6 +120,7 @@ FormSummary summariseForm({
 
   final clauses = <String>[
     if (vitals.isNotEmpty) vitalsLine(vitals),
+    ...scores,
     if (normals.isNotEmpty) normals.join(', '),
     if (normalChoices.isNotEmpty) 'normal: ${normalChoices.join(', ')}',
     for (final a in abnormal) '⚠ $a',

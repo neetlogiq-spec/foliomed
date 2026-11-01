@@ -254,9 +254,12 @@ class InsetTextRow extends StatelessWidget {
             )
           : Row(
               children: [
-                ConstrainedBox(
-                  constraints: const BoxConstraints(minWidth: 96),
-                  child: labelText,
+                // Long labels wrap rather than push the field off screen.
+                Flexible(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minWidth: 96),
+                    child: labelText,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(child: field),

@@ -115,7 +115,7 @@ class _FormEditorScreenState extends State<FormEditorScreen> {
     switch (choice) {
       case 'rename':
         final t = await _askText('Section title', s.title);
-        if (t != null) _updateSection(i, FormSectionDef(id: s.id, title: t, fields: s.fields));
+        if (t != null) _updateSection(i, s.copyWith(title: t));
       case 'up' || 'down':
         final j = choice == 'up' ? i - 1 : i + 1;
         setState(() {
@@ -158,6 +158,14 @@ class _FormEditorScreenState extends State<FormEditorScreen> {
   Future<void> _editField(int si, int? fi) async {
     final s = _sections[si];
     final existing = fi == null ? null : s.fields[fi];
+    if (existing?.type == FieldType.score || (fi == null && s.score != null)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Scored items follow a published tool and can’t be changed. You can delete the whole section.'),
+        ),
+      );
+      return;
+    }
     final result = await showAppSheet<_FieldEdit>(
       context: context,
       isScrollControlled: true,
@@ -179,7 +187,7 @@ class _FormEditorScreenState extends State<FormEditorScreen> {
       case _FieldAction.down:
         if (fi! < fields.length - 1) fields.insert(fi + 1, fields.removeAt(fi));
     }
-    _updateSection(si, FormSectionDef(id: s.id, title: s.title, fields: fields));
+    _updateSection(si, s.copyWith(fields: fields));
   }
 
   @override
@@ -377,7 +385,10 @@ class _FieldSheetState extends State<_FieldSheet> {
             ),
             const SizedBox(height: 6),
             ChipChoice(
-              options: [for (final t in FieldType.values) t.label],
+              options: [
+                for (final t in FieldType.values)
+                  if (t != FieldType.score) t.label,
+              ],
               value: _type.label,
               optional: false,
               onChanged: (v) => setState(() => _type = FieldType.values.firstWhere((t) => t.label == v)),

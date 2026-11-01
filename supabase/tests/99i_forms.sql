@@ -53,7 +53,7 @@ do $$ begin
   raise notice 'form saved with note, observation (out-of-range dropped) and weight';
 end $$;
 select public.save_patient_form('cccccccc-0000-0000-0000-000000000001', 'nursing_vitals', 'Nursing vitals', 1,
-  '{"sections": []}', '{}', 'Nursing vitals — Nurse B.', 0, '{"weight": 25}');
+  '{"sections": []}', '{}', 'Nursing vitals — Nurse B.', 0, '{"weight": 400}');
 do $$ begin
   if (select count(*) from public.weights) <> 1 then raise exception 'OUT-OF-RANGE WEIGHT SAVED'; end if;
   if (select count(*) from public.observations) <> 1 then raise exception 'EMPTY OBSERVATION SAVED'; end if;
@@ -73,4 +73,15 @@ select public.transfer_patient('cccccccc-0000-0000-0000-000000000001','22222',''
 do $$ begin
   if exists (select 1 from public.patient_forms where ward_id <> '22222') then raise exception 'FORMS DID NOT MOVE'; end if;
   raise notice 'filled forms follow transfer';
+end $$;
+
+-- Children's weights (not just newborns) are recorded.
+set request.jwt.claim.sub = 'aaaaaaaa-0000-0000-0000-000000000001';
+insert into public.patients (id, name, ward_id) values ('cccccccc-0000-0000-0000-000000000002','Older child','22222');
+select public.save_patient_form('cccccccc-0000-0000-0000-000000000002', 'nursing_vitals', 'Nursing vitals', 1,
+  '{"sections": []}', '{}', 'Nursing vitals — Dr A.', 0, '{"weight": 25.4}');
+do $$ begin
+  if (select grams from public.weights where patient_id = 'cccccccc-0000-0000-0000-000000000002') <> 25400
+    then raise exception 'CHILD WEIGHT NOT SAVED'; end if;
+  raise notice 'weights for any age';
 end $$;

@@ -83,6 +83,21 @@ class FormService {
     return out;
   }
 
+  /// Which of [keys] each patient already has a filled form for.
+  Future<Map<String, Set<String>>> filledKeys(List<String> patientIds, Iterable<String> keys) async {
+    if (patientIds.isEmpty) return const {};
+    final rows = await _client
+        .from('patient_forms')
+        .select('patient_id, template_key')
+        .inFilter('patient_id', patientIds)
+        .inFilter('template_key', keys.toList());
+    final out = <String, Set<String>>{for (final id in patientIds) id: <String>{}};
+    for (final r in rows) {
+      out[r['patient_id'] as String]?.add(r['template_key'] as String);
+    }
+    return out;
+  }
+
   Future<String> save({
     required String patientId,
     required FormTemplate template,

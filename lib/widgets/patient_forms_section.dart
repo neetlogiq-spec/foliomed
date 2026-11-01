@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../forms/builtin_forms.dart';
+import '../forms/form_due.dart';
 import '../forms/form_model.dart';
 import '../models/patient.dart';
 import '../models/patient_form.dart';
@@ -34,6 +35,10 @@ class _PatientFormsSectionState extends State<PatientFormsSection> {
       title: 'Fill a form',
       options: {for (final t in available) t.key: t.name},
     );
+    if (key != null) await _fillKey(available, key);
+  }
+
+  Future<void> _fillKey(List<FormTemplate> available, String key) async {
     final t = available.where((x) => x.key == key).firstOrNull;
     if (t == null || !mounted) return;
     final messenger = ScaffoldMessenger.of(context);
@@ -69,6 +74,16 @@ class _PatientFormsSectionState extends State<PatientFormsSection> {
             dividerIndent: 16,
             children: [
               if (fs.hasError) const SettingsRow(icon: Icons.cloud_off_outlined, title: "Couldn't load forms"),
+              if (fs.hasData)
+                for (final due in admissionFormsDue(p, {for (final f in forms) f.templateKey}))
+                  SettingsRow(
+                    icon: Icons.assignment_late_outlined,
+                    iconColor: due.isOverdueAt(DateTime.now()) ? AppColors.danger : AppColors.warning,
+                    title: '${due.name} ${due.isOverdueAt(DateTime.now()) ? 'overdue' : 'due'}',
+                    subtitle: 'Within 24 h of admission — by ${formatDueTime(due.dueBy)}',
+                    showChevron: true,
+                    onTap: () => _fillKey(available, due.key),
+                  ),
               for (final f in shown)
                 SettingsRow(
                   key: ValueKey(f.id),

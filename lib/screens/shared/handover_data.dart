@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 
 import '../../clinical/handover.dart';
+import '../../forms/builtin_forms.dart';
 import '../../models/handover_session.dart';
 import '../../models/medication.dart';
 import '../../models/patient.dart';
@@ -29,6 +30,7 @@ class HandoverExtras {
     this.medications = const {},
     this.allergies = const {},
     this.abnormalForms = const {},
+    this.filledForms,
   ]);
   HandoverExtras.empty() : this(TrackingSnapshot.empty(), const {});
 
@@ -45,6 +47,9 @@ class HandoverExtras {
   /// Newest form with abnormal answers in the last 24 h, by patient.
   final Map<String, PatientForm> abnormalForms;
 
+  /// Admission-form keys filled, by patient; null if they couldn't load.
+  final Map<String, Set<String>>? filledForms;
+
   static Future<HandoverExtras> load(List<String> patientIds) async {
     final results = await Future.wait([
       TrackingService().snapshot(patientIds).catchError((Object _) => TrackingSnapshot.empty()),
@@ -56,6 +61,10 @@ class HandoverExtras {
             (Object _) => (const <String, List<PatientMedication>>{}, const <String, List<PatientAllergy>>{}),
           ),
       FormService().recentAbnormal(patientIds).catchError((Object _) => const <String, PatientForm>{}),
+      FormService()
+          .filledKeys(patientIds, kAdmissionFormKeys.keys)
+          .then<Map<String, Set<String>>?>((v) => v)
+          .catchError((Object _) => null),
     ]);
     final meds = results[3] as (Map<String, List<PatientMedication>>, Map<String, List<PatientAllergy>>);
     return HandoverExtras(
@@ -65,6 +74,7 @@ class HandoverExtras {
       meds.$1,
       meds.$2,
       results[4] as Map<String, PatientForm>,
+      results[5] as Map<String, Set<String>>?,
     );
   }
 }
@@ -114,6 +124,7 @@ List<HandoverItem> handoverItems(
         medications: extras.medications[p.id] ?? const [],
         allergies: extras.allergies[p.id] ?? const [],
         abnormalForm: extras.abnormalForms[p.id],
+        filledFormKeys: extras.filledForms?[p.id],
       ),
   ];
   final unitOrder = units.units.map((u) => u.id).toList();

@@ -91,25 +91,39 @@ Future<void> showAddMedication(
   required MedContext medContext,
   required List<PatientAllergy> allergies,
   double? weightKg,
+  String? initialName,
 }) => showAppSheet(
   context: context,
   isScrollControlled: true,
-  builder: (_) => _AddMedication(patient: patient, medContext: medContext, allergies: allergies, weightKg: weightKg),
+  builder: (_) => _AddMedication(
+    patient: patient,
+    medContext: medContext,
+    allergies: allergies,
+    weightKg: weightKg,
+    initialName: initialName,
+  ),
 );
 
 class _AddMedication extends StatefulWidget {
-  const _AddMedication({required this.patient, required this.medContext, required this.allergies, this.weightKg});
+  const _AddMedication({
+    required this.patient,
+    required this.medContext,
+    required this.allergies,
+    this.weightKg,
+    this.initialName,
+  });
   final Patient patient;
   final MedContext medContext;
   final List<PatientAllergy> allergies;
   final double? weightKg;
+  final String? initialName;
 
   @override
   State<_AddMedication> createState() => _AddMedicationState();
 }
 
 class _AddMedicationState extends State<_AddMedication> {
-  final _name = TextEditingController();
+  late final _name = TextEditingController(text: widget.initialName ?? '');
   final _dose = TextEditingController();
   final _why = TextEditingController();
   late MedContext _context = widget.medContext;
@@ -424,22 +438,24 @@ class _ReasonState extends State<_Reason> {
 
 const _commonAllergens = ['Penicillin', 'Cephalosporin', 'Sulfonamide', 'NSAID', 'Egg', 'Peanut', 'Milk', 'Latex'];
 
-Future<void> showAddAllergy(BuildContext context, {required Patient patient}) => showAppSheet(
-  context: context,
-  isScrollControlled: true,
-  builder: (_) => _AddAllergy(patient: patient),
-);
+Future<void> showAddAllergy(BuildContext context, {required Patient patient, String? initialSubstance}) =>
+    showAppSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => _AddAllergy(patient: patient, initialSubstance: initialSubstance),
+    );
 
 class _AddAllergy extends StatefulWidget {
-  const _AddAllergy({required this.patient});
+  const _AddAllergy({required this.patient, this.initialSubstance});
   final Patient patient;
+  final String? initialSubstance;
 
   @override
   State<_AddAllergy> createState() => _AddAllergyState();
 }
 
 class _AddAllergyState extends State<_AddAllergy> {
-  final _substance = TextEditingController();
+  late final _substance = TextEditingController(text: widget.initialSubstance ?? '');
   final _reaction = TextEditingController();
   AllergySeverity _severity = AllergySeverity.unknown;
   AllergyKind _kind = AllergyKind.drug;
