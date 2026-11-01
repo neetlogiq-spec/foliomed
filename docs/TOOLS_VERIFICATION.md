@@ -44,3 +44,18 @@ Score wording (`lib/tools/newborn_scores.dart`) is FolioMed's own summary of
 each item — check it reads as your unit teaches it.
 
 Checked by: ____________________  Date: __________
+
+## Added November 2026 — resuscitation, guides, growth, labs
+
+| ✓ | Item | What to check | Source |
+|---|---|---|---|
+| ☐ | Resuscitation card | APLS weight formulas and normal ranges; PALS hypotension and shock energies; tube formulas; LMA by weight; first-drug list matches Emergency Drugs | APLS; AHA PALS 2020 |
+| ☐ | Anaphylaxis guide | IM adrenaline 0.01 mg/kg max 0.5 mg and the age doses; fluid bolus; refractory steps | RCUK 2021 |
+| ☐ | Status epilepticus guide | Benzodiazepine doses and routes (buccal 0.5, intranasal 0.2 mg/kg); second-line drugs and maxima; timings | AES 2016; ESETT |
+| ☐ | DKA guide | Diagnostic and severity cut-offs; fluids; insulin 0.05–0.1 units/kg/h from 1 h; potassium; dextrose threshold; mannitol / 3% saline doses | ISPAD 2022 |
+| ☐ | Acute severe asthma guide | Salbutamol, ipratropium, prednisolone (max 40 mg), hydrocortisone (max 100 mg), magnesium 40 mg/kg (max 2 g), IV salbutamol and aminophylline | BTS/SIGN 2019; GINA |
+| ☐ | Snakebite guide | First aid; 20WBCT method; ASV indications and initial 8–10 vials; repeat rules; neostigmine (left to unit protocol) | National Snakebite Management Protocol (India); WHO 2016 |
+| ☐ | Scorpion sting guide | Prazosin 30 mcg/kg every 3 h; observation period; antivenom; what to avoid | Bawaskar, BMJ 2011; IAP |
+| ☐ | WHO growth | LMS data imported from WHO's own tables (0–5 y standards; 5–19 y reference); test values reproduce WHO's printed SD lines; corrected age under 24 months for < 37 weeks | WHO 2006 / 2007 |
+| ☐ | Lab flags | Critical values in `lib/clinical/labs.dart` (Hb < 7, K < 2.5 / > 6.5, Na < 125 / > 155, glucose < 45 / > 400, pH < 7.2 / > 7.6, lactate > 4, …) suit your unit | Local lab critical-value policy |
+

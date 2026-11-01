@@ -33,9 +33,11 @@ import '../../widgets/newborn_tracking_section.dart';
 import '../../widgets/patient_actions.dart';
 import '../../widgets/patient_forms_section.dart';
 import '../../widgets/patient_infusions_section.dart';
+import '../../widgets/patient_labs_section.dart';
 import '../../widgets/patient_medications_section.dart';
 import '../../widgets/patient_jobs_section.dart';
 import '../../widgets/reminder_widgets.dart';
+import '../growth/growth_screen.dart';
 import '../jobs/add_job_sheet.dart';
 import '../notes/compose_note_sheet.dart';
 import '../notes/note_actions.dart';
@@ -193,6 +195,20 @@ class _PatientScreenState extends State<PatientScreen> {
         ],
         PatientFormsSection(key: ValueKey('forms-${p.id}'), patient: p),
         const SizedBox(height: 24),
+        PatientLabsSection(key: ValueKey('labs-${p.id}'), patient: p),
+        const SizedBox(height: 24),
+        if (birthDateOf(p) case (final born, _) when DateTime.now().difference(born).inDays < 19 * 365.25) ...[
+          InsetGroup(children: [
+            SettingsRow(
+              icon: Icons.show_chart,
+              title: 'Growth Charts',
+              subtitle: 'WHO weight, length, head and BMI',
+              showChevron: true,
+              onTap: () => Navigator.of(context).push(CupertinoPageRoute(builder: (_) => GrowthScreen(patient: p))),
+            ),
+          ]),
+          const SizedBox(height: 24),
+        ],
         _Details(patient: p),
         const SizedBox(height: 24),
         if (p.bornAt != null) ...[

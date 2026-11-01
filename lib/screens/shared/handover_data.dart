@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../clinical/handover.dart';
 import '../../forms/builtin_forms.dart';
 import '../../models/handover_session.dart';
+import '../../models/lab_result.dart';
 import '../../models/medication.dart';
 import '../../models/patient.dart';
 import '../../models/patient_form.dart';
@@ -16,6 +17,7 @@ import '../../providers/ward_feed.dart';
 import '../../services/drug_service.dart';
 import '../../services/form_service.dart';
 import '../../services/handover_service.dart';
+import '../../services/lab_service.dart';
 import '../../services/medication_service.dart';
 import '../../services/tracking_service.dart';
 import '../patients/patient_board.dart';
@@ -31,6 +33,7 @@ class HandoverExtras {
     this.allergies = const {},
     this.abnormalForms = const {},
     this.filledForms,
+    this.flaggedLabs = const {},
   ]);
   HandoverExtras.empty() : this(TrackingSnapshot.empty(), const {});
 
@@ -50,6 +53,9 @@ class HandoverExtras {
   /// Admission-form keys filled, by patient; null if they couldn't load.
   final Map<String, Set<String>>? filledForms;
 
+  /// Flagged lab results in the last 24 h, by patient.
+  final Map<String, List<LabResult>> flaggedLabs;
+
   static Future<HandoverExtras> load(List<String> patientIds) async {
     final results = await Future.wait([
       TrackingService().snapshot(patientIds).catchError((Object _) => TrackingSnapshot.empty()),
@@ -65,6 +71,7 @@ class HandoverExtras {
           .filledKeys(patientIds, kAdmissionFormKeys.keys)
           .then<Map<String, Set<String>>?>((v) => v)
           .catchError((Object _) => null),
+      LabService().recentFlagged(patientIds).catchError((Object _) => const <String, List<LabResult>>{}),
     ]);
     final meds = results[3] as (Map<String, List<PatientMedication>>, Map<String, List<PatientAllergy>>);
     return HandoverExtras(
@@ -75,6 +82,7 @@ class HandoverExtras {
       meds.$2,
       results[4] as Map<String, PatientForm>,
       results[5] as Map<String, Set<String>>?,
+      results[6] as Map<String, List<LabResult>>,
     );
   }
 }
@@ -125,6 +133,7 @@ List<HandoverItem> handoverItems(
         allergies: extras.allergies[p.id] ?? const [],
         abnormalForm: extras.abnormalForms[p.id],
         filledFormKeys: extras.filledForms?[p.id],
+        flaggedLabs: extras.flaggedLabs[p.id] ?? const [],
       ),
   ];
   final unitOrder = units.units.map((u) => u.id).toList();

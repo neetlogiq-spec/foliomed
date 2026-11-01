@@ -106,6 +106,12 @@ class HandoverCard extends StatelessWidget {
                 line(Icons.water_drop_outlined, 'Infusions: ${item.infusions.map((i) => i.line).join('; ')}'),
               if (item.medicationLine != null) line(Icons.medication_outlined, item.medicationLine!),
               if (item.formLine != null) line(Icons.assignment_late_outlined, item.formLine!, color: AppColors.warning),
+              if (item.labsLine != null)
+                line(
+                  Icons.science_outlined,
+                  item.labsLine!,
+                  color: item.flaggedLabs.any((r) => r.flag!.critical) ? AppColors.danger : AppColors.warning,
+                ),
               if (item.phototherapy != null)
                 line(
                   Icons.light_mode,

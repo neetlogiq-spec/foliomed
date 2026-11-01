@@ -6,6 +6,7 @@ import '../../utils/app_typography.dart';
 import '../../utils/layout.dart';
 import '../../widgets/inset_group.dart';
 import '../../widgets/large_title_app_bar.dart';
+import '../../guides/guides.dart';
 import '../../tools/newborn_scores.dart';
 import 'age_tool.dart';
 import 'ballard_tool.dart';
@@ -15,9 +16,12 @@ import 'hypoglycaemia_tool.dart';
 import 'vaccines_tool.dart';
 import 'exchange_tool.dart';
 import 'fluids_tool.dart';
+import 'growth_tool.dart';
+import 'guide_screen.dart';
 import 'emergency_drugs_tool.dart';
 import 'infusion_tool.dart';
 import 'lines_tool.dart';
+import 'resus_tool.dart';
 import 'sarnat_tool.dart';
 import 'score_tool.dart';
 
@@ -68,6 +72,11 @@ class _ToolsScreenState extends State<ToolsScreen> {
       _Tool('Modified Sarnat', 'HIE staging, with the NICHD moderate/severe criterion', Icons.psychology_outlined,
           AppColors.secondary, 'sarnat hie encephalopathy asphyxia cooling nichd stage', SarnatTool.new),
     ]),
+    _Group('Growth', [
+      _Tool('Growth (WHO)', 'z-score and centile: weight, length, head, BMI', Icons.show_chart, AppColors.stable,
+          'growth chart who centile percentile z score weight height length head circumference bmi stunting',
+          GrowthTool.new),
+    ]),
     _Group('Age', [
       _Tool('Corrected Age', 'Postmenstrual and corrected age for preterm babies', Icons.event_outlined,
           AppColors.secondary, 'pma cga gestation corrected preterm weeks', AgeTool.new),
@@ -88,6 +97,16 @@ class _ToolsScreenState extends State<ToolsScreen> {
     _Group('Procedures', [
       _Tool('Lines & Tubes', 'UVC/UAC length, ETT size and depth', Icons.straighten, AppColors.warning,
           'uvc uac umbilical catheter ett endotracheal tube intubation depth', LinesTool.new),
+    ]),
+    _Group('Resuscitation', [
+      _Tool('Resuscitation Card', 'Weight from age, normal signs, tubes, shocks, first drugs', Icons.monitor_heart,
+          AppColors.danger, 'resus resuscitation apls pals arrest broselow ett tube lma defib shock joules weight estimate',
+          ResusTool.new),
+    ]),
+    _Group('Emergency guides', [
+      for (final g in kGuides)
+        _Tool(g.title, g.subtitle, Icons.menu_book_outlined, AppColors.danger,
+            '${g.key} guide emergency protocol algorithm ${g.title.toLowerCase()}', () => GuideScreen(guide: g)),
     ]),
     _Group('Drugs', [
       _Tool('Emergency Drugs', 'Weight-based doses and syringes for NICU and PICU', Icons.emergency_outlined,

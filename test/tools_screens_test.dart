@@ -25,7 +25,7 @@ void main() {
   // A tall phone-width screen, so every row is built without scrolling.
   setUp(() {
     final view = TestWidgetsFlutterBinding.instance.platformDispatcher.views.first;
-    view.physicalSize = const Size(390 * 3, 2400 * 3);
+    view.physicalSize = const Size(390 * 3, 5000 * 3);
     view.devicePixelRatio = 3;
   });
   tearDown(() => TestWidgetsFlutterBinding.instance.platformDispatcher.views.first

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../clinical/bilirubin.dart';
+import '../clinical/growth.dart';
 import '../config/supabase_config.dart';
 import '../services/accessibility_settings.dart';
 import '../services/push_registration.dart';
@@ -26,6 +27,9 @@ Future<bool> prepareApp() async {
   await step('push', PushRegistration.instance.initFirebase);
   await step('AAP thresholds', () async {
     Aap2022.loadJson(await rootBundle.loadString('assets/clinical/aap2022_bilirubin.json'));
+  });
+  await step('WHO growth', () async {
+    WhoGrowth.loadJson(await rootBundle.loadString('assets/clinical/who_growth.json'));
   });
   await step('tips', TipStore.load);
 

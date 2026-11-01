@@ -1,6 +1,7 @@
 import 'package:intl/intl.dart';
 
 import '../models/handover_session.dart';
+import '../models/lab_result.dart';
 import '../models/medication.dart';
 import '../models/newborn_tracking.dart';
 import '../models/patient.dart';
@@ -35,6 +36,7 @@ class HandoverItem {
     this.allergies = const [],
     this.abnormalForm,
     this.filledFormKeys,
+    this.flaggedLabs = const [],
   });
 
   final Patient patient;
@@ -59,6 +61,16 @@ class HandoverItem {
 
   /// Admission-form keys already filled; null when not loaded.
   final Set<String>? filledFormKeys;
+
+  /// Flagged lab results from the last 24 h (latest per test).
+  final List<LabResult> flaggedLabs;
+
+  /// "Labs: Potassium 6.8 mmol/L ⚠↑, Hb 9.1 g/dL ↓".
+  String? get labsLine {
+    if (flaggedLabs.isEmpty) return null;
+    final sorted = [...flaggedLabs]..sort((a, b) => (b.flag!.critical ? 1 : 0) - (a.flag!.critical ? 1 : 0));
+    return 'Labs: ${sorted.map((r) => r.line).join(', ')}';
+  }
 
   List<FormDue> get formsDue => filledFormKeys == null ? const [] : admissionFormsDue(patient, filledFormKeys!);
 
@@ -155,6 +167,7 @@ class HandoverItem {
       if (infusions.isNotEmpty) 'Infusions: ${infusions.map((i) => i.line).join('; ')}',
       if (medicationLine != null) medicationLine!,
       if (formLine != null) '⚠ $formLine',
+      if (labsLine != null) labsLine!,
       if (phototherapy != null)
         '${phototherapy!.kind.label} phototherapy for ${phototherapy!.durationAt(now).inHours} h',
       if (bilirubin != null)
